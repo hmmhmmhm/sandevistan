@@ -32,15 +32,23 @@ const clamp = (value: number, count: number) => Math.min(
   Math.max(0, count - 1),
 );
 
-function transcriptionHints(settings: ConversateSettings) {
-  const languages = settings.spokenLanguages.toLowerCase().split(/[\s,;]+/)
+function transcriptionLanguage(locale: PhoneLocale) {
+  if (locale === "zh-Hans" || locale === "zh-Hant") return "zh";
+  if (locale === "fil") return "tl";
+  return locale;
+}
+
+function transcriptionHints(settings: ConversateSettings, locale: PhoneLocale) {
+  const configuredLanguages = settings.spokenLanguages.toLowerCase().split(/[\s,;]+/)
     .filter((value, index, all) => /^[a-z]{2,3}(?:-[a-z]{2})?$/.test(value)
       && all.indexOf(value) === index)
     .slice(0, 3);
+  const languages = [...new Set([transcriptionLanguage(locale), ...configuredLanguages])].slice(0, 3);
   const keywords = settings.transcriptionKeywords
     .split(/[,;\n]+/).map((value) => value.trim()).filter(Boolean).slice(0, 50);
   const prompt = [
-    "Live human conversation.",
+    "Live human conversation. Preserve the spoken language and do not translate the transcript.",
+    `Expected input languages: ${languages.join(", ")}.`,
     settings.goal.trim() ? `Conversation goal: ${settings.goal.trim()}.` : "",
     settings.prepNote && settings.inform && settings.prepNoteText.trim()
       ? `Context: ${settings.prepNoteText.trim()}` : "",
@@ -170,11 +178,12 @@ export function createConversateRuntime(options: {
         copilotOpen: false, transcriptOffset: 0, error: undefined,
       }, "input");
       const settings = options.getSettings();
-      const hints = transcriptionHints(settings);
+      const locale = options.getLocale();
+      const hints = transcriptionHints(settings, locale);
       session = (options.createSession ?? createConversateRealtimeSession)({
         bridge: options.bridge,
         key,
-        locale: options.getLocale(),
+        locale,
         ...hints,
         onPartial: (_itemId, text) => {
           clearTimeout(hideTimer);

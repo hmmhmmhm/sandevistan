@@ -7,6 +7,7 @@ import {
   resamplePcm16Le16To24,
   reduceRealtimeServerEvent,
 } from "./ai-realtime-protocol";
+import { createPcm16Le16To24Resampler } from "./ai-realtime-audio";
 
 describe("Realtime protocol", () => {
   it("retires a cancelled response while preserving its received partial text", () => {
@@ -114,6 +115,26 @@ describe("Realtime protocol", () => {
       2_000,
       2_667,
       3_000,
+    ]);
+  });
+
+  it("preserves the waveform when source PCM arrives in uneven stream packets", () => {
+    const input = new Int16Array(Array.from({ length: 97 }, (_, index) => (
+      Math.round(Math.sin(index / 7) * 12_000)
+    )));
+    const bytes = new Uint8Array(input.buffer);
+    const resampler = createPcm16Le16To24Resampler();
+    const pieces = [bytes.slice(0, 35), bytes.slice(35, 112), bytes.slice(112)];
+    const output = pieces.map((piece) => resampler.push(piece));
+    output.push(resampler.flush());
+    const joined = new Uint8Array(output.reduce((total, piece) => total + piece.length, 0));
+    let offset = 0;
+    for (const piece of output) {
+      joined.set(piece, offset);
+      offset += piece.length;
+    }
+    expect([...new Int16Array(joined.buffer)]).toEqual([
+      ...new Int16Array(resamplePcm16Le16To24(bytes).buffer),
     ]);
   });
 

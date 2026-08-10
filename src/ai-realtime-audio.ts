@@ -21,29 +21,99 @@ export function createAudioAppendEvent(bytes: Uint8Array) {
   };
 }
 
-export function resamplePcm16Le16To24(bytes: Uint8Array): Uint8Array {
-  const sampleCount = Math.floor(bytes.byteLength / 2);
-  if (sampleCount === 0) return new Uint8Array();
-  const input = new DataView(
-    bytes.buffer,
-    bytes.byteOffset,
-    sampleCount * 2,
-  );
-  const outputSampleCount = Math.round(sampleCount * 1.5);
-  const output = new Uint8Array(outputSampleCount * 2);
-  const view = new DataView(output.buffer);
-  for (let index = 0; index < outputSampleCount; index += 1) {
-    const position = index * 2 / 3;
-    const lowerIndex = Math.min(Math.floor(position), sampleCount - 1);
-    const upperIndex = Math.min(lowerIndex + 1, sampleCount - 1);
-    const ratio = position - lowerIndex;
-    const lower = input.getInt16(lowerIndex * 2, true);
-    const upper = input.getInt16(upperIndex * 2, true);
-    const sample = Math.max(
-      -32_768,
-      Math.min(32_767, Math.round(lower + (upper - lower) * ratio)),
-    );
-    view.setInt16(index * 2, sample, true);
+function pcm16le(samples: readonly number[]): Uint8Array {
+  const bytes = new Uint8Array(samples.length * 2);
+  const view = new DataView(bytes.buffer);
+  for (let index = 0; index < samples.length; index += 1) {
+    view.setInt16(index * 2, samples[index] ?? 0, true);
   }
+  return bytes;
+}
+
+/**
+ * Stateful 16 kHz -> 24 kHz PCM16 resampler.
+ *
+ * A Realtime audio stream arrives in arbitrary-sized packets. Keeping the
+ * fractional source position and the last source sample prevents a packet
+ * boundary from changing the waveform or its duration.
+ */
+export function createPcm16Le16To24Resampler() {
+  let samples: number[] = [];
+  let sampleOffset = 0;
+  let nextPositionThirds = 0;
+  let trailingByte: number | undefined;
+
+  const append = (bytes: Uint8Array) => {
+    let input = bytes;
+    if (trailingByte !== undefined) {
+      input = new Uint8Array(bytes.length + 1);
+      input[0] = trailingByte;
+      input.set(bytes, 1);
+      trailingByte = undefined;
+    }
+    if (input.length % 2) {
+      trailingByte = input.at(-1);
+      input = input.slice(0, -1);
+    }
+    const view = new DataView(input.buffer, input.byteOffset, input.byteLength);
+    for (let index = 0; index < input.byteLength; index += 2) {
+      samples.push(view.getInt16(index, true));
+    }
+  };
+
+  const drain = (final = false) => {
+    if (!samples.length) return new Uint8Array();
+    const output: number[] = [];
+    const lastIndex = sampleOffset + samples.length - 1;
+    while (true) {
+      const lowerIndex = Math.floor(nextPositionThirds / 3);
+      const remainder = nextPositionThirds % 3;
+      if (lowerIndex > lastIndex || (!final && remainder > 0 && lowerIndex + 1 > lastIndex)) {
+        break;
+      }
+      const lower = samples[lowerIndex - sampleOffset] ?? 0;
+      const upper = samples[Math.min(lowerIndex + 1, lastIndex) - sampleOffset] ?? lower;
+      output.push(Math.round(lower + (upper - lower) * remainder / 3));
+      nextPositionThirds += 2;
+    }
+    const nextLowerIndex = Math.floor(nextPositionThirds / 3);
+    const discard = Math.max(0, Math.min(samples.length - 1, nextLowerIndex - sampleOffset));
+    if (discard) {
+      samples = samples.slice(discard);
+      sampleOffset += discard;
+    }
+    return pcm16le(output);
+  };
+
+  return {
+    push(bytes: Uint8Array) {
+      append(bytes);
+      return drain();
+    },
+    flush() {
+      const output = drain(true);
+      samples = [];
+      sampleOffset = 0;
+      nextPositionThirds = 0;
+      trailingByte = undefined;
+      return output;
+    },
+    reset() {
+      samples = [];
+      sampleOffset = 0;
+      nextPositionThirds = 0;
+      trailingByte = undefined;
+    },
+  };
+}
+
+/** One-shot helper retained for non-streaming callers and unit tests. */
+export function resamplePcm16Le16To24(bytes: Uint8Array): Uint8Array {
+  const resampler = createPcm16Le16To24Resampler();
+  const streamed = resampler.push(bytes);
+  const final = resampler.flush();
+  const output = new Uint8Array(streamed.length + final.length);
+  output.set(streamed);
+  output.set(final, streamed.length);
   return output;
 }

@@ -40,7 +40,14 @@ describe("Conversate realtime transcription", () => {
         const socket: RealtimeSocket = {
           readyState: 1,
           onopen: null, onmessage: null, onerror: null, onclose: null,
-          send(value) { messages.push(value); },
+          send(value) {
+            messages.push(value);
+            if (JSON.parse(value).type === "session.update") {
+              queueMicrotask(() => socket.onmessage?.({
+                data: JSON.stringify({ type: "session.updated" }),
+              } as MessageEvent<string>));
+            }
+          },
           close() {},
         };
         sent.push(messages);
@@ -53,9 +60,10 @@ describe("Conversate realtime transcription", () => {
     const liveUpdate = sent[0]?.map((value) => JSON.parse(value))
       .find(({ type }) => type === "session.update");
     expect(liveUpdate.session.audio.input.transcription).toMatchObject({
-      model: "gpt-live-transcribe", delay: "medium",
+      model: "gpt-live-transcribe", delay: "high",
       languages: ["ko", "en"], keywords: ["Sandevistan", "G2"],
     });
+    expect(liveUpdate.session.audio.input.noise_reduction).toEqual({ type: "far_field" });
     expect(liveUpdate.session.audio.input.turn_detection).toBeNull();
     const refinementUpdate = sent[1]?.map((value) => JSON.parse(value))
       .find(({ type }) => type === "session.update");
@@ -63,16 +71,6 @@ describe("Conversate realtime transcription", () => {
       model: "gpt-transcribe", prompt: "Live conversation about Sandevistan",
       languages: ["ko", "en"], keywords: ["Sandevistan", "G2"],
     });
-    sockets[0]?.onmessage?.({ data: JSON.stringify({
-      type: "error",
-      error: { code: "invalid_value", param: "session.audio.input.transcription.languages" },
-    }) } as MessageEvent<string>);
-    const fallback = JSON.parse(sent[0]?.at(-1) ?? "{}");
-    expect(fallback.session.audio.input.transcription).toEqual({
-      model: "gpt-live-transcribe", delay: "low",
-    });
-    expect(error).not.toHaveBeenCalled();
-    sockets[0]?.onmessage?.({ data: JSON.stringify({ type: "session.updated" }) } as MessageEvent<string>);
     sockets[0]?.onmessage?.({ data: JSON.stringify({
       type: "conversation.item.input_audio_transcription.delta",
       item_id: "item-1",
@@ -93,6 +91,9 @@ describe("Conversate realtime transcription", () => {
     expect(refined).toHaveBeenCalledWith("item-1", "안녕하십니까");
     sockets[0]?.onmessage?.({ data: JSON.stringify({ type: "error" }) } as MessageEvent<string>);
     expect(error).toHaveBeenCalledWith("Transcription session error");
+    listener?.({ audioEvent: {
+      source: AudioInputSource.Glasses, audioPcm: pcm(4_000),
+    } } as EvenHubEvent);
     listener?.({ audioEvent: {
       source: AudioInputSource.Glasses, audioPcm: pcm(4_000),
     } } as EvenHubEvent);

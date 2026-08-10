@@ -1,5 +1,8 @@
 import { AudioInputSource, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
-import { createAudioAppendEvent, resamplePcm16Le16To24 } from "./ai-realtime-audio";
+import {
+  createAudioAppendEvent,
+  createPcm16Le16To24Resampler,
+} from "./ai-realtime-audio";
 import { requestRealtimeClientSecret } from "./ai-realtime-token";
 import {
   createDefaultRealtimeSocket,
@@ -17,6 +20,28 @@ type Bridge = {
   audioControl(isOpen: boolean, source?: AudioInputSource): Promise<boolean>;
   onEvenHubEvent(listener: (event: EvenHubEvent) => void): () => void;
 };
+
+type ConfigurationWaiter = {
+  resolve(): void;
+  reject(error: Error): void;
+};
+
+type CompletedLiveTurn = {
+  readonly itemId: string;
+  readonly text: string;
+};
+
+function resemblesSameTurn(first: string, second: string) {
+  const normalize = (value: string) => value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+  const left = normalize(first);
+  const right = normalize(second);
+  if (!left || !right) return false;
+  if (left.includes(right) || right.includes(left)) return true;
+  for (let index = 0; index + 1 < left.length; index += 1) {
+    if (right.includes(left.slice(index, index + 2))) return true;
+  }
+  return false;
+}
 
 export type ConversateRealtimeSession = {
   start(): Promise<void>;
@@ -45,12 +70,15 @@ export function createConversateRealtimeSession(options: {
   let microphoneOpen = false;
   let closing = false;
   const partials = new Map<string, string>();
-  const liveItems: string[] = [];
+  const liveItems: CompletedLiveTurn[] = [];
   const refinedTurns: string[] = [];
   let configured = false;
   let usedCompatibilityFallback = false;
+  let liveConfigurationWaiter: ConfigurationWaiter | undefined;
+  let refinementConfigurationWaiter: ConfigurationWaiter | undefined;
   const abort = new AbortController();
   const localVad = createConversateLocalVad();
+  const resampler = createPcm16Le16To24Resampler();
   const languages = [...new Set(options.languages ?? [])]
     .filter((value) => /^[a-z]{2,3}(?:-[a-z]{2})?$/.test(value))
     .slice(0, 3);
@@ -63,6 +91,31 @@ export function createConversateRealtimeSession(options: {
     if (target?.readyState === SOCKET_OPEN) target.send(JSON.stringify(value));
   };
 
+  const waitForConfiguration = (refinement: boolean) => new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      const error = new Error("Transcription configuration timed out");
+      if (refinement) refinementConfigurationWaiter = undefined;
+      else liveConfigurationWaiter = undefined;
+      reject(error);
+    }, 5_000);
+    const waiter: ConfigurationWaiter = {
+      resolve: () => {
+        clearTimeout(timeout);
+        if (refinement) refinementConfigurationWaiter = undefined;
+        else liveConfigurationWaiter = undefined;
+        resolve();
+      },
+      reject: (error) => {
+        clearTimeout(timeout);
+        if (refinement) refinementConfigurationWaiter = undefined;
+        else liveConfigurationWaiter = undefined;
+        reject(error);
+      },
+    };
+    if (refinement) refinementConfigurationWaiter = waiter;
+    else liveConfigurationWaiter = waiter;
+  });
+
   const sendLiveConfiguration = (extended: boolean) => {
     configured = false;
     send(socket, {
@@ -71,9 +124,10 @@ export function createConversateRealtimeSession(options: {
         type: "transcription",
         audio: { input: {
           format: { type: "audio/pcm", rate: 24_000 },
+          noise_reduction: { type: "far_field" },
           transcription: {
             model: "gpt-live-transcribe",
-            delay: extended ? "medium" : "low",
+            delay: extended ? "high" : "medium",
             ...(extended && options.prompt ? { prompt: options.prompt } : {}),
             ...(extended && languages.length ? { languages } : {}),
             ...(extended && keywords.length ? { keywords } : {}),
@@ -85,9 +139,13 @@ export function createConversateRealtimeSession(options: {
   };
 
   const publishRefinements = () => {
-    // ponytail: same audio and VAD preserve turn order; add timestamp matching if production proves otherwise.
     while (liveItems.length && refinedTurns.length) {
-      options.onRefined(liveItems.shift() ?? "", refinedTurns.shift() ?? "");
+      const refined = refinedTurns[0];
+      const index = liveItems.findIndex((turn) => resemblesSameTurn(turn.text, refined ?? ""));
+      if (index < 0) return;
+      const [turn] = liveItems.splice(index, 1);
+      refinedTurns.shift();
+      if (turn && refined) options.onRefined(turn.itemId, refined);
     }
   };
 
@@ -127,11 +185,19 @@ export function createConversateRealtimeSession(options: {
     next.onmessage = ({ data }) => {
       let event: Record<string, unknown>;
       try { event = JSON.parse(data) as Record<string, unknown>; } catch { return; }
-      if (!refinement && event.type === "session.updated") {
-        configured = true;
+      if (event.type === "session.updated") {
+        if (refinement) refinementConfigurationWaiter?.resolve();
+        else {
+          configured = true;
+          liveConfigurationWaiter?.resolve();
+        }
         return;
       }
       if (event.type === "error") {
+        if (refinement) {
+          refinementConfigurationWaiter?.reject(new Error("Refinement configuration rejected"));
+          return;
+        }
         if (!refinement && !configured && !usedCompatibilityFallback) {
           const detail = typeof event.error === "object" && event.error !== null
             ? event.error as Record<string, unknown> : {};
@@ -142,7 +208,19 @@ export function createConversateRealtimeSession(options: {
           );
           usedCompatibilityFallback = true;
           sendLiveConfiguration(false);
-        } else if (!refinement) options.onError("Transcription session error");
+        } else if (!refinement) {
+          liveConfigurationWaiter?.reject(new Error("Transcription session error"));
+          options.onError("Transcription session error");
+        }
+        return;
+      }
+      if (event.type === "conversation.item.input_audio_transcription.failed") {
+        const detail = typeof event.error === "object" && event.error !== null
+          ? event.error as Record<string, unknown> : {};
+        logDiagnostic(
+          "ERROR",
+          `Conversate transcription failed · code ${String(detail.code ?? "unknown").slice(0, 80)}`,
+        );
         return;
       }
       const itemId = typeof event.item_id === "string" ? event.item_id : "";
@@ -163,7 +241,7 @@ export function createConversateRealtimeSession(options: {
           publishRefinements();
         } else if (text) {
           options.onCompleted(itemId, text);
-          liveItems.push(itemId);
+          liveItems.push({ itemId, text });
           publishRefinements();
         }
       }
@@ -186,37 +264,55 @@ export function createConversateRealtimeSession(options: {
         refinementSocket?.close();
         refinementSocket = undefined;
       });
+      const liveConfiguration = waitForConfiguration(false);
       sendLiveConfiguration(true);
-      send(refinementSocket, {
-        type: "session.update",
-        session: {
-          type: "transcription",
-          audio: { input: {
-            format: { type: "audio/pcm", rate: 24_000 },
-            transcription: {
-              model: "gpt-transcribe",
-              ...(options.prompt ? { prompt: options.prompt } : {}),
-              ...(languages.length ? { languages } : {}),
-              ...(keywords.length ? { keywords } : {}),
-            },
-            turn_detection: null,
-          } },
-        },
-      });
+      await liveConfiguration;
+      if (refinementSocket) {
+        const refinementConfiguration = waitForConfiguration(true);
+        send(refinementSocket, {
+          type: "session.update",
+          session: {
+            type: "transcription",
+            audio: { input: {
+              format: { type: "audio/pcm", rate: 24_000 },
+            noise_reduction: { type: "far_field" },
+              transcription: {
+                model: "gpt-transcribe",
+                ...(options.prompt ? { prompt: options.prompt } : {}),
+                ...(languages.length ? { languages } : {}),
+                ...(keywords.length ? { keywords } : {}),
+              },
+              turn_detection: null,
+            } },
+          },
+        });
+        await refinementConfiguration.catch(() => {
+          logDiagnostic("ERROR", "Conversate refinement unavailable");
+          refinementSocket?.close();
+          refinementSocket = undefined;
+        });
+      }
       unsubscribe = options.bridge.onEvenHubEvent((event) => {
         const audio = event.audioEvent;
         if (!microphoneOpen || socket?.readyState !== SOCKET_OPEN || !audio
           || audio.source !== AudioInputSource.Glasses || audio.audioPcm.length === 0
           || audio.audioPcm.length > MAX_PCM_CHUNK_BYTES) return;
         const decision = localVad(audio.audioPcm);
+        if (decision.started) resampler.reset();
         for (const chunk of decision.audio) {
-          const bytes = resamplePcm16Le16To24(chunk);
+          const bytes = resampler.push(chunk);
           if (!bytes.length) continue;
           const append = createAudioAppendEvent(bytes);
           send(socket, append);
           send(refinementSocket, append);
         }
         if (decision.commit) {
+          const final = resampler.flush();
+          if (final.length) {
+            const append = createAudioAppendEvent(final);
+            send(socket, append);
+            send(refinementSocket, append);
+          }
           const commit = { type: "input_audio_buffer.commit" };
           send(socket, commit);
           send(refinementSocket, commit);
