@@ -12,6 +12,7 @@ import {
 import type { EvenStorage } from "./live-cache";
 import type { PhoneLocale } from "./phone-types";
 import { logDiagnostic } from "./diagnostic-log";
+import type { NativeConversateUpdatePriority } from "./native-conversate-text";
 
 type Bridge = EvenStorage & {
   audioControl(isOpen: boolean, source?: AudioInputSource): Promise<boolean>;
@@ -54,7 +55,9 @@ export function createConversateRuntime(options: {
   readonly getSettings: () => ConversateSettings;
   readonly getSnapshot: () => ConversateSnapshot;
   readonly onSnapshot: (snapshot: ConversateSnapshot) => void;
-  readonly refresh: () => void | Promise<void>;
+  readonly refresh: (
+    priority?: NativeConversateUpdatePriority,
+  ) => void | Promise<void>;
   readonly createSession?: typeof createConversateRealtimeSession;
 }) : ConversateRuntime {
   let session: ReturnType<typeof createConversateRealtimeSession> | undefined;
@@ -64,15 +67,18 @@ export function createConversateRuntime(options: {
   let analysisAbort: AbortController | undefined;
   let pendingAnalysis = false;
 
-  const publish = (patch: Partial<ConversateSnapshot>) => {
+  const publish = (
+    patch: Partial<ConversateSnapshot>,
+    priority: NativeConversateUpdatePriority = "analysis",
+  ) => {
     if (disposed) return;
     options.onSnapshot({ ...options.getSnapshot(), ...patch });
-    void options.refresh();
+    void options.refresh(priority);
   };
 
   const scheduleInformHide = () => {
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => publish({ activeInform: undefined }),
+    hideTimer = setTimeout(() => publish({ activeInform: undefined }, "analysis"),
       options.getSettings().informSeconds * 1_000);
   };
 
@@ -133,7 +139,7 @@ export function createConversateRuntime(options: {
             selectedInform: 0,
           } : {}),
         } : {}),
-      });
+      }, "analysis");
       if (inform && isLatest) scheduleInformHide();
       logDiagnostic("LIVE", `Conversate analysis complete · Inform ${inform ? "ready" : "empty"}`);
     } catch (error) {
@@ -154,7 +160,7 @@ export function createConversateRuntime(options: {
       if (disposed || session) return false;
       const key = options.getKey();
       if (!key) {
-        publish({ phase: "error", error: "OpenAI key required" });
+        publish({ phase: "error", error: "OpenAI key required" }, "input");
         return false;
       }
       startedAt = new Date().toISOString();
@@ -162,7 +168,7 @@ export function createConversateRuntime(options: {
         phase: "connecting", partial: "", segments: [], informs: [],
         activeInform: undefined, suggestions: [], selectedSuggestion: 0,
         copilotOpen: false, transcriptOffset: 0, error: undefined,
-      });
+      }, "input");
       const settings = options.getSettings();
       const hints = transcriptionHints(settings);
       session = (options.createSession ?? createConversateRealtimeSession)({
@@ -175,7 +181,7 @@ export function createConversateRuntime(options: {
           publish({
             partial: text.slice(-500), activeInform: undefined,
             suggestions: [], selectedSuggestion: 0, copilotOpen: false,
-          });
+          }, "transcript");
         },
         onCompleted: (itemId, text) => {
           const current = options.getSnapshot();
@@ -189,7 +195,7 @@ export function createConversateRuntime(options: {
             segments: [...current.segments, segment].slice(-200),
             suggestions: [], selectedSuggestion: 0, copilotOpen: false,
             phase: "listening",
-          });
+          }, "transcript");
           void analyzeLatest();
         },
         onRefined: (itemId, text) => {
@@ -200,14 +206,14 @@ export function createConversateRuntime(options: {
           const segment = segments[index];
           if (!segment) return;
           segments[index] = { ...segment, text: text.slice(0, 500) };
-          publish({ segments });
+          publish({ segments }, "transcript");
           void analyzeLatest();
         },
-        onError: (error) => publish({ phase: "error", error }),
+        onError: (error) => publish({ phase: "error", error }, "transcript"),
       });
       try {
         await session.start();
-        publish({ phase: "listening", error: undefined });
+        publish({ phase: "listening", error: undefined }, "input");
         return true;
       } catch (error) {
         const failed = session;
@@ -216,7 +222,7 @@ export function createConversateRuntime(options: {
         publish({
           phase: "error",
           error: error instanceof Error ? error.message.slice(0, 160) : "Conversate failed",
-        });
+        }, "input");
         return false;
       }
     },
@@ -243,40 +249,40 @@ export function createConversateRuntime(options: {
         phase: "idle", partial: "", history: nextHistory,
         activeInform: undefined, suggestions: [], copilotOpen: false,
         transcriptOffset: 0, informHistoryOpen: false, error: undefined,
-      });
+      }, "input");
     },
     tap() {
       const current = options.getSnapshot();
       if (current.activeInform) {
         clearTimeout(hideTimer);
-        publish({ activeInform: undefined });
+        publish({ activeInform: undefined }, "input");
       } else if (current.informHistoryOpen && current.informs.length) {
-        publish({ activeInform: current.informs[current.selectedInform], informHistoryOpen: false });
+        publish({ activeInform: current.informs[current.selectedInform], informHistoryOpen: false }, "input");
         scheduleInformHide();
       } else if (current.copilotOpen) {
         publish(current.informs.length
           ? { copilotOpen: false, informHistoryOpen: true, selectedInform: 0 }
-          : { copilotOpen: false });
+          : { copilotOpen: false }, "input");
       } else if (current.suggestions.length) {
-        publish({ copilotOpen: true, transcriptOffset: 0 });
+        publish({ copilotOpen: true, transcriptOffset: 0 }, "input");
       } else if (current.informs.length) {
-        publish({ informHistoryOpen: true, selectedInform: 0 });
+        publish({ informHistoryOpen: true, selectedInform: 0 }, "input");
       }
     },
     scroll(delta) {
       const current = options.getSnapshot();
       if (current.informHistoryOpen) {
-        publish({ selectedInform: clamp(current.selectedInform + delta, current.informs.length) });
+        publish({ selectedInform: clamp(current.selectedInform + delta, current.informs.length) }, "input");
       } else if (current.copilotOpen) {
         publish({ selectedSuggestion: clamp(
           current.selectedSuggestion + delta,
           current.suggestions.length,
-        ) });
+        ) }, "input");
       } else {
         publish({ transcriptOffset: clamp(
           current.transcriptOffset - delta,
           current.segments.length,
-        ) });
+        ) }, "input");
       }
     },
     dispose() {

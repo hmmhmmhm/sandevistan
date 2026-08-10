@@ -85,13 +85,28 @@ export function createFastNativeAiTextController(options: {
       if (entered) options.invalidateImages();
       return entered;
     },
-    updateConversate: (content) => restoringImages
+    updateConversate: (content, priority) => restoringImages
       ? Promise.resolve(false)
-      : trace("native Conversate update", () => conversate.update(content)),
+      : trace(
+          "native Conversate update",
+          () => conversate.update(content, priority),
+        ),
     async restore() {
       if ((!mode.active() && !conversate.active()) || restoringImages) return false;
       restoringImages = true;
       try {
+        if (conversate.active()) {
+          const left = await trace("native Conversate leave", conversate.leave);
+          if (!left) return false;
+          await waitForImagePageReady(NATIVE_AI_IMAGE_PAGE_SETTLE_MS);
+          logDiagnostic(
+            "REFRESH",
+            `native AI image page ready · ${NATIVE_AI_IMAGE_PAGE_SETTLE_MS}ms`,
+          );
+          options.invalidateImages();
+          await options.restoreImages();
+          return true;
+        }
         const neutralized = await trace("native AI neutralize", async () => {
           try {
             const rebuilt = await options.bridge.rebuildPageContainer(
@@ -111,8 +126,8 @@ export function createFastNativeAiTextController(options: {
           `native AI neutral page ready · ${NATIVE_AI_NEUTRAL_PAGE_SETTLE_MS}ms`,
         );
         const left = await trace(
-          mode.active() ? "native AI leave" : "native Conversate leave",
-          mode.active() ? mode.leave : conversate.leave,
+          "native AI leave",
+          mode.leave,
         );
         if (!left) return false;
         await waitForImagePageReady(NATIVE_AI_IMAGE_PAGE_SETTLE_MS);

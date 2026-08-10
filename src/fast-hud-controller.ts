@@ -319,10 +319,10 @@ export function useHudController({
             conversateSnapshotRef.current = snapshot;
             setConversateSnapshot(snapshot);
           },
-          refresh: async () => {
+          refresh: async (priority) => {
             if (cancelled) return;
             if (view.mode === "conversate" && nativeAiText?.active()) {
-              await nativeAiText.updateConversate?.(nativeConversateContent());
+              await nativeAiText.updateConversate?.(nativeConversateContent(), priority);
               return;
             }
             drawCurrentPage();

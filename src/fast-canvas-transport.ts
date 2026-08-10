@@ -29,6 +29,8 @@ import { waitForTileSend } from "./image-send-timeout";
 import { createFastNativeAiTextController } from "./fast-native-ai-text-transport";
 import { fastRefreshDropReason } from "./fast-refresh-guard";
 import { TRANSPORT_STATUS } from "./transport-status";
+import { createFastCanvasScheduler } from "./fast-canvas-scheduler";
+import { createFastRefreshHealth } from "./fast-refresh-health";
 import type {
   Bridge,
   DisplayToggle,
@@ -94,7 +96,8 @@ export async function transmitCanvas(
   }
 
   const lastSuccessfulTilePayload = new Map<number, Uint8Array>();
-  const refreshImages = async (
+  const refreshHealth = createFastRefreshHealth();
+  const sendImages = async (
     imageSource: HTMLCanvasElement,
     targetTiles: readonly Tile[],
     completionMessage: string,
@@ -210,10 +213,11 @@ export async function transmitCanvas(
       );
     }
   };
+  const refreshImages = (...args: Parameters<typeof sendImages>) =>
+    refreshHealth.run(() => sendImages(...args));
   await refreshImages(source, tiles, TRANSPORT_STATUS.active);
   let disposed = false, hidden = false;
   let hiddenSource: HTMLCanvasElement | undefined;
-  let busy = false;
   const nativeText = createFastNativeAiTextController({
     bridge, tiles,
     waitForImagePageReady: dependencies.waitForPageReady,
@@ -223,39 +227,6 @@ export async function transmitCanvas(
       logDiagnostic("ERROR", `native AI text ${operation} failed`);
     },
   });
-  const startOperation = (
-    label: string,
-    operation: () => void | Promise<void>,
-  ): boolean => {
-    if (disposed || busy) {
-      logDiagnostic(
-        "REFRESH",
-        `${label} dropped · ${disposed ? "disposed" : "busy"}`,
-      );
-      return false;
-    }
-    busy = true;
-    const startedAt = diagnosticNow();
-    logDiagnostic("REFRESH", `${label} accepted`);
-    void (async () => operation())()
-      .catch((error: unknown) => {
-        logDiagnostic(
-          "ERROR",
-          `${label} failed · ${diagnosticError(error)}`,
-          diagnosticDuration(startedAt),
-        );
-        onProgress(diagnosticError(error));
-      })
-      .finally(() => {
-        busy = false;
-        logDiagnostic(
-          "REFRESH",
-          `${label} complete`,
-          diagnosticDuration(startedAt),
-        );
-      });
-    return true;
-  };
   const performNavigation = async (direction: PageDirection) => {
     if (!onNavigate || hidden || disposed) return;
     onProgress(TRANSPORT_STATUS.active);
@@ -344,6 +315,43 @@ export async function transmitCanvas(
       logDiagnostic("REFRESH", "hide complete");
     }
   };
+  const performInput = async (
+    input: FastCanvasInput,
+    fallback?: () => void | Promise<void>,
+  ) => {
+    if (disposed) return;
+    if (hidden) {
+      if (input === "double-tap") await performDisplayToggle();
+      return;
+    }
+    const result = await onInput?.(input) ?? "unhandled";
+    logDiagnostic("INPUT", `${input} result · ${result}`);
+    if (disposed) return;
+    if (result === "redraw") {
+      await refreshImages(source, tiles, TRANSPORT_STATUS.active);
+    } else if (result === "unhandled") {
+      await fallback?.();
+    }
+  };
+  const scheduler = createFastCanvasScheduler({
+    externalDropReason: () => fastRefreshDropReason({
+      available: Boolean(externalRefresh), disposed, hidden,
+      nativeText: nativeText?.active() ?? false,
+      degraded: refreshHealth.degraded(),
+    }),
+    onError: onProgress,
+    performExternal: async (target) => {
+      onProgress(TRANSPORT_STATUS.active);
+      await externalRefresh!.beforeExternalRefresh?.();
+      if (hidden || disposed) return;
+      await refreshImages(
+        source,
+        externalRefresh!.targetTiles[target],
+        TRANSPORT_STATUS.active,
+        () => !disposed && !hidden,
+      );
+    },
+  });
   const handleInput = (
     input: FastCanvasInput,
     fallback?: () => void | Promise<void>,
@@ -355,46 +363,13 @@ export async function transmitCanvas(
       );
       return;
     }
-    startOperation(`input ${input}`, async () => {
-      if (disposed) return;
-      if (hidden) {
-        if (input === "double-tap") await performDisplayToggle();
-        return;
-      }
-      const result = await onInput?.(input) ?? "unhandled";
-      logDiagnostic("INPUT", `${input} result · ${result}`);
-      if (disposed) return;
-      if (result === "redraw") {
-        await refreshImages(source, tiles, TRANSPORT_STATUS.active);
-      } else if (result === "unhandled") {
-        await fallback?.();
-      }
+    scheduler.enqueueInput({
+      label: `input ${input}`,
+      run: () => performInput(input, fallback),
     });
   };
-  const requestExternalRefresh: FastCanvasRefreshRequest = (target) => {
-    const reason = fastRefreshDropReason({
-      available: Boolean(externalRefresh), disposed, hidden,
-      nativeText: nativeText?.active() ?? false, busy,
-    });
-    if (reason) {
-      logDiagnostic(
-        "REFRESH",
-        `external ${target} dropped · ${reason}`,
-      );
-      return;
-    }
-    startOperation(`external ${target}`, async () => {
-      onProgress(TRANSPORT_STATUS.active);
-      await externalRefresh!.beforeExternalRefresh?.();
-      if (hidden || disposed) return;
-      await refreshImages(
-        source,
-        externalRefresh!.targetTiles[target],
-        TRANSPORT_STATUS.active,
-        () => !disposed && !hidden,
-      );
-    });
-  };
+  const requestExternalRefresh: FastCanvasRefreshRequest =
+    scheduler.enqueueExternal;
   let eventCount = 0;
   const sdkUnsubscribe = bridge.onEvenHubEvent((event) => {
     if (disposed) return;
@@ -436,6 +411,7 @@ export async function transmitCanvas(
   const dispose = () => {
     if (disposed) return;
     disposed = true;
+    scheduler.dispose();
     nativeText?.dispose();
     sdkUnsubscribe();
   };

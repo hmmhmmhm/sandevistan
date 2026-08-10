@@ -75,6 +75,42 @@ describe("native Conversate text page", () => {
     ]);
   });
 
+  it("coalesces noisy updates while preserving input and the newest transcript", async () => {
+    let releaseFirst: ((value: boolean) => void) | undefined;
+    let clock = 1_000;
+    const waits: number[] = [];
+    const first = new Promise<boolean>((resolve) => { releaseFirst = resolve; });
+    const textContainerUpgrade = vi.fn()
+      .mockImplementationOnce(() => first)
+      .mockResolvedValue(true);
+    const mode = createNativeConversateMode({
+      bridge: {
+        rebuildPageContainer: vi.fn(async () => true),
+        textContainerUpgrade,
+      },
+      createImagePage: () => new RebuildPageContainer({ containerTotalNum: 0 }),
+      now: () => clock,
+      wait: async (milliseconds) => {
+        waits.push(milliseconds);
+        clock += milliseconds;
+      },
+    });
+    await mode.enter({ inform: "", body: "Initial" });
+    const updating = mode.update({ inform: "", body: "Rough" }, "transcript");
+    await mode.update({ inform: "Old fact", body: "Rough" }, "analysis");
+    await mode.update({ inform: "", body: "User selection" }, "input");
+    await mode.update({ inform: "", body: "Corrected" }, "transcript");
+    releaseFirst?.(true);
+
+    expect(await updating).toBe(true);
+    expect(textContainerUpgrade.mock.calls.map(([update]) => update.content)).toEqual([
+      "Rough",
+      "User selection",
+      "Corrected",
+    ]);
+    expect(waits).toEqual([120]);
+  });
+
   it("keeps transcription primary while honoring the translation toggle", () => {
     const snapshot = {
       ...createConversateSnapshot(),

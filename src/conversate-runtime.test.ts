@@ -15,6 +15,7 @@ describe("Conversate live presentation state", () => {
       sessionOptions = options;
       return { start: vi.fn(async () => undefined), stop: vi.fn(async () => undefined) };
     };
+    const refresh = vi.fn();
     const runtime = createConversateRuntime({
       bridge: {
         audioControl: vi.fn(async () => true),
@@ -30,7 +31,7 @@ describe("Conversate live presentation state", () => {
       }),
       getSnapshot: () => snapshot,
       onSnapshot: (next) => { snapshot = next; },
-      refresh: vi.fn(),
+      refresh,
       createSession,
     });
     await runtime.start();
@@ -54,6 +55,8 @@ describe("Conversate live presentation state", () => {
     sessionOptions?.onPartial("three", "New topic");
     expect(snapshot).toMatchObject({ copilotOpen: false, suggestions: [] });
     expect(snapshot.partial).toBe("New topic");
+    expect(refresh.mock.calls.map(([priority]) => priority)).toContain("input");
+    expect(refresh.mock.calls.map(([priority]) => priority)).toContain("transcript");
     runtime.dispose();
   });
 });

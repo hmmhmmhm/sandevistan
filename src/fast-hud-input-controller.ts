@@ -127,7 +127,7 @@ export function createFastHudInputController(options: {
       && nativeText.updateConversate
       && options.conversateContent
     ) {
-      await nativeText.updateConversate(options.conversateContent());
+      await nativeText.updateConversate(options.conversateContent(), "input");
       return "consume";
     }
     if (transition.result === "redraw") options.drawCurrentPage();
