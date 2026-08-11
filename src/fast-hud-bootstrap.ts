@@ -20,17 +20,12 @@ function asStorage(bridge: FastHudBridge): EvenStorage | undefined {
     : undefined;
 }
 
-export async function stopIdleSdkSensors(bridge: PowerBridge): Promise<{
-  readonly microphone: boolean;
-  readonly imu: boolean;
-  readonly location: boolean;
-}> {
-  const [microphone, imu, location] = await Promise.all([
-    bridge.audioControl?.(false).catch(() => false) ?? Promise.resolve(false),
-    bridge.imuControl?.(false).catch(() => false) ?? Promise.resolve(false),
-    bridge.stopAppLocationUpdates?.().catch(() => false) ?? Promise.resolve(false),
+export async function stopIdleSdkSensors(bridge: PowerBridge): Promise<void> {
+  await Promise.allSettled([
+    bridge.audioControl?.(false),
+    bridge.imuControl?.(false),
+    bridge.stopAppLocationUpdates?.(),
   ]);
-  return { microphone, imu, location };
 }
 
 export async function prepareFastHudBridge(options: {
@@ -44,14 +39,17 @@ export async function prepareFastHudBridge(options: {
     ? resolvePhonePreferences(storage, false)
     : undefined;
 
-  const [stopped] = await Promise.all([
+  await Promise.all([
     stopIdleSdkSensors(bridge),
     preferences?.then(options.onPreferences),
   ]);
   options.onSensors?.({
-    microphone: stopped.microphone ? "off" : "unknown",
-    imu: stopped.imu ? "off" : "unknown",
-    location: stopped.location ? "off" : "unknown",
+    // The host returns false when a control is already idle. Since this app
+    // never starts a sensor before this point, both true and false mean that
+    // its own stream is off; true only confirms that a close command ran.
+    microphone: "off",
+    imu: "off",
+    location: "off",
   });
   if (storage) options.onStorage(storage);
   return bridge;
