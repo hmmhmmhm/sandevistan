@@ -35,6 +35,7 @@ import { TodoScreen } from "./TodoScreen";
 import { WeatherScreen } from "./WeatherScreen";
 import { AiScreen } from "./AiScreen";
 import { ConversateScreen } from "./ConversateScreen";
+import { ByokScreen } from "./ByokScreen";
 import {
   createConversateSnapshot,
   DEFAULT_CONVERSATE_SETTINGS,
@@ -84,6 +85,7 @@ const SCREEN_TITLE: Record<Exclude<PhoneScreen, "home">, PhoneStringKey> = {
   todo: "todo",
   weather: "weather",
   ai: "ai",
+  byok: "byokKeys",
   conversate: "conversate",
   navigation: "navigation",
   language: "language",
@@ -193,6 +195,12 @@ export function PhoneCompanion({
         status: preferences.locale === "system"
           ? t("system")
           : LOCALE_REGISTRY[preferences.locale].nativeName,
+      },
+      {
+        screen: "byok",
+        icon: "key",
+        titleKey: "byokKeys",
+        status: openAiKey || sonioxKey ? t("configured") : t("notConfigured"),
       },
       {
         screen: "ai",
@@ -319,6 +327,17 @@ export function PhoneCompanion({
             onSnapshotChange={onAiSnapshotChange}
             textIntervalMs={preferences.aiTextIntervalMs}
             onTextIntervalChange={updateAiTextInterval}
+          />
+        );
+      case "byok":
+        return (
+          <ByokScreen
+            storage={storage}
+            openAiKey={openAiKey}
+            sonioxKey={sonioxKey}
+            t={t}
+            onOpenAiKeyChange={onOpenAiKeyChange}
+            onSonioxKeyChange={onSonioxKeyChange}
           />
         );
       case "conversate":

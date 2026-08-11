@@ -26,6 +26,7 @@ export type PhoneScreen =
   | "todo"
   | "weather"
   | "ai"
+  | "byok"
   | "conversate"
   | "navigation"
   | "language"

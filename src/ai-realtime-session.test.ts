@@ -35,6 +35,41 @@ class FakeSocket {
 }
 
 describe("G2 Realtime session", () => {
+  it("uses Soniox for speech input while OpenAI receives only the completed text turn", async () => {
+    let socket: FakeSocket | undefined;
+    let completed: ((itemId: string, text: string) => void) | undefined;
+    const sonioxStart = vi.fn(async () => undefined);
+    const sonioxStop = vi.fn(async () => undefined);
+    const session = createAiRealtimeSession({
+      bridge: { audioControl: vi.fn(async () => true), onEvenHubEvent: () => vi.fn() },
+      key: "sk-test-1234567890abcdefghijklmnop",
+      sonioxKey: "soniox_test_1234567890abcdefghijklmnop",
+      locale: "en",
+      fetchImpl: async () => Response.json({ value: "ek_test_ephemeral_123456" }),
+      createSocket: (_url, protocols) => {
+        socket = new FakeSocket(protocols);
+        queueMicrotask(() => socket?.open());
+        return socket;
+      },
+      createSonioxSession: (options) => {
+        completed = options.onCompleted;
+        return { start: sonioxStart, stop: sonioxStop };
+      },
+    });
+
+    await session.start();
+    expect(sonioxStart).toHaveBeenCalledOnce();
+    expect(socket?.sent.some((event) => JSON.parse(event).type === "input_audio_buffer.append")).toBe(false);
+    completed?.("soniox-1", "What is on my calendar?");
+    expect(socket?.sent.map((event) => JSON.parse(event))).toContainEqual(expect.objectContaining({
+      type: "conversation.item.create",
+      item: expect.objectContaining({ content: [{ type: "input_text", text: "What is on my calendar?" }] }),
+    }));
+    expect(socket?.sent.map((event) => JSON.parse(event))).toContainEqual({ type: "response.create" });
+    await session.stop();
+    expect(sonioxStop).toHaveBeenCalledOnce();
+  });
+
   it("mints a client secret directly with the device-local BYOK", async () => {
     const windowFetch = vi.fn(function (
       this: typeof globalThis,

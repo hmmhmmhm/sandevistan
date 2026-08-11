@@ -4,6 +4,7 @@ import { ADDITIONAL_AI_TRANSLATIONS } from "./i18n/additional-ai-translations";
 type AiPhoneBaseStringKey =
   | "ai"
   | "openAiKey"
+  | "byokKeys"
   | "estimatedCost"
   | "thisWeek"
   | "thisMonth"
@@ -25,6 +26,7 @@ type AiStrings = Readonly<Record<AiPhoneBaseStringKey, string>>;
 const english: AiStrings = {
   ai: "Ask AI",
   openAiKey: "OpenAI API key",
+  byokKeys: "BYOK Keys",
   estimatedCost: "Estimated AI cost",
   thisWeek: "This week",
   thisMonth: "This month",
@@ -66,7 +68,7 @@ const localized: Partial<Record<SupportedLocale, Partial<AiStrings>>> = {
   id: { ai: "Tanya AI", openAiKey: "Kunci API OpenAI", estimatedCost: "Perkiraan biaya Realtime", thisWeek: "Minggu ini", thisMonth: "Bulan ini", recentConversations: "Percakapan terbaru", noConversations: "Belum ada percakapan", clearAiData: "Hapus riwayat dan penggunaan AI", aiKeyRequired: "Kunci OpenAI diperlukan" },
   it: { ai: "Chiedi all’AI", openAiKey: "Chiave API OpenAI", estimatedCost: "Costo Realtime stimato", thisWeek: "Questa settimana", thisMonth: "Questo mese", recentConversations: "Conversazioni recenti", noConversations: "Nessuna conversazione", clearAiData: "Cancella cronologia e utilizzo AI", aiKeyRequired: "Chiave OpenAI richiesta" },
   ja: { ai: "AIに質問", openAiKey: "OpenAI APIキー", estimatedCost: "推定Realtime料金", thisWeek: "今週", thisMonth: "今月", recentConversations: "最近の会話", noConversations: "会話はまだありません", clearAiData: "AI履歴と使用量を消去", aiKeyRequired: "OpenAIキーが必要です" },
-  ko: { ai: "AI에게 묻기", openAiKey: "OpenAI API 키", estimatedCost: "예상 Realtime 비용", thisWeek: "이번 주", thisMonth: "이번 달", recentConversations: "최근 대화", noConversations: "아직 대화가 없습니다", clearAiData: "AI 기록 및 사용량 지우기", aiKeyRequired: "OpenAI 키 필요" },
+  ko: { ai: "AI에게 묻기", openAiKey: "OpenAI API 키", byokKeys: "BYOK 키", estimatedCost: "예상 Realtime 비용", thisWeek: "이번 주", thisMonth: "이번 달", recentConversations: "최근 대화", noConversations: "아직 대화가 없습니다", clearAiData: "AI 기록 및 사용량 지우기", aiKeyRequired: "OpenAI 키 필요" },
   ms: { ai: "Tanya AI", openAiKey: "Kunci API OpenAI", estimatedCost: "Anggaran kos Realtime", thisWeek: "Minggu ini", thisMonth: "Bulan ini", recentConversations: "Perbualan terkini", noConversations: "Belum ada perbualan", clearAiData: "Kosongkan sejarah dan penggunaan AI", aiKeyRequired: "Kunci OpenAI diperlukan" },
   nl: { ai: "Vraag AI", openAiKey: "OpenAI API-sleutel", estimatedCost: "Geschatte Realtime-kosten", thisWeek: "Deze week", thisMonth: "Deze maand", recentConversations: "Recente gesprekken", noConversations: "Nog geen gesprekken", clearAiData: "AI-geschiedenis en gebruik wissen", aiKeyRequired: "OpenAI-sleutel vereist" },
   no: { ai: "Spør AI", openAiKey: "OpenAI API-nøkkel", estimatedCost: "Anslått Realtime-kostnad", thisWeek: "Denne uken", thisMonth: "Denne måneden", recentConversations: "Nylige samtaler", noConversations: "Ingen samtaler ennå", clearAiData: "Tøm AI-historikk og bruk", aiKeyRequired: "OpenAI-nøkkel kreves" },

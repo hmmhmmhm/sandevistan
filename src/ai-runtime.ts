@@ -39,6 +39,7 @@ export type AiRuntime = {
 export function createAiRuntime(options: {
   readonly bridge: AiBridge;
   readonly getKey: () => string | undefined;
+  readonly getSonioxKey?: () => string | undefined;
   readonly getLocale: () => PhoneLocale;
   readonly getLocation?: () => DataState<LocationValue>;
   readonly getSnapshot: () => AiHudSnapshot;
@@ -131,6 +132,7 @@ export function createAiRuntime(options: {
       session = (options.createSession ?? createAiRealtimeSession)({
         bridge: options.bridge,
         key,
+        sonioxKey: options.getSonioxKey?.(),
         locale: options.getLocale(),
         getLocation: options.getLocation,
         mcpServers,

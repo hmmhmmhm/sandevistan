@@ -5,6 +5,7 @@ import type {
 import type { AiWebSearchResult } from "./ai-tools";
 import type { AiRealtimeProtocolState } from "./ai-realtime-protocol";
 import type { RealtimeSocket } from "./ai-realtime-transport";
+import type { createSonioxRealtimeSession } from "./soniox-realtime-session";
 import type { DataState, LocationValue } from "./live-state";
 import type { McpServerConfig } from "./mcp-servers";
 import type { PhoneLocale } from "./phone-types";
@@ -28,6 +29,7 @@ export type AiRealtimeSession = {
 export type AiRealtimeSessionOptions = {
   readonly bridge: AudioBridge;
   readonly key: string;
+  readonly sonioxKey?: string;
   readonly locale: PhoneLocale;
   readonly getLocation?: () => DataState<LocationValue>;
   readonly mcpServers?: readonly McpServerConfig[];
@@ -42,6 +44,7 @@ export type AiRealtimeSessionOptions = {
     url: string,
     protocols: string[],
   ) => RealtimeSocket;
+  readonly createSonioxSession?: typeof createSonioxRealtimeSession;
   readonly onState?: (
     state: AiRealtimeProtocolState,
     eventType?: string,

@@ -16,6 +16,7 @@ import {
   mergeAiCitationSources,
 } from "./ai-realtime-search-usage";
 import { requestRealtimeClientSecret } from "./ai-realtime-token";
+import { createSonioxRealtimeSession, type SonioxRealtimeSession } from "./soniox-realtime-session";
 import type {
   AiRealtimeSession,
   AiRealtimeSessionOptions,
@@ -52,6 +53,7 @@ export function createAiRealtimeSession(
   let pendingResponseCancel = false;
   let suppressCancelledResponse = false;
   let startAbortController: AbortController | undefined;
+  let sonioxSession: SonioxRealtimeSession | undefined;
 
   const publish = (next: AiRealtimeProtocolState, eventType?: string) => {
     state = next;
@@ -122,9 +124,12 @@ export function createAiRealtimeSession(
       unsubscribeAudio = undefined;
       const activeSocket = socket;
       socket = undefined;
+      const activeSonioxSession = sonioxSession;
+      sonioxSession = undefined;
       pendingResponseCancel = false;
       suppressCancelledResponse = false;
       activeSocket?.close();
+      await activeSonioxSession?.stop();
       if (activation) {
         const opened = await activation.catch(() => false);
         if (microphoneActivation === activation) {
@@ -180,6 +185,50 @@ export function createAiRealtimeSession(
       const resampled = resamplePcm16Le16To24(audio.audioPcm);
       if (resampled.length > 0) send(createAudioAppendEvent(resampled));
     });
+  };
+
+  const submitSonioxTranscript = (itemId: string, text: string) => {
+    const transcript = text.trim();
+    if (!transcript) return;
+    if (state.phase === "thinking") cancelActiveResponse();
+    if (state.activeUserItemId !== itemId) {
+      publish(reduceRealtimeServerEvent(state, {
+        type: "input_audio_buffer.speech_started",
+        item_id: itemId,
+      }), "soniox.speech_started");
+    }
+    publish({
+      ...state,
+      phase: "thinking",
+      activeUserItemId: itemId,
+      userText: transcript,
+      assistantText: "",
+      activeResponseId: undefined,
+      responseComplete: false,
+      error: undefined,
+    }, "soniox.transcript");
+    send({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: transcript }],
+      },
+    });
+    send({ type: "response.create" });
+  };
+
+  const cancelActiveResponse = () => {
+    toolRunner.cancel();
+    if (state.phase !== "thinking") return state;
+    suppressCancelledResponse = true;
+    pendingResponseCancel = !state.activeResponseId;
+    if (state.activeResponseId) {
+      send({ type: "response.cancel", response_id: state.activeResponseId });
+    }
+    const next = cancelActiveRealtimeResponse(state);
+    publish(next, "response.cancel");
+    return next;
   };
 
   const openSocket = (secret: string): Promise<void> => new Promise(
@@ -364,13 +413,35 @@ export function createAiRealtimeSession(
           throw new Error("Realtime start cancelled");
         }
         send(createRealtimeSessionUpdate(options.locale, mcpServers));
-        subscribeAudio();
-        const opened = await activateMicrophone();
-        microphoneOpen = opened;
+        if (options.sonioxKey) {
+          sonioxSession = (options.createSonioxSession ?? createSonioxRealtimeSession)({
+            bridge: options.bridge,
+            key: options.sonioxKey,
+            onPartial: (itemId, text) => {
+              if (state.phase === "thinking") cancelActiveResponse();
+              if (state.activeUserItemId !== itemId) {
+                publish(reduceRealtimeServerEvent(state, {
+                  type: "input_audio_buffer.speech_started", item_id: itemId,
+                }), "soniox.speech_started");
+              }
+              publish({ ...state, activeUserItemId: itemId, userText: text, phase: "listening" }, "soniox.partial");
+            },
+            onCompleted: submitSonioxTranscript,
+            onError: (message) => {
+              publish({ ...state, phase: "error", error: message }, "soniox.error");
+              void cleanup("error");
+            },
+          });
+          await sonioxSession.start();
+        } else {
+          subscribeAudio();
+          const opened = await activateMicrophone();
+          microphoneOpen = opened;
+          if (!opened) throw new Error("G2 microphone unavailable");
+        }
         if (operation !== lifecycle) {
           throw new Error("Realtime start cancelled");
         }
-        if (!opened) throw new Error("G2 microphone unavailable");
         publish({ ...state, phase: "listening", error: undefined });
       } catch (error) {
         if (operation !== lifecycle) {
@@ -407,18 +478,7 @@ export function createAiRealtimeSession(
       return true;
     },
     cancelResponse() {
-      toolRunner.cancel();
-      if (state.phase !== "thinking") return state;
-      suppressCancelledResponse = true;
-      pendingResponseCancel = !state.activeResponseId;
-      if (state.activeResponseId) {
-        send({
-          type: "response.cancel",
-          response_id: state.activeResponseId,
-        });
-      }
-      publish(cancelActiveRealtimeResponse(state), "response.cancel");
-      return state;
+      return cancelActiveResponse();
     },
     async stop() {
       await cleanup();

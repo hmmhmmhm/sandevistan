@@ -288,6 +288,7 @@ export function useHudController({
         aiRuntime = createAiRuntime({
           bridge: activeBridge,
           getKey: () => companionOpenAiKeyRef.current,
+          getSonioxKey: () => companionSonioxKeyRef.current,
           getLocale: currentLocale,
           getLocation: () => live.location,
           getSnapshot: () => aiSnapshotRef.current,

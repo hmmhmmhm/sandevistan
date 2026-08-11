@@ -18,6 +18,7 @@ import reloadIcon from "@iconify-icons/pixelarticons/reload";
 import textIcon from "@iconify-icons/pixelarticons/art-text";
 import trashIcon from "@iconify-icons/pixelarticons/trash";
 import githubIcon from "@iconify-icons/simple-icons/github";
+import lockIcon from "@iconify-icons/pixelarticons/lock";
 
 const ICONS = {
   article: articleIcon,
@@ -39,6 +40,7 @@ const ICONS = {
   language: textIcon,
   trash: trashIcon,
   github: githubIcon,
+  key: lockIcon,
 } as const;
 
 export type PhoneIconName = keyof typeof ICONS;
