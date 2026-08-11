@@ -67,7 +67,7 @@ export function PhoneHome({
       </nav>
       <footer className="phone-home__footer">
         <div>
-          <strong>{t("project")}</strong>
+          <strong>Even Realities</strong>
           <span>v{APP_VERSION}</span>
         </div>
         <a
