@@ -5,6 +5,8 @@ import {
   type EvenStorage,
 } from "./live-cache";
 
+export const DEFAULT_X_RELAY_URL = "https://sandevistan-x-relay.hmmhmmhm.workers.dev";
+
 const isValid = (value: string) => (
   value.trim().length >= 20
   && value.trim().length <= 4096
@@ -17,6 +19,7 @@ const isValidRelayUrl = (value: string) => {
     return url.protocol === "https:"
       && !url.username
       && !url.password
+      && url.hostname.endsWith(".workers.dev")
       && (url.pathname === "/" || url.pathname === "")
       && !url.search
       && !url.hash;
@@ -57,7 +60,7 @@ export const validateXRelayUrl = (value: string) => isValidRelayUrl(value)
 export const resolveXRelayUrl = (storage: EvenStorage) => (
   readCache(storage, "x-relay-url", (value): value is string => (
     typeof value === "string" && isValidRelayUrl(value)
-  ))
+  )).then((value) => value ?? DEFAULT_X_RELAY_URL)
 );
 
 export const writeXRelayUrl = (storage: EvenStorage, value: string) => {

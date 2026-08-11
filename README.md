@@ -41,6 +41,7 @@ firmware.
 - [Live data](#live-data)
 - [Localization](#localization)
 - [Ask AI](#ask-ai)
+- [X timeline relay](#x-timeline-relay)
 - [Optional navigation](#optional-navigation)
 - [Local development](#local-development)
 - [Build, test, and package](#build-test-and-package)
@@ -269,6 +270,19 @@ Conversation excerpts, citations, usage, and cost records remain device-local.
 Weekly and monthly estimates include Realtime
 token/audio usage and recorded web-search calls using the versioned local
 pricing snapshot; they are estimates rather than OpenAI billing records.
+
+## X timeline relay
+
+The X card uses a default, X-only Cloudflare Worker relay to make the OAuth
+User Access Token flow usable in the Even WebView despite X's browser CORS
+restriction. Enter the OAuth 2.0 **User Access Token** first in **BYOK Keys**;
+the relay is automatic and is never a replacement for that token.
+
+For a personal deployment, **BYOK Keys → X Relay → Customize relay** opens the
+optional URL setting. The complete, restricted Worker source and deployment
+steps are in [x-relay](x-relay/README.md). It relays only profile lookup and the
+reverse-chronological home timeline, rejects writes and all other X paths, and
+does not persist credentials or API responses.
 
 ## Optional navigation
 

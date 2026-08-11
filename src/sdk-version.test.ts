@@ -39,8 +39,8 @@ describe("Even Hub SDK compatibility", () => {
       .toEqual(expect.arrayContaining([
         "https://api.openai.com",
         "wss://api.openai.com",
-        "https://api.x.com",
         "https://sandevistan-x-relay.hmmhmmhm.workers.dev",
+        "https://*.workers.dev",
       ]));
   });
 

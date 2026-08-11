@@ -14,4 +14,12 @@ describe("ByokScreen", () => {
       "Weather and map use cached public data. No API key is required.",
     )).toBeTruthy();
   });
+
+  it("uses the X-only relay by default and keeps its custom URL behind a separate action", () => {
+    render(<ByokScreen t={(key) => translatePhone("en", key)} />);
+
+    expect(screen.getByText("Default X-only relay")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Customize relay" })).toBeTruthy();
+    expect(screen.queryByText("Custom X Relay URL")).toBeNull();
+  });
 });

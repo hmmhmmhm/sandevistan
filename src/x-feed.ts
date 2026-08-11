@@ -50,7 +50,9 @@ type XTimelineResponse = {
 };
 
 const headers = (token: string) => ({ authorization: `Bearer ${token}` });
-const X_API_ORIGIN = "https://api.x.com";
+import { DEFAULT_X_RELAY_URL } from "./x-key";
+
+const X_API_ORIGIN = DEFAULT_X_RELAY_URL;
 const apiUrl = (baseUrl: string, path: string) => `${baseUrl.replace(/\/$/, "")}${path}`;
 
 export class XApiError extends Error {

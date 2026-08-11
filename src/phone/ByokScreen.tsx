@@ -16,6 +16,7 @@ import {
 import {
   clearXAccessToken,
   clearXRelayUrl,
+  DEFAULT_X_RELAY_URL,
   maskXAccessToken,
   validateXAccessToken,
   validateXRelayUrl,
@@ -132,6 +133,8 @@ export function ByokScreen({
   readonly onXAccessTokenChange?: (value: string | undefined) => void;
   readonly onXRelayUrlChange?: (value: string | undefined) => void;
 }) {
+  const [customRelayOpen, setCustomRelayOpen] = useState(false);
+  const activeRelayUrl = xRelayUrl ?? DEFAULT_X_RELAY_URL;
   return (
     <div className="phone-detail-stack">
       <section className="phone-panel phone-key-intro">
@@ -146,20 +149,36 @@ export function ByokScreen({
         validate={validateXAccessToken} write={writeXAccessToken} clear={clearXAccessToken}
         mask={maskXAccessToken} onChange={onXAccessTokenChange}
       />
-      <KeyPanel
-        storage={storage}
-        title="X Relay URL"
-        value={xRelayUrl}
-        issueUrl="https://sandevistan-x-relay.hmmhmmhm.workers.dev"
-        issueLabel="Open personal X Relay"
-        validate={validateXRelayUrl}
-        write={writeXRelayUrl}
-        clear={clearXRelayUrl}
-        mask={(value) => value}
-        inputType="url"
-        onChange={onXRelayUrlChange}
-      />
       <p className="phone-form-message">For Home timeline, paste the OAuth 2.0 User Access Token only — not X's app Bearer Token, Client Secret, or Refresh Token.</p>
+      <section className="phone-panel phone-stacked-form">
+        <div className="phone-key-status">
+          <div>
+            <strong>X Relay</strong>
+            <span>{activeRelayUrl === DEFAULT_X_RELAY_URL ? "Default X-only relay" : "Custom X-only relay"}</span>
+          </div>
+        </div>
+        <a className="phone-key-link" href={DEFAULT_X_RELAY_URL} target="_blank" rel="noreferrer">
+          Open default relay ↗
+        </a>
+        <button type="button" className="phone-primary-button" onClick={() => setCustomRelayOpen((value) => !value)}>
+          {customRelayOpen ? "Close custom relay" : "Customize relay"}
+        </button>
+      </section>
+      {customRelayOpen && (
+        <KeyPanel
+          storage={storage}
+          title="Custom X Relay URL"
+          value={activeRelayUrl === DEFAULT_X_RELAY_URL ? undefined : activeRelayUrl}
+          issueUrl="https://github.com/hmmhmmhm/sandevistan/tree/render-stability/x-relay"
+          issueLabel="Deploy your own X Relay"
+          validate={validateXRelayUrl}
+          write={writeXRelayUrl}
+          clear={clearXRelayUrl}
+          mask={(value) => value}
+          inputType="url"
+          onChange={(value) => onXRelayUrlChange?.(value ?? DEFAULT_X_RELAY_URL)}
+        />
+      )}
       <KeyPanel
         storage={storage}
         title="OpenAI API key"

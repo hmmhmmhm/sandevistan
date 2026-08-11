@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fetchXHomeTimeline, resolveXUserId } from "./x-feed";
+import { DEFAULT_X_RELAY_URL } from "./x-key";
 
 const response = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
 
@@ -26,6 +27,7 @@ describe("X home timeline", () => {
     const timeline = await fetchXHomeTimeline("token-for-test", userId, undefined, fetchMock);
 
     expect(userId).toBe("me");
+    expect(fetchMock.mock.calls[0]?.[0]).toContain(DEFAULT_X_RELAY_URL);
     expect(fetchMock.mock.calls[0]?.[1]).toEqual({ headers: { authorization: "Bearer token-for-test" } });
     expect(fetchMock.mock.calls[1]?.[0]).toContain("/users/me/timelines/reverse_chronological?");
     expect(fetchMock.mock.calls[1]?.[0]).toContain("max_results=10");
