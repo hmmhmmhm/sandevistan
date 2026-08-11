@@ -58,6 +58,27 @@ export function HudLayoutScreen({
   return (
     <div className="phone-detail-stack">
       <section className="phone-panel phone-reorder-list">
+        <button
+          type="button"
+          className="phone-toggle-row"
+          disabled={saving}
+          aria-pressed={preferences.dashboardMapEnabled}
+          onClick={() => void commit({
+            ...preferences,
+            dashboardMapEnabled: !preferences.dashboardMapEnabled,
+          })}
+        >
+          <PhoneIcon
+            name={preferences.dashboardMapEnabled ? "checkboxOn" : "checkbox"}
+            size={22}
+          />
+          <span className="phone-toggle-row__copy">
+            <span>{t("dashboardMap")}</span>
+            <small>{preferences.dashboardMapEnabled ? t("enabled") : t("disabled")}</small>
+          </span>
+        </button>
+      </section>
+      <section className="phone-panel phone-reorder-list">
         {pages.map((page, index) => {
           const locked = page === "overview";
           const enabled = preferences.enabled.includes(page);

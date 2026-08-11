@@ -30,6 +30,7 @@ export type FastCanvasHudData = {
   readonly battery?: FastCanvasBattery;
   readonly live: LiveDashboardState;
   readonly mapRadiusMeters?: number;
+  readonly dashboardMapEnabled?: boolean;
   readonly ai?: AiHudSnapshot;
   readonly conversate?: ConversateSnapshot;
 };

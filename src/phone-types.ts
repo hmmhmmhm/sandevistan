@@ -37,6 +37,7 @@ export type PhonePreferences = {
   readonly order: readonly HudPageId[];
   readonly enabled: readonly HudPageId[];
   readonly aiTextIntervalMs: number;
+  readonly dashboardMapEnabled: boolean;
 };
 
 export type PhoneControllerSnapshot = {

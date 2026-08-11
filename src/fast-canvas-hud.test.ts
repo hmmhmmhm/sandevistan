@@ -23,6 +23,7 @@ type FastCanvasHudData = {
   readonly battery?: FastCanvasBattery;
   readonly live: LiveDashboardState;
   readonly mapRadiusMeters?: number;
+  readonly dashboardMapEnabled?: boolean;
   readonly ai?: AiHudSnapshot;
 };
 type Rectangle = {
@@ -280,6 +281,16 @@ describe("fast split Canvas HUD", () => {
     ]));
     expect(pages[2].values).not.toContain("CONNECTED");
     expect(pages[2].values).not.toContain("LINK // G2 + R1");
+  });
+
+  it("leaves the dashboard's left half blank when the map is disabled", async () => {
+    const module = await loadFastHud();
+    if (!module?.drawFastCanvasHud) return;
+    const hud = renderFastHud(module, "weather", { dashboardMapEnabled: false });
+
+    expect(hud.values).not.toContain("LOC // NO GPS · NO DATA");
+    expect(hud.values).not.toContain("NO GPS DATA");
+    expect(hud.values).not.toContain("© OSM CONTRIBUTORS");
   });
 
   it("focuses the fourth keyless page on current weather", async () => {

@@ -9,6 +9,24 @@ import { HudLayoutScreen } from "./HudLayoutScreen";
 afterEach(cleanup);
 
 describe("HudLayoutScreen", () => {
+  it("lets the user keep the dashboard's left map area empty", async () => {
+    const onChange = vi.fn(async () => true);
+    render(
+      <HudLayoutScreen
+        preferences={DEFAULT_PHONE_PREFERENCES}
+        navigationAvailable={false}
+        t={(key) => translatePhone("en", key)}
+        onChange={onChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Map on dashboard.*Enabled/ }));
+    await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith({
+      ...DEFAULT_PHONE_PREFERENCES,
+      dashboardMapEnabled: false,
+    }));
+  });
+
   it("shows a pixel checkbox for every page enablement state", () => {
     const onChange = vi.fn(async () => true);
     const { rerender } = render(

@@ -29,6 +29,7 @@ describe("phone preferences", () => {
       order: ["overview", "news", "todo", "weather", "ai", "conversate"],
       enabled: ["overview", "news", "todo", "weather", "ai", "conversate"],
       aiTextIntervalMs: 200,
+      dashboardMapEnabled: true,
     });
   });
 
@@ -42,6 +43,7 @@ describe("phone preferences", () => {
       order: ["overview", "news", "todo", "weather", "ai", "conversate"],
       enabled: ["overview", "news", "todo", "weather", "ai", "conversate"],
       aiTextIntervalMs: 200,
+      dashboardMapEnabled: true,
     });
   });
 
@@ -51,6 +53,7 @@ describe("phone preferences", () => {
       order: ["overview", "news", "todo", "weather", "ai", "conversate", "navigation"],
       enabled: ["overview", "news", "todo", "weather", "ai", "conversate"],
       aiTextIntervalMs: 200,
+      dashboardMapEnabled: true,
     });
   });
 
@@ -62,6 +65,7 @@ describe("phone preferences", () => {
       order: ["overview", "news", "todo", "weather", "ai", "conversate", "navigation"],
       enabled: ["overview", "news", "todo", "weather", "ai", "conversate"],
       aiTextIntervalMs: 200,
+      dashboardMapEnabled: true,
     });
   });
 
@@ -82,10 +86,12 @@ describe("phone preferences", () => {
       order: [...saved.order, "ai", "conversate"],
       enabled: [...saved.enabled, "ai", "conversate"],
       aiTextIntervalMs: 200,
+      dashboardMapEnabled: true,
     });
     await expect(writePhonePreferences(storage, {
       ...saved,
       aiTextIntervalMs: 200,
+      dashboardMapEnabled: true,
     })).resolves.toBe(true);
     expect(storage.writes.at(-1)?.[0])
       .toBe("sandevistan:phone-preferences:v1");

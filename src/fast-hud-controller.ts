@@ -103,6 +103,7 @@ export function useHudController({
           live,
           battery,
           mapRadiusMeters: currentMapRadius(),
+          dashboardMapEnabled: phonePreferencesRef.current.dashboardMapEnabled,
           ai: aiSnapshotRef.current,
           conversate: conversateSnapshotRef.current,
           locale: currentLocale(),

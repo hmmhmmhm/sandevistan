@@ -32,10 +32,12 @@ export const DEFAULT_PHONE_PREFERENCES: PhonePreferences = {
   order: KEYLESS_PAGES,
   enabled: KEYLESS_PAGES,
   aiTextIntervalMs: 200,
+  dashboardMapEnabled: true,
 };
 
-type StoredPhonePreferences = Omit<PhonePreferences, "aiTextIntervalMs"> & {
+type StoredPhonePreferences = Omit<PhonePreferences, "aiTextIntervalMs" | "dashboardMapEnabled"> & {
   readonly aiTextIntervalMs?: number;
+  readonly dashboardMapEnabled?: boolean;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -54,7 +56,9 @@ function isPhonePreferences(value: unknown): value is StoredPhonePreferences {
     && isPageArray(value.order)
     && isPageArray(value.enabled)
     && (value.aiTextIntervalMs === undefined
-      || typeof value.aiTextIntervalMs === "number");
+      || typeof value.aiTextIntervalMs === "number")
+    && (value.dashboardMapEnabled === undefined
+      || typeof value.dashboardMapEnabled === "boolean");
 }
 
 function clonePreferences(value: PhonePreferences): PhonePreferences {
@@ -63,6 +67,7 @@ function clonePreferences(value: PhonePreferences): PhonePreferences {
     order: [...value.order],
     enabled: [...value.enabled],
     aiTextIntervalMs: normalizeAiPresentationInterval(value.aiTextIntervalMs),
+    dashboardMapEnabled: value.dashboardMapEnabled,
   };
 }
 
@@ -97,6 +102,7 @@ export function normalizePhonePreferences(
     aiTextIntervalMs: normalizeAiPresentationInterval(
       value.aiTextIntervalMs,
     ),
+    dashboardMapEnabled: value.dashboardMapEnabled !== false,
   };
   const withAi: PhonePreferences = !withInterval.order.includes("ai")
     ? {

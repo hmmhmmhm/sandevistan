@@ -58,11 +58,12 @@ export function drawFastHudSurface(options: {
   readonly live: LiveDashboardState;
   readonly battery?: FastCanvasBattery;
   readonly mapRadiusMeters: number;
+  readonly dashboardMapEnabled?: boolean;
   readonly ai: AiHudSnapshot;
   readonly conversate: ConversateSnapshot;
   readonly locale: PhoneLocale;
 }) {
-  const { canvas, page, view, live, battery, mapRadiusMeters, ai, conversate, locale } = options;
+  const { canvas, page, view, live, battery, mapRadiusMeters, dashboardMapEnabled = true, ai, conversate, locale } = options;
   if (view.mode === "map") {
     drawFastFullscreenMap(canvas, live, mapRadiusMeters, locale);
     return;
@@ -84,6 +85,7 @@ export function drawFastHudSurface(options: {
     battery,
     live,
     mapRadiusMeters,
+    dashboardMapEnabled,
     ...(page === "ai" ? { ai } : {}),
     ...(page === "conversate" ? { conversate } : {}),
   }, locale);
