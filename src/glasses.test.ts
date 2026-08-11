@@ -1514,13 +1514,13 @@ describe("G2 raster transport", () => {
     await vi.waitFor(() => expect(
       harness.progress.some((message) => message.includes("sendFailed")),
     ).toBe(true));
-    expect(directions).toEqual(["previous", "next"]);
+    expect(directions).toEqual(["next", "previous"]);
     expect(pageIndex).toBe(0);
 
     harness.emit(OsEventTypeList.SCROLL_BOTTOM_EVENT);
     await vi.waitFor(() => expect(harness.imageIds).toHaveLength(7));
-    expect(directions).toEqual(["previous", "next", "previous"]);
-    expect(pageIndex).toBe(3);
+    expect(directions).toEqual(["next", "previous", "next"]);
+    expect(pageIndex).toBe(1);
   });
 
   it("live refresh skips hidden work and restores the newest full HUD", async () => {
@@ -1844,15 +1844,15 @@ describe("G2 raster transport", () => {
 
     harness.setInputResult("unhandled");
     harness.emit(OsEventTypeList.SCROLL_BOTTOM_EVENT);
-    await vi.waitFor(() => expect(directions).toEqual(["previous"]));
+    await vi.waitFor(() => expect(directions).toEqual(["next"]));
 
     harness.emit(OsEventTypeList.SCROLL_TOP_EVENT);
-    await vi.waitFor(() => expect(directions).toEqual(["previous", "next"]));
+    await vi.waitFor(() => expect(directions).toEqual(["next", "previous"]));
 
     harness.setInputResult("consume");
     harness.emit(OsEventTypeList.SCROLL_BOTTOM_EVENT);
     await vi.waitFor(() => expect(harness.inputs.at(-1)).toBe("scroll-next"));
-    expect(directions).toEqual(["previous", "next"]);
+    expect(directions).toEqual(["next", "previous"]);
   });
 
   it("traces one handled tap and one dashboard hide without extra sends", async () => {
@@ -2154,7 +2154,7 @@ describe("G2 raster transport", () => {
       3, 5,
     ]);
     expect(shutdownCalls).toBe(0);
-    expect(navigationCalls).toEqual(["previous"]);
+    expect(navigationCalls).toEqual(["next"]);
     expect(beforeRestoreCalls).toBe(1);
   });
 
@@ -2268,7 +2268,7 @@ describe("G2 raster transport", () => {
       "hud:3",
       "scroll",
     ]);
-    expect(navigationCalls).toEqual(["previous", "previous"]);
+    expect(navigationCalls).toEqual(["next", "next"]);
   });
 
   it("keeps fast Canvas transmission alive when battery lookup fails", async () => {
@@ -2658,7 +2658,7 @@ describe("G2 raster transport", () => {
     } as EvenHubEvent);
     await vi.waitFor(() => expect(imageIds).toHaveLength(12));
 
-    expect(directions).toEqual(["previous", "next"]);
+    expect(directions).toEqual(["next", "previous"]);
     expect(imageIds).toEqual([
       2, 3, 4, 5,
       2, 3, 4, 5,
@@ -2737,7 +2737,7 @@ describe("G2 raster transport", () => {
     }
     await vi.waitFor(() => expect(imageIds).toHaveLength(8));
 
-    expect(directions).toEqual(["previous"]);
+    expect(directions).toEqual(["next"]);
     expect(maximumActiveUpdates).toBe(1);
     expect(imageIds).toEqual([
       2, 3, 4, 5,
