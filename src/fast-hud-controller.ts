@@ -341,6 +341,11 @@ export function useHudController({
           updateSensorStatus,
           sensorStatus,
         );
+        // The G2 host accepts sensor commands reliably only after its startup
+        // page exists. Re-assert the idle state here so the Developer view has
+        // a confirmed result instead of the pre-page bridge result.
+        await stopIdleSdkSensors(sensorAwareBridge);
+        if (cancelled) return;
         const nextRoutingStatus = await getRoutingStatus()
           .catch(() => ({ enabled: false }));
         if (cancelled) return;
