@@ -120,6 +120,14 @@ export function AiScreen({
       <section className="phone-panel phone-key-intro">
         <h2>{t("openAiKey")}</h2>
         <p>{t("keyLocalOnly")}</p>
+        <a
+          className="phone-key-link"
+          href="https://platform.openai.com/api-keys"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Get an OpenAI API key ↗
+        </a>
       </section>
       {openAiKey ? (
         <section className="phone-panel phone-key-status">

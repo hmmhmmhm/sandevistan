@@ -248,6 +248,15 @@
   line-height: 1.5;
 }
 
+.phone-key-link {
+  width: fit-content;
+  color: var(--phone-text);
+  font-size: 0.86rem;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .phone-key-status {
   display: flex;
   align-items: center;

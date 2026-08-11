@@ -18,6 +18,19 @@ class TestStorage implements EvenStorage {
 afterEach(cleanup);
 
 describe("AiScreen", () => {
+  it("links directly to the official OpenAI API key page", () => {
+    render(
+      <AiScreen
+        snapshot={createAiHudSnapshot(false)}
+        t={(name) => translatePhone("en", name)}
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Get an OpenAI API key ↗" }).getAttribute("href"),
+    ).toBe("https://platform.openai.com/api-keys");
+  });
+
   it("stores a validated BYOK key locally and only renders its masked form", async () => {
     const storage = new TestStorage();
     const onKeyChange = vi.fn();

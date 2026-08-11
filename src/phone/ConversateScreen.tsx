@@ -101,6 +101,14 @@ export function ConversateScreen({
   return (
     <div className="phone-detail-stack">
       <section className="phone-panel phone-stacked-form">
+        <a
+          className="phone-key-link"
+          href="https://platform.openai.com/api-keys"
+          target="_blank"
+          rel="noreferrer"
+        >
+          OpenAI API key · platform.openai.com ↗
+        </a>
         {openAiKey ? (
           <div className="phone-key-status">
             <div><strong>{tc("openAiAnalysisKey")}</strong><span>{maskOpenAiKey(openAiKey)}</span></div>
@@ -130,6 +138,14 @@ export function ConversateScreen({
       </section>
       <section className="phone-panel phone-stacked-form">
         <p className="phone-ai-cost-warning">{tc("sonioxHint")}</p>
+        <a
+          className="phone-key-link"
+          href="https://console.soniox.com/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Soniox ASR key · console.soniox.com ↗
+        </a>
         {sonioxKey ? (
           <div className="phone-key-status">
             <div><strong>{tc("sonioxKey")}</strong><span>{maskSonioxKey(sonioxKey)}</span></div>
