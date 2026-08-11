@@ -16,12 +16,14 @@ export function PhoneHome({
   t,
   cards,
   preview,
+  previewLoading = false,
   previewActive = false,
   onOpen,
 }: {
   readonly t: (key: PhoneStringKey) => string;
   readonly cards: readonly HomeCard[];
   readonly preview: ReactNode;
+  readonly previewLoading?: boolean;
   readonly previewActive?: boolean;
   readonly onOpen: (screen: Exclude<PhoneScreen, "home">) => void;
 }) {
@@ -34,6 +36,11 @@ export function PhoneHome({
       >
         <div className="phone-home__preview-slot" data-phone-preview-slot>
           {preview}
+          {previewLoading ? (
+            <span className="phone-home__preview-loading" aria-live="polite">
+              LOADING...
+            </span>
+          ) : null}
         </div>
       </section>
       <h2 className="phone-home__section-title">{t("dashboard")}</h2>

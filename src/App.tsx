@@ -322,6 +322,7 @@ export function App({ autoStart = true }: AppProps) {
       <PhoneCompanion
         canvas={hudSurface}
         status={status}
+        previewLoading={status === TRANSPORT_STATUS.preparing}
         battery={companionBattery}
         displayVisible={companionDisplayVisible}
         sensors={companionSensors}

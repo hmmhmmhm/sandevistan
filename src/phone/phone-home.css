@@ -35,6 +35,18 @@
   display: none;
 }
 
+.phone-home__preview-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--phone-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+
 .phone-home__preview-slot .hud-frame canvas {
   display: block;
   width: 100%;

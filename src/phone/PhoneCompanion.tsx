@@ -54,6 +54,7 @@ import "./phone-detail.css";
 type PhoneCompanionProps = {
   readonly canvas: ReactNode;
   readonly status: string;
+  readonly previewLoading?: boolean;
   readonly battery?: FastCanvasBattery;
   readonly displayVisible?: boolean;
   readonly sensors?: SensorStatus;
@@ -105,6 +106,7 @@ function transportStatusLabel(
 export function PhoneCompanion({
   canvas,
   status,
+  previewLoading = false,
   battery,
   displayVisible = true,
   sensors = { microphone: "unknown", location: "unknown", imu: "unknown" },
@@ -389,6 +391,7 @@ export function PhoneCompanion({
           t={t}
           cards={cards}
           preview={canvas}
+          previewLoading={previewLoading}
           previewActive={displayVisible}
           onOpen={setScreen}
         />

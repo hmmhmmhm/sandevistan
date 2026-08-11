@@ -459,9 +459,11 @@ describe("SANDEVISTAN peripheral HUD", () => {
 
     expect(mocks.drawLocale.mock.calls[0]?.[0]).toBe("ko");
     expect(mocks.drawLocale).not.toHaveBeenCalledWith("en");
-    expect(audioControl).toHaveBeenCalledWith(false);
-    expect(imuControl).toHaveBeenCalledWith(false);
-    expect(stopAppLocationUpdates).toHaveBeenCalledOnce();
+    expect(audioControl).toHaveBeenCalledTimes(2);
+    expect(audioControl).toHaveBeenLastCalledWith(false);
+    expect(imuControl).toHaveBeenCalledTimes(2);
+    expect(imuControl).toHaveBeenLastCalledWith(false);
+    expect(stopAppLocationUpdates).toHaveBeenCalledTimes(2);
     view.unmount();
   });
 
