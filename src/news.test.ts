@@ -230,9 +230,9 @@ describe("resolveNews", () => {
 
     expect(vi.mocked(fetchImpl).mock.calls.map(([input]) => String(input)))
       .toEqual([
-        "/api/news?feed=bbc-world",
-        "/api/news?feed=guardian-world",
-        "/api/news?feed=lemonde-international",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=bbc-world",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=guardian-world",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=lemonde-international",
       ]);
   });
 
@@ -275,7 +275,7 @@ describe("resolveNews", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(4);
     expect(vi.mocked(fetchImpl).mock.calls.map(([input]) => String(input)))
       .toContain(
-        "/api/news?url=https%3A%2F%2Ffeeds.example.com%2Fatom.xml",
+        "https://feeds.example.com/atom.xml",
       );
     expect(result.value?.some((item) => (
       item.title === "Atom article" && item.source === "Example"
@@ -316,9 +316,9 @@ describe("resolveNews", () => {
     });
     expect(vi.mocked(fetchImpl).mock.calls.map(([input]) => String(input)))
       .toEqual([
-        "/api/news?feed=sbs-latest",
-        "/api/news?feed=newsis-breaking",
-        "/api/news?feed=weekly-khan-latest",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=sbs-latest",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=newsis-breaking",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=weekly-khan-latest",
       ]);
   });
 

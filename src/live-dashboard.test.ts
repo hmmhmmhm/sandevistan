@@ -67,7 +67,7 @@ function mapResponse(): Response {
 function liveFetch(weatherTemperature = 29.4): typeof fetch {
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
-    if (url.startsWith("/api/news")) return newsResponse();
+    if (url.includes("/news?feed=")) return newsResponse();
     if (url.startsWith("/api/map")) return mapResponse();
     return weatherResponse(weatherTemperature);
   }) as unknown as typeof fetch;
@@ -180,8 +180,8 @@ describe("createLiveDashboardSession", () => {
 
     expect(vi.mocked(fetchImpl).mock.calls.map(([input]) => String(input)))
       .toEqual(expect.arrayContaining([
-        "/api/news?feed=sbs-latest",
-        "/api/news?url=https%3A%2F%2Ffeeds.example.com%2Frss.xml",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=sbs-latest",
+        "https://feeds.example.com/rss.xml",
       ]));
   });
 
@@ -252,9 +252,9 @@ describe("createLiveDashboardSession", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(4);
     expect(vi.mocked(fetchImpl).mock.calls.map(([input]) => String(input)))
       .toEqual(expect.arrayContaining([
-        "/api/news?feed=sbs-latest",
-        "/api/news?feed=newsis-breaking",
-        "/api/news?feed=weekly-khan-latest",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=sbs-latest",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=newsis-breaking",
+        "https://sandevistan-x-relay.hmmhmmhm.workers.dev/news?feed=weekly-khan-latest",
         expect.stringMatching(/^\/api\/map/),
       ]));
     expect(updates.filter(({ target }) => target === "left")).toHaveLength(2);
@@ -283,7 +283,7 @@ describe("createLiveDashboardSession", () => {
     const updates: LiveDashboardUpdate[] = [];
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       if (url.startsWith("/api/map")) return mapResponse();
       return { ok: false } as Response;
     }) as unknown as typeof fetch;
@@ -370,7 +370,7 @@ describe("createLiveDashboardSession", () => {
     const secondFetch = deferred<Response>();
     let weatherCalls = 0;
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
-      if (String(input).startsWith("/api/news")) return newsResponse();
+      if (String(input).includes("/news?feed=")) return newsResponse();
       if (String(input).startsWith("/api/map")) return mapResponse();
       weatherCalls += 1;
       return weatherCalls === 1 ? weatherResponse() : secondFetch.promise;
@@ -416,7 +416,7 @@ describe("createLiveDashboardSession", () => {
     const pendingNews = deferred<Response>();
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.startsWith("/api/news")) return pendingNews.promise;
+      if (url.includes("/news?feed=")) return pendingNews.promise;
       if (url.startsWith("/api/map")) return mapResponse();
       return weatherResponse();
     }) as unknown as typeof fetch;
@@ -430,7 +430,7 @@ describe("createLiveDashboardSession", () => {
 
     await session.start();
     const newsCalls = () => vi.mocked(fetchImpl).mock.calls.filter(
-      ([input]) => String(input).startsWith("/api/news"),
+      ([input]) => String(input).includes("/news?feed="),
     ).length;
     expect(newsCalls()).toBe(0);
 
@@ -470,7 +470,7 @@ describe("createLiveDashboardSession", () => {
     canRefreshNews = true;
     session.refreshNewsIfDue();
     await vi.waitFor(() => expect(vi.mocked(fetchImpl).mock.calls.filter(
-      ([input]) => String(input).startsWith("/api/news"),
+      ([input]) => String(input).includes("/news?feed="),
     )).toHaveLength(3));
   });
 
@@ -561,7 +561,7 @@ describe("createLiveDashboardSession", () => {
   it("keeps news fresh when weather fails", async () => {
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       if (url.startsWith("/api/map")) return mapResponse();
       return { ok: false } as Response;
     }) as unknown as typeof fetch;

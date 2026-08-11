@@ -7,12 +7,14 @@ import {
   type RssSource,
 } from "./rss-sources";
 import type { PhoneLocale } from "./phone-types";
+import { DEFAULT_X_RELAY_URL } from "./x-key";
 
 export const NEWS_MAX_AGE_MS = 60 * 60 * 1000;
 export const NEWS_LIMIT = 100;
 const NEWS_TIMEOUT_MS = 8_000;
 const NEWS_SUMMARY_MAX_CODE_POINTS = 360;
 const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
+const NEWS_RELAY_URL = `${DEFAULT_X_RELAY_URL}/news`;
 
 type NewsCache = {
   readonly value: readonly NewsItem[];
@@ -284,8 +286,8 @@ export async function resolveNews(
   try {
     const snapshots = await Promise.all(sources.map(async (source) => {
       const endpoint = source.feed
-        ? `/api/news?feed=${source.feed}`
-        : `/api/news?url=${encodeURIComponent(source.url)}`;
+        ? `${NEWS_RELAY_URL}?feed=${encodeURIComponent(source.feed)}`
+        : source.url;
       try {
         const response = await fetchImpl(endpoint, {
           headers: {
