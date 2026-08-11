@@ -61,6 +61,31 @@ describe("X home timeline", () => {
     expect(fetchMock.mock.calls[0]?.[0]).toContain("pagination_token=next-page");
   });
 
+  it("uses the referenced original instead of the duplicated repost wrapper text", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response({
+      data: [{
+        id: "repost-1",
+        text: "RT @original: Original text https://t.co/wrapper",
+        author_id: "reposter",
+        referenced_tweets: [{ type: "retweeted", id: "original-1" }],
+      }],
+      includes: {
+        users: [
+          { id: "reposter", name: "Reposter", username: "reposter" },
+          { id: "original", name: "Original Author", username: "original" },
+        ],
+        tweets: [{ id: "original-1", author_id: "original", text: "Original text without the wrapper." }],
+      },
+    }));
+
+    const timeline = await fetchXHomeTimeline("token-for-test", "me", undefined, fetchMock);
+
+    expect(timeline.posts[0]).toMatchObject({
+      text: "Original text without the wrapper.",
+      repostedFrom: { name: "Original Author", username: "original" },
+    });
+  });
+
   it("uses a configured X-only relay as the API base URL", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response({ data: [] }));
     await fetchXHomeTimeline("token-for-test", "me", undefined, fetchMock, "https://relay.example/");

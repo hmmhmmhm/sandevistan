@@ -56,6 +56,11 @@ type XTimelineResponse = {
 };
 
 const headers = (token: string) => ({ authorization: `Bearer ${token}` });
+
+const withoutRepostShell = (value: string) => value
+  .replace(/^RT\s+@[^:]+:\s*/i, "")
+  .replace(/\s+https?:\/\/t\.co\/\S+$/i, "")
+  .trim();
 import { DEFAULT_X_RELAY_URL } from "./x-key";
 
 const X_API_ORIGIN = DEFAULT_X_RELAY_URL;
@@ -125,11 +130,12 @@ export async function fetchXHomeTimeline(
       const repost = tweet.referenced_tweets?.find((item) => item.type === "retweeted");
       const quote = tweet.referenced_tweets?.find((item) => item.type === "quoted");
       const repostAuthor = repost ? authors.get(referenced.get(repost.id)?.author_id ?? "") : undefined;
+      const repostedTweet = repost ? referenced.get(repost.id) : undefined;
       const quotedTweet = quote ? referenced.get(quote.id) : undefined;
       const quotedAuthor = quotedTweet ? authors.get(quotedTweet.author_id ?? "") : undefined;
       return {
         id: tweet.id,
-        text: tweet.text,
+        text: repostedTweet?.text ?? (repost ? withoutRepostShell(tweet.text) : tweet.text),
         createdAt: tweet.created_at,
         author: {
           id: author?.id ?? tweet.author_id ?? "unknown",

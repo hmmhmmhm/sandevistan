@@ -204,7 +204,7 @@ function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHud
   const image = post.imageUrl ? loadXImage(post.imageUrl) : undefined;
   const imageVisible = Boolean(image?.complete && image.naturalWidth > 0);
   if (imageVisible && image) {
-    context.filter = "grayscale(1) contrast(1.6)";
+    context.filter = "grayscale(1) contrast(2.4) brightness(1.18)";
     context.drawImage(image, 346, 92, 194, 106);
     context.filter = "none";
   }
@@ -221,7 +221,7 @@ function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHud
     context.fillStyle = COLOR.dim;
     context.fillRect(28, quoteY, imageVisible ? 300 : 500, 1);
     drawText(context, `QUOTE · ${quote.author}`, 28, quoteY + 6, 12, COLOR.secondary, "bold");
-    wrapHudText(quote.text, imageVisible ? 24 : 43, 2).forEach((line, lineIndex) => (
+    wrapHudText(quote.text, imageVisible ? 24 : 43, 3).forEach((line, lineIndex) => (
       drawText(context, line, 28, quoteY + 21 + lineIndex * 16, 13, COLOR.primary, "bold")
     ));
   }
@@ -231,11 +231,11 @@ function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHud
   context.fillRect(0, 254, WIDTH, 34);
   context.fillStyle = COLOR.dim;
   context.fillRect(14, 254, 548, 1);
-  drawText(context, day, 20, 263, 12, COLOR.secondary, "bold");
-  drawXMetric(context, "reply", metrics?.replies ?? 0, 150, 260);
-  drawXMetric(context, "repost", metrics?.reposts ?? 0, 238, 260);
-  drawXMetric(context, "like", metrics?.likes ?? 0, 326, 260);
-  drawXMetric(context, "quote", metrics?.quotes ?? 0, 414, 260);
+  drawText(context, day, 20, 267, 12, COLOR.secondary, "bold");
+  drawXMetric(context, "reply", metrics?.replies ?? 0, 150, 264);
+  drawXMetric(context, "repost", metrics?.reposts ?? 0, 238, 264);
+  drawXMetric(context, "like", metrics?.likes ?? 0, 326, 264);
+  drawXMetric(context, "quote", metrics?.quotes ?? 0, 414, 264);
 }
 
 function todoLabel(state: DataState<readonly TodoItem[]>): string {
