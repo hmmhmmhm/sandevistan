@@ -325,7 +325,7 @@ ORS_API_KEY='<server-only-key>' \
 Open the app through **Even Hub → Scan QR**:
 
 ```text
-http://<PHONE-REACHABLE-IP>:4176/hud-canvas-fast?sdk=0.0.11
+http://<PHONE-REACHABLE-IP>:4176/
 ```
 
 This is the single development URL. Keep the Even Hub WebView open at this
