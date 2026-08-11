@@ -579,7 +579,12 @@ describe("SANDEVISTAN peripheral HUD", () => {
       expect.any(HTMLCanvasElement),
       expect.any(Date),
       "overview",
-      { battery: undefined, live: newest, mapRadiusMeters: 650 },
+      {
+        battery: undefined,
+        dashboardMapEnabled: true,
+        live: newest,
+        mapRadiusMeters: 650,
+      },
     );
     expect(mocks.drawLocale).toHaveBeenLastCalledWith("en");
     view.unmount();
@@ -911,6 +916,7 @@ describe("SANDEVISTAN peripheral HUD", () => {
       "overview",
       {
         battery: { label: "G2", level: 80, charging: true },
+        dashboardMapEnabled: true,
         live: expect.any(Object),
         mapRadiusMeters: 650,
       },
@@ -1393,6 +1399,7 @@ describe("SANDEVISTAN peripheral HUD", () => {
       "overview",
       {
         battery: { label: "G2", level: 79, charging: false },
+        dashboardMapEnabled: true,
         live: weather,
         mapRadiusMeters: 850,
       },

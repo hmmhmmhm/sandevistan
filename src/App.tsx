@@ -158,8 +158,8 @@ export function App({ autoStart = true }: AppProps) {
         };
       });
       liveSessionRef.current?.refreshLocale?.();
-      displayRefreshRef.current?.();
     }
+    displayRefreshRef.current?.();
   }, []);
   const setCompanionOrsKey = (value: string | undefined) => {
     companionOrsKeyRef.current = value;
