@@ -183,11 +183,14 @@ export function ByokScreen({
         <div className="phone-stacked-form phone-key-accordion__content">
         {xAccessToken && <button type="button" className="phone-danger-button" onClick={async () => { if (storage && await clearXAccessToken(storage)) onXAccessTokenChange?.(undefined); }}>Delete</button>}
         <a className="phone-key-link" href="https://developer.x.com/en/portal/dashboard" target="_blank" rel="noreferrer">Open X Developer Portal ↗</a>
+        <p className="phone-form-message"><strong>Required setup:</strong> In X Developer Portal, set the OAuth 2.0 app type to <strong>Single Page App</strong> or <strong>Native App</strong> before issuing these tokens.</p>
+        <p className="phone-form-message"><strong>Do not use Web App, Automated App, or Bot.</strong> Those confidential client types require a Client Secret for token refresh, which this device-local BYOK flow intentionally never stores.</p>
+        <p className="phone-form-message">Issue a new OAuth 2.0 User Access Token and Refresh Token with <code>tweet.read users.read offline.access</code> after changing the app type. Existing tokens do not inherit the change.</p>
         <label><span>X Client ID</span><input autoComplete="off" value={clientId} onChange={(event) => setClientId(event.target.value)} /></label>
         <label><span>X Access Token</span><input type="password" autoComplete="off" value={accessToken} onChange={(event) => setAccessToken(event.target.value)} /></label>
         <label><span>X Refresh Token</span><input type="password" autoComplete="off" value={refreshToken} onChange={(event) => setRefreshToken(event.target.value)} /></label>
         <button type="button" className="phone-primary-button" onClick={saveOAuthTokens} disabled={!storage}>Save X tokens</button>
-        <p className="phone-form-message">The Access Token is used now; the Refresh Token renews it automatically. Client ID is required by X for renewal. Redirect URI and Client Secret are not needed here.</p>
+        <p className="phone-form-message">The Access Token is used now; the Refresh Token renews it automatically. Client ID is required by X for renewal. Redirect URI and Client Secret are not needed for a Public Client.</p>
         {oauthError && <p role="alert" className="phone-form-message">{oauthError}</p>}
         </div>
       </details>
