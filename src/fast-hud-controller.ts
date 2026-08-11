@@ -95,6 +95,7 @@ export function useHudController({
     let conversateRuntime: ConversateRuntime | undefined;
     let nativeAiText: FastCanvasNativeTextController | undefined;
     let bridge: FastHudBridge | undefined;
+    let sensorAwareBridge: FastHudBridge | undefined;
     let page: FastHudPage = HUD_PAGES[0];
     let view = createFastHudViewState();
     let battery: FastCanvasBattery | undefined;
@@ -266,7 +267,20 @@ export function useHudController({
                 `display committed · minute ${minute}`,
               );
             },
-            onDisplayVisibilityChange: setCompanionDisplayVisible,
+            onDisplayVisibilityChange: (visible) => {
+              setCompanionDisplayVisible(visible);
+              if (visible || !sensorAwareBridge) return;
+              void sensorAwareBridge.audioControl(false).then((closed) => {
+                logDiagnostic(
+                  "APP",
+                  closed
+                    ? "microphone stopped · display hidden"
+                    : "microphone already idle · display hidden",
+                );
+              }).catch(() => {
+                logDiagnostic("ERROR", "microphone stop failed · display hidden");
+              });
+            },
             onInput: handleFastInput,
             onRawEvent: (event) => {
               if (!event.hidden) return;
@@ -336,7 +350,7 @@ export function useHudController({
         logDiagnostic("APP", "live bridge wait");
         const activeBridge = bridge;
         if (!activeBridge) return;
-        const sensorAwareBridge = createSensorAwareBridge(
+        sensorAwareBridge = createSensorAwareBridge(
           activeBridge,
           updateSensorStatus,
           sensorStatus,
