@@ -98,7 +98,7 @@ describe("PhoneCompanion", () => {
     expect(screen.queryByText("Manage")).toBeNull();
     expect(screen.getByRole("link", { name: /GitHub/ }).getAttribute("href"))
       .toBe("https://github.com/hmmhmmhm/sandevistan");
-    expect(screen.getByText("v0.1.2")).toBeTruthy();
+    expect(screen.getByText("v0.1.3")).toBeTruthy();
   });
 
   it("opens a detail screen and returns without remounting the Canvas", () => {
