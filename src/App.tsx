@@ -12,6 +12,7 @@ import type { EvenStorage } from "./live-cache";
 import {
   createInitialLiveDashboardState,
   type LiveDashboardState,
+  type XHudPost,
 } from "./live-state";
 import { resolveOrsKey } from "./ors-key";
 import { resolvePhoneLocale } from "./phone-i18n";
@@ -74,8 +75,9 @@ export function App({ autoStart = true }: AppProps) {
     window.location.pathname,
     window.location.search,
   );
+  const xHudPostsRef = useRef<readonly XHudPost[]>([]);
   const syncXTimelineToHud = useCallback((timeline: XTimeline) => {
-    liveSessionRef.current?.replaceX?.(timeline.posts.map((post) => ({
+    const posts = timeline.posts.map((post) => ({
       id: post.id,
       text: post.text,
       author: post.author.name,
@@ -85,7 +87,9 @@ export function App({ autoStart = true }: AppProps) {
       avatarUrl: post.author.avatarUrl,
       repostedFrom: post.repostedFrom,
       metrics: post.metrics,
-    })));
+    }));
+    xHudPostsRef.current = posts;
+    liveSessionRef.current?.replaceX?.(posts);
   }, []);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const liveSessionRef = useRef<
@@ -286,6 +290,7 @@ export function App({ autoStart = true }: AppProps) {
     autoStart,
     canvasRef,
     liveSessionRef,
+    xHudPostsRef,
     phonePreferencesRef,
     displayRefreshRef,
     companionOrsKeyRef,

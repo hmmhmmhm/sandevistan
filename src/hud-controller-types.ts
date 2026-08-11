@@ -2,7 +2,7 @@ import type { MutableRefObject, RefObject } from "react";
 import type { FastCanvasBattery } from "./glasses";
 import type { createLiveDashboardSession } from "./live-dashboard";
 import type { EvenStorage } from "./live-cache";
-import type { LiveDashboardState } from "./live-state";
+import type { LiveDashboardState, XHudPost } from "./live-state";
 import type { PhonePreferences, SensorStatus } from "./phone-types";
 import type { RoutingStatus } from "./routing";
 import type { G2TilePaletteMode } from "./g2-tile-palette";
@@ -29,6 +29,7 @@ export type UseHudControllerOptions = {
   readonly autoStart: boolean;
   readonly canvasRef: RefObject<HTMLCanvasElement | null>;
   readonly liveSessionRef: MutableRefObject<LiveSession | undefined>;
+  readonly xHudPostsRef: MutableRefObject<readonly XHudPost[]>;
   readonly phonePreferencesRef: MutableRefObject<PhonePreferences>;
   readonly displayRefreshRef: MutableRefObject<(() => void) | undefined>;
   readonly companionOrsKeyRef: MutableRefObject<string | undefined>;

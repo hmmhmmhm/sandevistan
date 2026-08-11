@@ -78,7 +78,7 @@ function createSensorAwareBridge(
 }
 
 export function useHudController({
-  autoStart, canvasRef, liveSessionRef, phonePreferencesRef, displayRefreshRef,
+  autoStart, canvasRef, liveSessionRef, xHudPostsRef, phonePreferencesRef, displayRefreshRef,
   companionOrsKeyRef, companionOpenAiKeyRef, companionSonioxKeyRef, aiSnapshotRef,
   conversateSettingsRef, conversateSnapshotRef, displayHideStrategy,
   imageSendConcurrency, tileImageFormat, tilePaletteMode, modes, setStatus,
@@ -461,6 +461,7 @@ export function useHudController({
         });
         liveSession.setRoutingKey?.(companionOrsKeyRef.current);
         liveSessionRef.current = liveSession;
+        liveSession.replaceX(xHudPostsRef.current);
         if (cancelled) {
           liveSession.dispose();
           if (liveSessionRef.current === liveSession) {
