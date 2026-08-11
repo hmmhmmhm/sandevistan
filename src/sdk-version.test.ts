@@ -29,7 +29,7 @@ describe("Even Hub SDK compatibility", () => {
     });
   });
 
-  it("declares the scoped G2 microphone and OpenAI network permissions", () => {
+  it("declares the scoped G2 microphone and API network permissions", () => {
     const permissions = appManifest.permissions as Array<{
       name: string;
       whitelist?: string[];
@@ -39,6 +39,7 @@ describe("Even Hub SDK compatibility", () => {
       .toEqual(expect.arrayContaining([
         "https://api.openai.com",
         "wss://api.openai.com",
+        "https://api.x.com",
       ]));
   });
 

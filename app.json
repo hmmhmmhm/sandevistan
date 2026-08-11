@@ -17,7 +17,8 @@
       "whitelist": [
         "https://api.open-meteo.com",
         "https://api.openai.com",
-        "wss://api.openai.com"
+        "wss://api.openai.com",
+        "https://api.x.com"
       ]
     },
     {
