@@ -212,6 +212,37 @@ describe("drawFastDetailHud", () => {
     expect(values(texts)).not.toContain("답변 표시 중…");
   });
 
+  it("renders an X post as a readable HUD detail", () => {
+    const { canvas, texts } = createCanvas();
+    const live = liveState();
+    drawFastDetailHud(canvas, {
+      mode: "x",
+      live: {
+        ...live,
+        x: {
+          status: "fresh",
+          value: [{
+            id: "tweet-1",
+            username: "evenrealities",
+            author: "Even Realities",
+            text: "The attached photo and tweet text stay together in the HUD detail.",
+          }],
+        },
+      },
+      newsIndex: 0,
+      newsPage: 0,
+      todoIndex: 0,
+      navigationIndex: 0,
+    }, "en");
+
+    expect(values(texts)).toEqual(expect.arrayContaining([
+      "X // HOME",
+      "@evenrealities · Even Realities",
+      "The attached photo and tweet text stay",
+      "SCROLL // TWEETS",
+    ]));
+  });
+
   it("renders English fixed copy while preserving source content", () => {
     const weather = createCanvas();
     drawFastDetailHud(weather.canvas, {

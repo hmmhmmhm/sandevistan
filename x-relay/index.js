@@ -30,6 +30,19 @@ function isAllowedPath(pathname) {
   return ALLOWED_PATHS.some((pattern) => pattern.test(pathname));
 }
 
+function xMediaUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:"
+      && url.hostname === "pbs.twimg.com"
+      && url.pathname.startsWith("/media/")
+      ? url.toString()
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function validAuthorization(value) {
   return value?.startsWith("Bearer ")
     && value.length <= MAX_TOKEN_LENGTH
@@ -62,6 +75,22 @@ export default {
     if (request.method !== "GET") return response({ error: "method_not_allowed" }, 405);
 
     const url = new URL(request.url);
+    if (url.pathname === "/media") {
+      const media = xMediaUrl(url.searchParams.get("url"));
+      if (!media || [...url.searchParams.keys()].some((key) => key !== "url")) {
+        return response({ error: "x_media_not_allowed" }, 404);
+      }
+      try {
+        const upstream = await fetch(media);
+        if (!upstream.ok) return response({ error: "x_media_unavailable" }, 502);
+        const headers = new Headers(CORS_HEADERS);
+        headers.set("content-type", upstream.headers.get("content-type") ?? "image/jpeg");
+        headers.set("cache-control", "public, max-age=86400");
+        return new Response(upstream.body, { status: 200, headers });
+      } catch {
+        return response({ error: "x_media_unavailable" }, 502);
+      }
+    }
     if (url.pathname === "/news") {
       const feed = NEWS_FEEDS.get(url.searchParams.get("feed"));
       if (!feed || [...url.searchParams.keys()].some((key) => key !== "feed")) {

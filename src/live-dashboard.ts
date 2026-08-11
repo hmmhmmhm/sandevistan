@@ -2,6 +2,7 @@ import {
   createInitialLiveDashboardState,
   type LiveDashboardState,
   type TodoItem,
+  type XHudPost,
 } from "./live-state";
 import {
   resolveInitialLocation,
@@ -98,6 +99,7 @@ export function createLiveDashboardSession(
   refreshNewsIfDue(): void;
   refreshLocale(): void;
   replaceTodos(items: readonly TodoItem[]): void;
+  replaceX(items: readonly XHudPost[]): void;
   toggleTodo(index: number): Promise<boolean>;
   getState(): LiveDashboardState;
   dispose(): void;
@@ -138,6 +140,17 @@ export function createLiveDashboardSession(
   };
   const setRoute = (route: LiveDashboardState["route"]) => {
     state = { ...state, route: clone(route) };
+  };
+  const replaceX = (items: readonly XHudPost[]) => {
+    state = {
+      ...state,
+      x: {
+        status: items.length > 0 ? "fresh" : "unavailable",
+        value: items.map((item) => ({ ...item })),
+        ...(items.length > 0 ? { fetchedAt: now() } : {}),
+      },
+    };
+    emit("right");
   };
 
   const refresh = createLiveDashboardRefresh({
@@ -367,6 +380,7 @@ export function createLiveDashboardSession(
     refreshNewsIfDue,
     refreshLocale,
     replaceTodos,
+    replaceX,
     toggleTodo: toggleTodoAt,
     getState: () => clone(state),
     dispose: () => {

@@ -23,6 +23,7 @@ import type {
   NewsItem,
   RouteValue,
   TodoItem,
+  XHudPost,
 } from "./live-state";
 import type { AiHudSnapshot } from "./ai-hud-state";
 import { createAiHudSnapshot } from "./ai-hud-state";
@@ -34,7 +35,7 @@ const WIDTH = 576;
 const HEIGHT = 288;
 
 export type FastDetailHudOptions = {
-  readonly mode: "news" | "todo" | "weather" | "navigation" | "ai" | "conversate";
+  readonly mode: "news" | "x" | "todo" | "weather" | "navigation" | "ai" | "conversate";
   readonly live: LiveDashboardState;
   readonly newsIndex: number;
   readonly newsPage: number;
@@ -132,6 +133,30 @@ function drawNews(
     "bold",
   );
   drawFooter(context, "SCROLL // TEXT / ARTICLES");
+}
+
+const xImages = new Map<string, HTMLImageElement>();
+
+function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHudPost[]>, index: number, locale: PhoneLocale) {
+  const posts = state.value ?? [];
+  const post = state.status === "fresh" || state.status === "stale" ? posts[Math.min(index, posts.length - 1)] : undefined;
+  drawHeader(context, state.status === "fresh" ? "X // HOME" : "X // UNAVAILABLE", post ? compactPosition(index, posts.length) : "00/00");
+  drawFrame(context, 14, 44, 548, 204);
+  if (!post) { drawEmptyState(context, "X timeline unavailable", "Check your X token and plan."); return; }
+  drawText(context, `@${post.username} · ${post.author}`, 30, 62, 15, COLOR.secondary, "bold");
+  const image = post.imageUrl ? xImages.get(post.imageUrl) : undefined;
+  if (post.imageUrl && !image) {
+    const next = new Image();
+    next.crossOrigin = "anonymous";
+    next.onload = () => {
+      window.dispatchEvent(new Event("sandevistan-x-image-ready"));
+    };
+    next.src = `https://sandevistan-x-relay.hmmhmmhm.workers.dev/media?url=${encodeURIComponent(post.imageUrl)}`;
+    xImages.set(post.imageUrl, next);
+  }
+  if (image?.complete && image.naturalWidth > 0) context.drawImage(image, 352, 78, 188, 126);
+  wrapHudText(post.text, image ? 25 : 44, image ? 4 : 6).forEach((line, lineIndex) => drawText(context, line, 28, 100 + lineIndex * 25, 20, COLOR.primary, "bold"));
+  drawFooter(context, "SCROLL // TWEETS");
 }
 
 function todoLabel(state: DataState<readonly TodoItem[]>): string {
@@ -403,6 +428,8 @@ export function drawFastDetailHud(
       options.newsPage,
       locale,
     );
+  } else if (options.mode === "x") {
+    drawX(context, options.live.x, options.newsIndex, locale);
   } else if (options.mode === "weather") {
     drawWeather(context, options.live.weather, locale);
   } else if (options.mode === "todo") {

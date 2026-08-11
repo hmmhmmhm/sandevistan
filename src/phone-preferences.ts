@@ -10,6 +10,7 @@ import type {
 const KEYLESS_PAGES = [
   "overview",
   "news",
+  "x",
   "todo",
   "weather",
   "ai",
@@ -117,7 +118,7 @@ export function normalizePhonePreferences(
         enabled: [...withInterval.enabled, "ai" as const],
       }
     : withInterval;
-  const migrated: PhonePreferences = !withAi.order.includes("conversate")
+  const withConversate: PhonePreferences = !withAi.order.includes("conversate")
     ? {
         ...withAi,
         order: withAi.order.includes("navigation")
@@ -130,6 +131,15 @@ export function normalizePhonePreferences(
         enabled: [...withAi.enabled, "conversate" as const],
       }
     : withAi;
+  const migrated: PhonePreferences = !withConversate.order.includes("x")
+    ? {
+        ...withConversate,
+        order: withConversate.order.includes("navigation")
+          ? [...withConversate.order.filter((page) => page !== "navigation"), "x" as const, "navigation" as const]
+          : [...withConversate.order, "x" as const],
+        enabled: [...withConversate.enabled, "x" as const],
+      }
+    : withConversate;
   if (!isValidLayout(migrated, navigationAvailable)) {
     return {
       ...DEFAULT_PHONE_PREFERENCES,

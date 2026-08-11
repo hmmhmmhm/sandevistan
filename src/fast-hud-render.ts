@@ -69,9 +69,23 @@ export function drawFastHudSurface(options: {
     return;
   }
   if (view.mode !== "dashboard") {
+    const detailLive = view.mode === "x"
+      ? {
+          ...live,
+          news: {
+            status: live.x.status,
+            value: (live.x.value ?? []).map((post) => ({
+              id: post.id,
+              title: `@${post.username} · ${post.author}`,
+              summary: post.text,
+              publishedAt: post.createdAt ? Date.parse(post.createdAt) : undefined,
+            })),
+          },
+        }
+      : live;
     drawFastDetailHud(canvas, {
       mode: view.mode,
-      live,
+      live: detailLive,
       newsIndex: view.newsIndex,
       newsPage: view.newsPage,
       todoIndex: view.todoIndex,

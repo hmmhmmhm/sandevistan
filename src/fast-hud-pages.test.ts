@@ -6,10 +6,11 @@ import {
 } from "./fast-hud-pages";
 
 describe("Fast Canvas page model", () => {
-  it("adds Conversate after Ask AI as the final keyless page", () => {
+  it("adds X after News while retaining Conversate as a keyless page", () => {
     expect(getFastHudPages("disabled")).toEqual([
       "overview",
       "news",
+      "x",
       "todo",
       "weather",
       "ai",
@@ -33,6 +34,7 @@ describe("Fast Canvas page model", () => {
     expect(getFastHudPages("fresh")).toEqual([
       "overview",
       "news",
+      "x",
       "todo",
       "weather",
       "ai",

@@ -37,7 +37,7 @@ class TodoBridge implements LocationBridge {
 function liveFetch(): typeof fetch {
   return (async (input: RequestInfo | URL) => {
     const url = String(input);
-    if (url.startsWith("/api/news")) {
+    if (url.includes("/news?feed=")) {
       return {
         ok: true,
         text: async () => `<?xml version="1.0"?>

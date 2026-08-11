@@ -36,6 +36,7 @@ describe("live dashboard state", () => {
       },
       weather: { status: "loading" },
       news: { status: "loading", value: [] },
+      x: { status: "unavailable", value: [] },
       todos: {
         status: "fresh",
         value: [
@@ -129,6 +130,7 @@ describe("live dashboard state", () => {
       location: locationState,
       weather: { status: "fresh", value: weather, fetchedAt: 1 },
       news: { status: "fresh", value: [news], fetchedAt: 1 },
+      x: { status: "unavailable", value: [] },
       todos: createInitialLiveDashboardState().todos,
       map: { status: "fresh", value: map, fetchedAt: 1 },
       route: { status: "fresh", value: route, fetchedAt: 1 },

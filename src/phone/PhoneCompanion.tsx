@@ -87,6 +87,7 @@ type PhoneCompanionProps = {
   readonly onSonioxKeyChange?: (key: string | undefined) => void;
   readonly onXAccessTokenChange?: (key: string | undefined) => void;
   readonly onXRelayUrlChange?: (url: string | undefined) => void;
+  readonly onXTimelineChange?: (timeline: XTimeline) => void;
   readonly onAiSnapshotChange?: (snapshot: AiHudSnapshot) => void;
   readonly conversateSettings?: ConversateSettings;
   readonly conversateSnapshot?: ConversateSnapshot;
@@ -154,6 +155,7 @@ export function PhoneCompanion({
   onSonioxKeyChange,
   onXAccessTokenChange,
   onXRelayUrlChange,
+  onXTimelineChange,
   onAiSnapshotChange,
   conversateSettings = DEFAULT_CONVERSATE_SETTINGS,
   conversateSnapshot = createConversateSnapshot(),
@@ -182,6 +184,7 @@ export function PhoneCompanion({
     if (!xAccessToken) {
       setXTimeline({ posts: [] });
       setXError(undefined);
+      onXTimelineChange?.({ posts: [] });
       return;
     }
     let active = true;
@@ -191,7 +194,10 @@ export function PhoneCompanion({
       try {
         const userId = await resolveXUserId(xAccessToken, fetch, xRelayUrl);
         const timeline = await fetchXHomeTimeline(xAccessToken, userId, undefined, fetch, xRelayUrl);
-        if (active) setXTimeline(timeline);
+        if (active) {
+          setXTimeline(timeline);
+          onXTimelineChange?.(timeline);
+        }
       } catch (error) {
         if (active) setXError(xErrorMessage(error));
       } finally {
@@ -199,7 +205,7 @@ export function PhoneCompanion({
       }
     })();
     return () => { active = false; };
-  }, [xAccessToken, xRelayUrl]);
+  }, [xAccessToken, xRelayUrl, onXTimelineChange]);
 
   const loadMoreX = () => {
     if (!xAccessToken || !xTimeline.next || xLoading) return;
@@ -209,10 +215,11 @@ export function PhoneCompanion({
       try {
         const userId = await resolveXUserId(xAccessToken, fetch, xRelayUrl);
         const next = await fetchXHomeTimeline(xAccessToken, userId, xTimeline.next, fetch, xRelayUrl);
-        setXTimeline((current) => ({
-          posts: [...current.posts, ...next.posts],
-          next: next.next,
-        }));
+        setXTimeline((current) => {
+          const timeline = { posts: [...current.posts, ...next.posts], next: next.next };
+          onXTimelineChange?.(timeline);
+          return timeline;
+        });
       } catch (error) {
         setXError(xErrorMessage(error));
       } finally {

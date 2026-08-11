@@ -360,6 +360,20 @@ function drawNews(
   drawText(context, "NEWS // MORE", 308, 222, 10, COLOR.secondary, "bold");
 }
 
+function drawX(context: CanvasRenderingContext2D, live: LiveDashboardState) {
+  const posts = live.x.value ?? [];
+  drawText(context, "X // HOME", 308, 82, 11, COLOR.secondary, "bold");
+  if (posts.length === 0) {
+    drawText(context, live.x.status === "loading" ? "X LOADING" : "X UNAVAILABLE", 308, 112, 16, COLOR.primary, "bold");
+    return;
+  }
+  posts.slice(0, 4).forEach((post, index) => {
+    drawText(context, `@${post.username}`, 308, 106 + index * 39, 11, COLOR.secondary, "bold");
+    drawText(context, truncateHudTitle(post.text, 27), 308, 121 + index * 39, 14, COLOR.primary, "bold");
+  });
+  drawText(context, "TAP // TWEETS", 308, 257, 10, COLOR.secondary, "bold");
+}
+
 function drawTodo(
   context: CanvasRenderingContext2D,
   live: LiveDashboardState,
@@ -402,6 +416,7 @@ export function drawFastDynamicPage(
     drawFastCanvasNavigation(context, data.live.route, locale);
   }
   if (page === "news") drawNews(context, data.live);
+  if (page === "x") drawX(context, data.live);
   if (page === "todo") drawTodo(context, data.live, locale);
   if (page === "weather") drawWeather(context, data.live, locale);
   if (page === "ai") {

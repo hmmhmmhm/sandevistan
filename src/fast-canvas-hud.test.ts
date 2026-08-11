@@ -11,6 +11,7 @@ type FastHudPage =
   | "overview"
   | "navigation"
   | "news"
+  | "x"
   | "todo"
   | "weather"
   | "ai";
@@ -229,6 +230,7 @@ describe("fast split Canvas HUD", () => {
     const pageNames: FastHudPage[] = [
       "overview",
       "news",
+      "x",
       "todo",
       "weather",
     ];
@@ -241,7 +243,7 @@ describe("fast split Canvas HUD", () => {
         "14:37",
         "2026.07.27 월요일",
         "WEATHER --",
-        `0${index + 1} / 06`,
+        `0${index + 1} / 07`,
         "LOC // NO GPS · NO DATA",
         "NO GPS DATA",
         "© OSM CONTRIBUTORS",
@@ -263,24 +265,25 @@ describe("fast split Canvas HUD", () => {
       leftSnapshot(pages[0]),
       leftSnapshot(pages[0]),
       leftSnapshot(pages[0]),
+      leftSnapshot(pages[0]),
     ]);
-    expect(pages[3].values).toContain("WEATHER // LOADING");
-    expect(pages[3].values).not.toContain("경로 키 필요");
-    expect(pages[3].values).not.toContain("ORS 연결 후 사용");
+    expect(pages[4].values).toContain("WEATHER // LOADING");
+    expect(pages[4].values).not.toContain("경로 키 필요");
+    expect(pages[4].values).not.toContain("ORS 연결 후 사용");
     expect(pages[1].values).toContain("NEWS LOADING");
     expect(pages[1].values.filter((value) => value.startsWith("· "))).toHaveLength(
       0,
     );
     expect(pages[1].values).not.toContain("2호선 정상 운행");
-    expect(pages[2].values).toEqual(expect.arrayContaining([
+    expect(pages[3].values).toEqual(expect.arrayContaining([
       "TODO // ACTIVE",
       "지하철역으로 이동",
       "우산 챙기기",
       "경로 확인",
       "완료 1 / 3",
     ]));
-    expect(pages[2].values).not.toContain("CONNECTED");
-    expect(pages[2].values).not.toContain("LINK // G2 + R1");
+    expect(pages[3].values).not.toContain("CONNECTED");
+    expect(pages[3].values).not.toContain("LINK // G2 + R1");
   });
 
   it("leaves the dashboard's left half blank when the map is disabled", async () => {
@@ -293,7 +296,7 @@ describe("fast split Canvas HUD", () => {
     expect(hud.values).not.toContain("© OSM CONTRIBUTORS");
   });
 
-  it("focuses the fourth keyless page on current weather", async () => {
+  it("focuses the fifth keyless page on current weather", async () => {
     const module = await loadFastHud();
     if (!module?.drawFastCanvasHud) return;
     const initial = createInitialLiveDashboardState();
@@ -323,7 +326,7 @@ describe("fast split Canvas HUD", () => {
       "습도 63%",
       "강수 20%",
       "바람 8km/h",
-      "04 / 06",
+      "05 / 07",
     ]));
     expect(weather.values).not.toContain("BATTERY --");
     expect(weather.values).not.toContain("경로 키 필요");
@@ -347,7 +350,7 @@ describe("fast split Canvas HUD", () => {
     )).toHaveLength(0);
   });
 
-  it("renders Ask AI fifth with recent context and local cost", async () => {
+  it("renders Ask AI sixth with recent context and local cost", async () => {
     const module = await loadFastHud();
     if (!module?.drawFastCanvasHud) return;
     const ai = {
@@ -361,7 +364,7 @@ describe("fast split Canvas HUD", () => {
     const hud = renderFastHud(module, "ai", { ai });
 
     expect(hud.values).toEqual(expect.arrayContaining([
-      "05 / 06",
+      "06 / 07",
       "AI에게 묻기 // 준비됨",
       "대화 기록 // 사용자",
       "오늘 일정을 알려줘",
@@ -372,7 +375,7 @@ describe("fast split Canvas HUD", () => {
     ]));
   });
 
-  it("adds Navigation seventh only when routing is enabled", async () => {
+  it("adds Navigation eighth only when routing is enabled", async () => {
     const module = await loadFastHud();
     if (!module?.drawFastCanvasHud) return;
     const initial = createInitialLiveDashboardState();
@@ -383,7 +386,7 @@ describe("fast split Canvas HUD", () => {
     const navigation = renderFastHud(module, "navigation", { live });
 
     expect(navigation.values).toEqual(expect.arrayContaining([
-      "07 / 07",
+      "08 / 08",
       "NAV // READY",
       "목적지를 선택하세요",
     ]));
@@ -396,7 +399,7 @@ describe("fast split Canvas HUD", () => {
     const navigation = renderFastHud(module, "navigation");
 
     expect(navigation.values).toEqual(expect.arrayContaining([
-      "04 / 06",
+      "05 / 07",
       "WEATHER // LOADING",
     ]));
     expect(navigation.values).not.toContain("NAV // DISABLED");
@@ -556,6 +559,32 @@ describe("fast split Canvas HUD", () => {
     expect(renderFastHud(module, "news", {
       live: { ...live, news: { status: "unavailable" } },
     }).values).toContain("NEWS UNAVAILABLE");
+  });
+
+  it("renders X posts as a separate dashboard page", async () => {
+    const module = await loadFastHud();
+    if (!module?.drawFastCanvasHud) return;
+    const initial = createInitialLiveDashboardState();
+    const x = renderFastHud(module, "x", {
+      live: {
+        ...initial,
+        x: {
+          status: "fresh",
+          value: [{
+            id: "tweet-1",
+            username: "evenrealities",
+            author: "Even Realities",
+            text: "A fresh post is now available on the HUD.",
+          }],
+        },
+      },
+    });
+
+    expect(x.values).toEqual(expect.arrayContaining([
+      "X // HOME",
+      "@evenrealities",
+    ]));
+    expect(x.values.some((value) => value.startsWith("A fresh post is now"))).toBe(true);
   });
 
   it("renders the restored TODO state on its dashboard page", async () => {

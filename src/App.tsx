@@ -45,6 +45,7 @@ import { resolveAiConversationHistory } from "./ai-history";
 import { resolveOpenAiKey } from "./openai-key";
 import { resolveSonioxKey } from "./soniox-key";
 import { resolveXAccessToken, resolveXRelayUrl } from "./x-key";
+import type { XTimeline } from "./x-feed";
 import { TRANSPORT_STATUS } from "./transport-status";
 import { useConversateCompanion } from "./use-conversate-companion";
 import { HudSurface } from "./HudSurface";
@@ -73,6 +74,16 @@ export function App({ autoStart = true }: AppProps) {
     window.location.pathname,
     window.location.search,
   );
+  const syncXTimelineToHud = useCallback((timeline: XTimeline) => {
+    liveSessionRef.current?.replaceX?.(timeline.posts.map((post) => ({
+      id: post.id,
+      text: post.text,
+      author: post.author.name,
+      username: post.author.username,
+      createdAt: post.createdAt,
+      imageUrl: post.media.find((media) => media.kind === "photo")?.url,
+    })));
+  }, []);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const liveSessionRef = useRef<
     ReturnType<typeof createLiveDashboardSession> | undefined
@@ -374,6 +385,7 @@ export function App({ autoStart = true }: AppProps) {
         onSonioxKeyChange={setCompanionSonioxKey}
         onXAccessTokenChange={setCompanionXAccessToken}
         onXRelayUrlChange={setCompanionXRelayUrl}
+        onXTimelineChange={syncXTimelineToHud}
         onAiSnapshotChange={(snapshot) => {
           setCompanionAiSnapshot(snapshot);
           displayRefreshRef.current?.();

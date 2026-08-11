@@ -9,6 +9,7 @@ import type { RoutingStatus } from "./routing";
 export type HudPageId =
   | "overview"
   | "news"
+  | "x"
   | "todo"
   | "weather"
   | "ai"

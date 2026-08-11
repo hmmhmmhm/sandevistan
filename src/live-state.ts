@@ -43,6 +43,15 @@ export type NewsItem = {
   readonly summary?: string;
 };
 
+export type XHudPost = {
+  readonly id: string;
+  readonly text: string;
+  readonly author: string;
+  readonly username: string;
+  readonly createdAt?: string;
+  readonly imageUrl?: string;
+};
+
 export type TodoItem = {
   readonly id: string;
   readonly title: string;
@@ -87,6 +96,7 @@ export type LiveDashboardState = {
   readonly location: DataState<LocationValue>;
   readonly weather: DataState<WeatherValue>;
   readonly news: DataState<readonly NewsItem[]>;
+  readonly x: DataState<readonly XHudPost[]>;
   readonly todos: DataState<readonly TodoItem[]>;
   readonly map: DataState<MapValue>;
   readonly route: DataState<RouteValue>;
@@ -114,6 +124,7 @@ export function createInitialLiveDashboardState(): LiveDashboardState {
     },
     weather: { status: "loading" },
     news: { status: "loading", value: [] },
+    x: { status: "unavailable", value: [] },
     todos: {
       status: "fresh",
       value: DEFAULT_TODOS.map((item) => ({ ...item })),

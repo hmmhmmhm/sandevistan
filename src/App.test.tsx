@@ -1008,6 +1008,7 @@ describe("SANDEVISTAN peripheral HUD", () => {
     await navigate?.("next");
     await navigate?.("next");
     await navigate?.("next");
+    await navigate?.("next");
     expect(mocks.drawFast).toHaveBeenLastCalledWith(
       expect.any(HTMLCanvasElement),
       expect.any(Date),
@@ -1054,6 +1055,7 @@ describe("SANDEVISTAN peripheral HUD", () => {
     await navigate?.("next");
     await navigate?.("next");
     await navigate?.("next");
+    await navigate?.("next");
     expect(mocks.drawFast).toHaveBeenLastCalledWith(
       expect.any(HTMLCanvasElement),
       expect.any(Date),
@@ -1085,6 +1087,7 @@ describe("SANDEVISTAN peripheral HUD", () => {
     const view = render(<App />);
     await vi.waitFor(() => expect(session.start).toHaveBeenCalledOnce());
 
+    await navigate?.("next");
     await navigate?.("next");
     await navigate?.("next");
     await navigate?.("next");
@@ -1177,6 +1180,7 @@ describe("SANDEVISTAN peripheral HUD", () => {
     );
     expect(await fastOptions().onInput?.("double-tap")).toBe("redraw");
 
+    await navigate?.("next");
     await navigate?.("next");
     expect(await fastOptions().onInput?.("tap")).toBe("redraw");
     expect(await fastOptions().onInput?.("scroll-next")).toBe("redraw");

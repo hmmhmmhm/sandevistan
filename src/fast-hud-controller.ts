@@ -129,9 +129,12 @@ export function useHudController({
       typeof navigator === "undefined" ? "en" : navigator.language,
     );
     const viewContext = () => {
+      const contextLive = page === "x" || view.mode === "x"
+        ? { ...live, news: { status: live.x.status, value: (live.x.value ?? []).map((post) => ({ id: post.id, title: post.text, summary: post.text })) } }
+        : live;
       const resolved = resolveFastHudViewContext(
         canvas,
-        live,
+        contextLive,
         currentLocale(),
         aiSnapshotRef.current,
         newsPageCache,
@@ -172,6 +175,14 @@ export function useHudController({
         drawDenseCanvasHud(canvas, new Date(), page as HudPage);
       }
     };
+    const handleXImageReady = () => {
+      if (view.mode !== "x") return;
+      drawCurrentPage();
+      requestLiveRefresh?.("all");
+    };
+    if (modes.fastCanvas) {
+      window.addEventListener("sandevistan-x-image-ready", handleXImageReady);
+    }
     const nativeAiContent = () => createNativeAiTextContent(
       aiSnapshotRef.current,
       view.aiLine,
@@ -501,6 +512,9 @@ export function useHudController({
         liveSessionRef.current = undefined;
       }
       unsubscribe?.();
+      if (modes.fastCanvas) {
+        window.removeEventListener("sandevistan-x-image-ready", handleXImageReady);
+      }
       if (modes.fastCanvas) {
         stopWindowErrorDiagnostics?.();
         stopDiagnosticHeartbeat?.();

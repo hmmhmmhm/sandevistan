@@ -133,7 +133,7 @@ describe("live dashboard map integration", () => {
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.startsWith("/api/map")) return mapResponse();
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       return weatherResponse();
     }) as unknown as typeof fetch;
     const session = createLiveDashboardSession({
@@ -174,7 +174,7 @@ describe("live dashboard map integration", () => {
       if (url.startsWith("/api/map")) {
         return { ok: false } as Response;
       }
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       return weatherResponse();
     }) as unknown as typeof fetch;
     const session = createLiveDashboardSession({
@@ -198,7 +198,7 @@ describe("live dashboard map integration", () => {
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.startsWith("/api/map")) return map.promise;
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       return weatherResponse();
     }) as unknown as typeof fetch;
     const session = createLiveDashboardSession({
@@ -231,7 +231,7 @@ describe("live dashboard map integration", () => {
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.startsWith("/api/map")) return mapResponse();
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       return weatherResponse();
     }) as unknown as typeof fetch;
     const session = createLiveDashboardSession({
@@ -305,7 +305,7 @@ describe("live dashboard map integration", () => {
         if (mapCalls === 2) return slowMap.promise;
         return mapResponse(clientMapCell(future));
       }
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       return weatherResponse();
     }) as unknown as typeof fetch;
     diagnosticLogger.clear();
@@ -349,7 +349,7 @@ describe("live dashboard map integration", () => {
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.startsWith("/api/map")) return mapResponse();
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       return weatherResponse();
     }) as unknown as typeof fetch;
     diagnosticLogger.clear();
@@ -401,7 +401,7 @@ describe("live dashboard map integration", () => {
         fetchImpl: vi.fn(async (input: RequestInfo | URL) => {
           const url = String(input);
           if (url.startsWith("/api/map")) return mapResponse();
-          if (url.startsWith("/api/news")) return newsResponse();
+          if (url.includes("/news?feed=")) return newsResponse();
           return weatherResponse();
         }) as unknown as typeof fetch,
         now: () => NOW,
@@ -437,7 +437,7 @@ describe("live dashboard map integration", () => {
         mapCalls += 1;
         return mapCalls === 1 ? mapResponse() : { ok: false } as Response;
       }
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       return weatherResponse();
     }) as unknown as typeof fetch;
     const session = createLiveDashboardSession({

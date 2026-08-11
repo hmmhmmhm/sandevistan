@@ -159,7 +159,7 @@ function liveFetch(routeImpl = async () => routeResponse()): typeof fetch {
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url === "/api/route") return routeImpl();
-    if (url.startsWith("/api/news")) return newsResponse();
+    if (url.includes("/news?feed=")) return newsResponse();
     if (url.startsWith("/api/map")) return mapResponse();
     return weatherResponse();
   }) as unknown as typeof fetch;
@@ -180,7 +180,7 @@ describe("live dashboard optional routing", () => {
         expect(init?.body).not.toContain(deviceKey);
         return routeResponse();
       }
-      if (url.startsWith("/api/news")) return newsResponse();
+      if (url.includes("/news?feed=")) return newsResponse();
       if (url.startsWith("/api/map")) return mapResponse();
       return weatherResponse();
     }) as typeof fetch;

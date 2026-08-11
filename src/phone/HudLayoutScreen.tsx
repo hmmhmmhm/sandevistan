@@ -6,6 +6,7 @@ import { PhoneIcon } from "../phone-icons";
 const PAGE_KEYS: Record<HudPageId, PhoneStringKey> = {
   overview: "overview",
   news: "news",
+  x: "news",
   todo: "todo",
   weather: "weather",
   ai: "ai",

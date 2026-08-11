@@ -11,6 +11,7 @@ export type FastHudViewMode =
   | "dashboard"
   | "map"
   | "news"
+  | "x"
   | "todo"
   | "weather"
   | "ai"
@@ -180,7 +181,7 @@ export function reduceFastHudInput(
 
   const state = current.mode === "map"
     ? { ...current, zoomIndex: clampZoom(current.zoomIndex) }
-    : current.mode === "news"
+    : current.mode === "news" || current.mode === "x"
       ? {
           ...current,
           newsIndex: clampIndex(current.newsIndex, context.newsCount),
@@ -235,7 +236,7 @@ export function reduceFastHudInput(
       : { state: { ...state, zoomIndex }, result: "redraw" };
   }
 
-  if (state.mode === "news") {
+  if (state.mode === "news" || state.mode === "x") {
     if (input !== "scroll-next" && input !== "scroll-previous") {
       return { state, result: "consume" };
     }
