@@ -461,7 +461,7 @@ export function useHudController({
         });
         liveSession.setRoutingKey?.(companionOrsKeyRef.current);
         liveSessionRef.current = liveSession;
-        liveSession.replaceX(xHudPostsRef.current);
+        liveSession.replaceX?.(xHudPostsRef.current);
         if (cancelled) {
           liveSession.dispose();
           if (liveSessionRef.current === liveSession) {

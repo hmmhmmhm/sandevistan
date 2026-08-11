@@ -16,10 +16,15 @@ describe("X home timeline", () => {
           author_id: "author-1",
           public_metrics: { reply_count: 2, retweet_count: 3, like_count: 4, quote_count: 5 },
           attachments: { media_keys: ["media-1"] },
+          referenced_tweets: [{ type: "quoted", id: "tweet-quote" }],
         }],
         includes: {
-          users: [{ id: "author-1", name: "Ada", username: "ada", profile_image_url: "https://image.test/avatar.jpg" }],
+          users: [
+            { id: "author-1", name: "Ada", username: "ada", profile_image_url: "https://image.test/avatar.jpg" },
+            { id: "author-2", name: "Grace", username: "grace" },
+          ],
           media: [{ media_key: "media-1", type: "photo", url: "https://image.test/photo.jpg" }],
+          tweets: [{ id: "tweet-quote", author_id: "author-2", text: "Quoted original text" }],
         },
         meta: { next_token: "page-2" },
       }));
@@ -41,6 +46,10 @@ describe("X home timeline", () => {
         media: [{ id: "media-1", kind: "photo", url: "https://image.test/photo.jpg" }],
         metrics: { replies: 2, reposts: 3, likes: 4, quotes: 5 },
         repostedFrom: undefined,
+        quotedPost: {
+          author: { id: "author-2", name: "Grace", username: "grace", avatarUrl: undefined },
+          text: "Quoted original text",
+        },
       }],
       next: "page-2",
     });

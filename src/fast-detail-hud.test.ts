@@ -226,6 +226,11 @@ describe("drawFastDetailHud", () => {
             username: "evenrealities",
             author: "Even Realities",
             text: "The attached photo and tweet text stay together in the HUD detail.",
+            quotedPost: {
+              author: "Quoted Author",
+              username: "quoted",
+              text: "The quoted original stays visible.",
+            },
           }],
         },
       },
@@ -240,6 +245,8 @@ describe("drawFastDetailHud", () => {
       "Even Realities",
       "@evenrealities",
       "The attached photo and tweet text stay together",
+      "QUOTE · Quoted Author",
+      "The quoted original stays visible.",
       "0",
     ]));
   });
