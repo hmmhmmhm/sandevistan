@@ -2,6 +2,7 @@ import { readCache, writeCache, type EvenStorage } from "./live-cache";
 import type { DataState, NewsItem } from "./live-state";
 import { logDiagnostic } from "./diagnostic-log";
 import {
+  defaultRssSources,
   resolveRssSources,
   type RssSource,
 } from "./rss-sources";
@@ -269,12 +270,11 @@ export async function resolveNews(
     if (status === "fresh" && !force) return cachedState;
   }
 
-  const sources = (await resolveRssSources(storage, locale))
+  let sources: readonly RssSource[] = (await resolveRssSources(storage, locale))
     .filter((source) => source.enabled);
   if (sources.length === 0) {
-    return usableCache
-      ? toState(usableCache, "stale")
-      : { status: "unavailable" };
+    sources = defaultRssSources(locale);
+    logDiagnostic("LIVE", `news sources inactive · restored defaults ${sources.length}`);
   }
   const controller = new AbortController();
   const timer = globalThis.setTimeout(

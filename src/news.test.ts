@@ -284,6 +284,44 @@ describe("resolveNews", () => {
       .toBe(true);
   });
 
+  it("restores the locale defaults when a stored source list has no enabled source", async () => {
+    const storage = new TestStorage();
+    storage.values.set("sandevistan:rss-sources:v1", JSON.stringify([
+      {
+        id: "sbs-latest",
+        name: "SBS Latest",
+        url: "https://news.sbs.co.kr/news/SectionRssFeed.do?sectionId=01",
+        enabled: false,
+        isDefault: true,
+      },
+      {
+        id: "newsis-breaking",
+        name: "Newsis",
+        url: "https://www.newsis.com/RSS/sokbo.xml",
+        enabled: false,
+        isDefault: true,
+      },
+      {
+        id: "weekly-khan-latest",
+        name: "Khan",
+        url: "https://weekly.khan.co.kr/rss/rssdata/total_news.xml",
+        enabled: false,
+        isDefault: true,
+      },
+    ]));
+    const fetchImpl = xmlFetch(RSS);
+
+    await expect(resolveNews(storage, fetchImpl, NOW)).resolves.toMatchObject({
+      status: "fresh",
+    });
+    expect(vi.mocked(fetchImpl).mock.calls.map(([input]) => String(input)))
+      .toEqual([
+        "/api/news?feed=sbs-latest",
+        "/api/news?feed=newsis-breaking",
+        "/api/news?feed=weekly-khan-latest",
+      ]);
+  });
+
   it("returns a fresh cache immediately without fetching", async () => {
     const storage = new TestStorage();
     setCache(storage, ITEMS, NOW - NEWS_MAX_AGE_MS);
