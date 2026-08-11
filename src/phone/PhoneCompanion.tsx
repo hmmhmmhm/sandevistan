@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useLayoutEffect,
   useMemo,
   useState,
@@ -37,6 +38,12 @@ import { WeatherScreen } from "./WeatherScreen";
 import { AiScreen } from "./AiScreen";
 import { ConversateScreen } from "./ConversateScreen";
 import { ByokScreen } from "./ByokScreen";
+import { XScreen } from "./XScreen";
+import {
+  fetchXHomeTimeline,
+  resolveXUserId,
+  type XTimeline,
+} from "../x-feed";
 import {
   createConversateSnapshot,
   DEFAULT_CONVERSATE_SETTINGS,
@@ -72,9 +79,11 @@ type PhoneCompanionProps = {
   readonly onDeleteRoute?: () => void | Promise<void>;
   readonly openAiKey?: string;
   readonly sonioxKey?: string;
+  readonly xAccessToken?: string;
   readonly aiSnapshot?: AiHudSnapshot;
   readonly onOpenAiKeyChange?: (key: string | undefined) => void;
   readonly onSonioxKeyChange?: (key: string | undefined) => void;
+  readonly onXAccessTokenChange?: (key: string | undefined) => void;
   readonly onAiSnapshotChange?: (snapshot: AiHudSnapshot) => void;
   readonly conversateSettings?: ConversateSettings;
   readonly conversateSnapshot?: ConversateSnapshot;
@@ -86,6 +95,7 @@ const SCREEN_TITLE: Record<Exclude<PhoneScreen, "home">, PhoneStringKey> = {
   devices: "devices",
   "hud-layout": "hudLayout",
   news: "news",
+  x: "news",
   todo: "todo",
   weather: "weather",
   ai: "ai",
@@ -124,9 +134,11 @@ export function PhoneCompanion({
   onDeleteRoute,
   openAiKey,
   sonioxKey,
+  xAccessToken,
   aiSnapshot = createAiHudSnapshot(false),
   onOpenAiKeyChange,
   onSonioxKeyChange,
+  onXAccessTokenChange,
   onAiSnapshotChange,
   conversateSettings = DEFAULT_CONVERSATE_SETTINGS,
   conversateSnapshot = createConversateSnapshot(),
@@ -134,6 +146,9 @@ export function PhoneCompanion({
   onConversateSnapshotChange,
 }: PhoneCompanionProps) {
   const [screen, setScreen] = useState<PhoneScreen>("home");
+  const [xTimeline, setXTimeline] = useState<XTimeline>({ posts: [] });
+  const [xLoading, setXLoading] = useState(false);
+  const [xError, setXError] = useState<string>();
   const locale = resolvePhoneLocale(
     preferences.locale,
     typeof navigator === "undefined" ? "en" : navigator.language,
@@ -147,6 +162,49 @@ export function PhoneCompanion({
     document.body.scrollTop = 0;
     document.body.scrollLeft = 0;
   }, [screen]);
+
+  useEffect(() => {
+    if (!xAccessToken) {
+      setXTimeline({ posts: [] });
+      setXError(undefined);
+      return;
+    }
+    let active = true;
+    setXLoading(true);
+    setXError(undefined);
+    void (async () => {
+      try {
+        const userId = await resolveXUserId(xAccessToken);
+        const timeline = await fetchXHomeTimeline(xAccessToken, userId);
+        if (active) setXTimeline(timeline);
+      } catch {
+        if (active) setXError("Could not load X. Check the token and its tweet.read/users.read scopes.");
+      } finally {
+        if (active) setXLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [xAccessToken]);
+
+  const loadMoreX = () => {
+    if (!xAccessToken || !xTimeline.next || xLoading) return;
+    setXLoading(true);
+    setXError(undefined);
+    void (async () => {
+      try {
+        const userId = await resolveXUserId(xAccessToken);
+        const next = await fetchXHomeTimeline(xAccessToken, userId, xTimeline.next);
+        setXTimeline((current) => ({
+          posts: [...current.posts, ...next.posts],
+          next: next.next,
+        }));
+      } catch {
+        setXError("Could not load more posts. Please try again.");
+      } finally {
+        setXLoading(false);
+      }
+    })();
+  };
 
   const cards = useMemo(() => {
     const weather = live.weather.value;
@@ -172,6 +230,15 @@ export function PhoneCompanion({
         titleKey: "news",
         status: `${live.news.value?.length ?? 0} ${t("items")}`
           + ` · ${enabledSources} ${t("sources")}`,
+      },
+      {
+        screen: "x",
+        icon: "article",
+        title: "X (Twitter)",
+        titleKey: "news",
+        status: xAccessToken
+          ? `${xTimeline.posts.length} ${t("items")}`
+          : t("notConfigured"),
       },
       {
         screen: "todo",
@@ -239,6 +306,8 @@ export function PhoneCompanion({
     localizedStatus,
     locale,
     openAiKey,
+    xAccessToken,
+    xTimeline.posts.length,
     conversateSnapshot.phase,
   ]);
 
@@ -281,6 +350,18 @@ export function PhoneCompanion({
             locale={locale}
             t={t}
             onSourcesChange={onRssSourcesChange}
+          />
+        );
+      case "x":
+        return (
+          <XScreen
+            configured={Boolean(xAccessToken)}
+            posts={xTimeline.posts}
+            loading={xLoading}
+            error={xError}
+            canLoadMore={Boolean(xTimeline.next)}
+            t={t}
+            onLoadMore={loadMoreX}
           />
         );
       case "todo":
@@ -342,9 +423,11 @@ export function PhoneCompanion({
             storage={storage}
             openAiKey={openAiKey}
             sonioxKey={sonioxKey}
+            xAccessToken={xAccessToken}
             t={t}
             onOpenAiKeyChange={onOpenAiKeyChange}
             onSonioxKeyChange={onSonioxKeyChange}
+            onXAccessTokenChange={onXAccessTokenChange}
           />
         );
       case "conversate":
@@ -393,6 +476,7 @@ export function PhoneCompanion({
           preview={canvas}
           previewLoading={previewLoading}
           previewActive={displayVisible}
+          xPosts={xTimeline.posts.slice(0, 7)}
           onOpen={setScreen}
         />
       </div>

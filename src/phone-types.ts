@@ -23,6 +23,7 @@ export type PhoneScreen =
   | "devices"
   | "hud-layout"
   | "news"
+  | "x"
   | "todo"
   | "weather"
   | "ai"

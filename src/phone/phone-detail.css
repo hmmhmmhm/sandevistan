@@ -438,3 +438,98 @@
   border-color: var(--phone-line);
   background: #f7f7f7;
 }
+
+.phone-x-feed {
+  display: grid;
+  gap: 12px;
+}
+
+.phone-x-feed__title,
+.phone-x-post__header,
+.phone-home__x-preview > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.phone-x-feed__title h2,
+.phone-home__x-preview h2 { margin: 0; }
+
+.phone-x-feed__title p,
+.phone-x-feed__title span {
+  margin: 4px 0 0;
+  color: var(--phone-muted);
+  font-size: 0.85rem;
+}
+
+.phone-x-post {
+  padding: 16px;
+  border: 1px solid var(--phone-line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.phone-x-post__header { justify-content: flex-start; }
+.phone-x-post__header > div { display: grid; min-width: 0; }
+.phone-x-post__header span,
+.phone-home__x-preview strong span { color: var(--phone-muted); font-weight: 400; }
+
+.phone-x-post__avatar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.phone-x-post__avatar--fallback {
+  display: grid;
+  color: #fff;
+  background: #111;
+  place-items: center;
+}
+
+.phone-x-post > p { margin: 12px 0; white-space: pre-wrap; line-height: 1.45; }
+
+.phone-x-post__media {
+  width: 100%;
+  max-height: 360px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.phone-x-empty { color: var(--phone-muted); }
+
+.phone-home__x-preview {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--phone-line);
+  border-radius: 14px;
+  background: var(--phone-line);
+}
+
+.phone-home__x-preview > div { padding: 13px 14px; background: #fff; }
+.phone-home__x-preview > div button { color: var(--phone-muted); border: 0; background: transparent; }
+
+.phone-home__x-preview > button {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  overflow: hidden;
+  color: var(--phone-text);
+  text-align: left;
+  border: 0;
+  background: #fff;
+}
+
+.phone-home__x-preview p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--phone-muted);
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}

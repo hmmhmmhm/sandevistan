@@ -13,6 +13,7 @@ import {
   validateSonioxKey,
   writeSonioxKey,
 } from "../soniox-key";
+import { clearXAccessToken, maskXAccessToken, validateXAccessToken, writeXAccessToken } from "../x-key";
 
 type Validation = { readonly ok: true; readonly value: string } | { readonly ok: false };
 
@@ -102,16 +103,20 @@ export function ByokScreen({
   storage,
   openAiKey,
   sonioxKey,
+  xAccessToken,
   t,
   onOpenAiKeyChange,
   onSonioxKeyChange,
+  onXAccessTokenChange,
 }: {
   readonly storage?: EvenStorage;
   readonly openAiKey?: string;
   readonly sonioxKey?: string;
+  readonly xAccessToken?: string;
   readonly t: (key: PhoneStringKey) => string;
   readonly onOpenAiKeyChange?: (value: string | undefined) => void;
   readonly onSonioxKeyChange?: (value: string | undefined) => void;
+  readonly onXAccessTokenChange?: (value: string | undefined) => void;
 }) {
   return (
     <div className="phone-detail-stack">
@@ -121,6 +126,12 @@ export function ByokScreen({
         <p>These keys are shared by Ask AI and Conversate.</p>
         <p>{t("keylessDataInfo")}</p>
       </section>
+      <KeyPanel
+        storage={storage} title="X OAuth access token" value={xAccessToken}
+        issueUrl="https://developer.x.com/en/portal/dashboard" issueLabel="Open X Developer Portal"
+        validate={validateXAccessToken} write={writeXAccessToken} clear={clearXAccessToken}
+        mask={maskXAccessToken} onChange={onXAccessTokenChange}
+      />
       <KeyPanel
         storage={storage}
         title="OpenAI API key"

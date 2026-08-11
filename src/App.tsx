@@ -44,6 +44,7 @@ import {
 import { resolveAiConversationHistory } from "./ai-history";
 import { resolveOpenAiKey } from "./openai-key";
 import { resolveSonioxKey } from "./soniox-key";
+import { resolveXAccessToken } from "./x-key";
 import { TRANSPORT_STATUS } from "./transport-status";
 import { useConversateCompanion } from "./use-conversate-companion";
 import { HudSurface } from "./HudSurface";
@@ -127,6 +128,7 @@ export function App({ autoStart = true }: AppProps) {
   const [companionOpenAiKey, setCompanionOpenAiKeyState] = useState<string>();
   const companionOpenAiKeyRef = useRef<string | undefined>(undefined);
   const [companionSonioxKey, setCompanionSonioxKeyState] = useState<string>();
+  const [companionXAccessToken, setCompanionXAccessToken] = useState<string>();
   const companionSonioxKeyRef = useRef<string | undefined>(undefined);
   const [companionAiSnapshot, setCompanionAiSnapshotState] = useState(
     () => createAiHudSnapshot(false),
@@ -238,13 +240,15 @@ export function App({ autoStart = true }: AppProps) {
     void Promise.all([
       resolveOpenAiKey(companionStorage),
       resolveSonioxKey(companionStorage),
+      resolveXAccessToken(companionStorage),
       resolveAiConversationHistory(companionStorage),
       resolveAiUsageLedger(companionStorage),
-    ]).then(([key, sonioxKey, history, ledger]) => {
+    ]).then(([key, sonioxKey, xAccessToken, history, ledger]) => {
       if (!active) return;
       const costs = costSummaryForCurrentPeriod(ledger);
       setCompanionOpenAiKey(key);
       setCompanionSonioxKey(sonioxKey);
+      setCompanionXAccessToken(xAccessToken);
       setCompanionAiSnapshot(createAiHudSnapshot(
         Boolean(key),
         history,
@@ -350,6 +354,7 @@ export function App({ autoStart = true }: AppProps) {
         onOrsKeyChange={setCompanionOrsKey}
         openAiKey={companionOpenAiKey}
         sonioxKey={companionSonioxKey}
+        xAccessToken={companionXAccessToken}
         aiSnapshot={companionAiSnapshot}
         onOpenAiKeyChange={(key) => {
           setCompanionOpenAiKey(key);
@@ -363,6 +368,7 @@ export function App({ autoStart = true }: AppProps) {
           displayRefreshRef.current?.();
         }}
         onSonioxKeyChange={setCompanionSonioxKey}
+        onXAccessTokenChange={setCompanionXAccessToken}
         onAiSnapshotChange={(snapshot) => {
           setCompanionAiSnapshot(snapshot);
           displayRefreshRef.current?.();
