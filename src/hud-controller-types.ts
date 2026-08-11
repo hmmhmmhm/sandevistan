@@ -3,7 +3,7 @@ import type { FastCanvasBattery } from "./glasses";
 import type { createLiveDashboardSession } from "./live-dashboard";
 import type { EvenStorage } from "./live-cache";
 import type { LiveDashboardState } from "./live-state";
-import type { PhonePreferences } from "./phone-types";
+import type { PhonePreferences, SensorStatus } from "./phone-types";
 import type { RoutingStatus } from "./routing";
 import type { G2TilePaletteMode } from "./g2-tile-palette";
 import type { G2TileImageFormat } from "./g2-tile-format";
@@ -54,4 +54,5 @@ export type UseHudControllerOptions = {
   readonly setCompanionAiSnapshot: (value: AiHudSnapshot) => void;
   readonly setConversateSnapshot: (value: ConversateSnapshot) => void;
   readonly setCompanionDisplayVisible: (value: boolean) => void;
+  readonly setCompanionSensors: (value: SensorStatus) => void;
 };

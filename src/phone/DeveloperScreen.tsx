@@ -2,16 +2,21 @@ import { DiagnosticConsole } from "../DiagnosticConsole";
 import { EVEN_HUB_SDK_VERSION } from "../app-metadata";
 import type { PhoneStringKey } from "../phone-i18n";
 import type { RssSource } from "../rss-sources";
+import type { SensorStatus } from "../phone-types";
 
 export function DeveloperScreen({
   status,
   routingEnabled,
   rssSources,
+  displayVisible,
+  sensors,
   t,
 }: {
   readonly status: string;
   readonly routingEnabled: boolean;
   readonly rssSources: readonly RssSource[];
+  readonly displayVisible: boolean;
+  readonly sensors: SensorStatus;
   readonly t: (key: PhoneStringKey) => string;
 }) {
   const enabledRssSources = rssSources.filter((source) => source.enabled).length;
@@ -30,6 +35,10 @@ export function DeveloperScreen({
             <dt>{t("rssSources")}</dt>
             <dd>{enabledRssSources} {t("enabled").toLowerCase()}</dd>
           </div>
+          <div><dt>G2 microphone</dt><dd>{sensors.microphone.toUpperCase()}</dd></div>
+          <div><dt>Location stream</dt><dd>{sensors.location.toUpperCase()}</dd></div>
+          <div><dt>IMU</dt><dd>{sensors.imu.toUpperCase()}</dd></div>
+          <div><dt>HUD display</dt><dd>{displayVisible ? "ON" : "OFF"}</dd></div>
         </dl>
       </section>
       <DiagnosticConsole

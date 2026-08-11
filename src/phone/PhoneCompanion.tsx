@@ -17,6 +17,7 @@ import { PhoneIcon } from "../phone-icons";
 import type {
   PhonePreferences,
   PhoneScreen,
+  SensorStatus,
 } from "../phone-types";
 import type { RoutingStatus } from "../routing";
 import { writePhonePreferences } from "../phone-preferences";
@@ -55,6 +56,7 @@ type PhoneCompanionProps = {
   readonly status: string;
   readonly battery?: FastCanvasBattery;
   readonly displayVisible?: boolean;
+  readonly sensors?: SensorStatus;
   readonly live: LiveDashboardState;
   readonly routingStatus: RoutingStatus;
   readonly preferences: PhonePreferences;
@@ -105,6 +107,7 @@ export function PhoneCompanion({
   status,
   battery,
   displayVisible = true,
+  sensors = { microphone: "unknown", location: "unknown", imu: "unknown" },
   live,
   routingStatus,
   preferences,
@@ -361,10 +364,12 @@ export function PhoneCompanion({
       case "developer":
         return (
           <DeveloperScreen
-            status={localizedStatus}
-            routingEnabled={routingStatus.enabled}
-            rssSources={rssSources}
-            t={t}
+          status={localizedStatus}
+          routingEnabled={routingStatus.enabled}
+          rssSources={rssSources}
+          displayVisible={displayVisible}
+          sensors={sensors}
+          t={t}
           />
         );
       case "home":

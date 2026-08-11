@@ -26,7 +26,56 @@ import { TRANSPORT_STATUS } from "./transport-status";
 import { createConversateRuntime, type ConversateRuntime } from "./conversate-runtime";
 import { createNativeConversateContent } from "./native-conversate-text";
 import { prepareFastHudBridge, stopIdleSdkSensors, type FastHudBridge } from "./fast-hud-bootstrap";
+import type { SensorStatus } from "./phone-types";
 type LiveSession = ReturnType<typeof createLiveDashboardSession>;
+
+function createSensorAwareBridge(
+  bridge: FastHudBridge,
+  onSensors: (value: SensorStatus) => void,
+  initialSensors: SensorStatus,
+): FastHudBridge {
+  let sensors = initialSensors;
+  const update = (value: Partial<SensorStatus>) => {
+    sensors = { ...sensors, ...value };
+    onSensors(sensors);
+  };
+
+  return new Proxy(bridge, {
+    get(target, property, receiver) {
+      if (property === "audioControl") {
+        return async (...args: Parameters<FastHudBridge["audioControl"]>) => {
+          const success = await target.audioControl(...args);
+          if (success) update({ microphone: args[0] ? "on" : "off" });
+          return success;
+        };
+      }
+      if (property === "imuControl") {
+        return async (...args: Parameters<FastHudBridge["imuControl"]>) => {
+          const success = await target.imuControl(...args);
+          if (success) update({ imu: args[0] ? "on" : "off" });
+          return success;
+        };
+      }
+      if (property === "startAppLocationUpdates") {
+        return async (...args: Parameters<FastHudBridge["startAppLocationUpdates"]>) => {
+          const success = await target.startAppLocationUpdates(...args);
+          if (success) update({ location: "on" });
+          return success;
+        };
+      }
+      if (property === "stopAppLocationUpdates") {
+        return async () => {
+          const success = await target.stopAppLocationUpdates();
+          if (success) update({ location: "off" });
+          return success;
+        };
+      }
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+}
+
 export function useHudController({
   autoStart, canvasRef, liveSessionRef, phonePreferencesRef, displayRefreshRef,
   companionOrsKeyRef, companionOpenAiKeyRef, companionSonioxKeyRef, aiSnapshotRef,
@@ -34,7 +83,7 @@ export function useHudController({
   imageSendConcurrency, tileImageFormat, tilePaletteMode, modes, setStatus,
   setRoutingStatus, setCompanionRoute, setCompanionLive, setCompanionBattery,
   setCompanionStorage, setPhonePreferences, setCompanionAiSnapshot,
-  setConversateSnapshot, setCompanionDisplayVisible,
+  setConversateSnapshot, setCompanionDisplayVisible, setCompanionSensors,
 }: UseHudControllerOptions) {
   useEffect(() => {
     if (!autoStart || !canvasRef.current) return;
@@ -57,6 +106,15 @@ export function useHudController({
     let stopDiagnosticHeartbeat: (() => void) | undefined;
     let stopWindowErrorDiagnostics: (() => void) | undefined;
     let newsPageCache: FastHudNewsPageCache = { key: "", counts: [] };
+    let sensorStatus: SensorStatus = {
+      microphone: "unknown",
+      location: "unknown",
+      imu: "unknown",
+    };
+    const updateSensorStatus = (value: SensorStatus) => {
+      sensorStatus = value;
+      setCompanionSensors(value);
+    };
     const canvas = canvasRef.current;
     if (modes.fastCanvas) {
       logDiagnostic("APP", "fast HUD effect start");
@@ -152,7 +210,11 @@ export function useHudController({
     };
     void (async () => {
       if (modes.fastCanvas) {
-        bridge = await prepareFastHudBridge({ onPreferences: setPhonePreferences, onStorage: setCompanionStorage });
+        bridge = await prepareFastHudBridge({
+          onPreferences: setPhonePreferences,
+          onStorage: setCompanionStorage,
+          onSensors: updateSensorStatus,
+        });
         if (cancelled) return;
       }
       await prepareInitialHud(canvas, modes, drawCurrentPage);
@@ -274,6 +336,11 @@ export function useHudController({
         logDiagnostic("APP", "live bridge wait");
         const activeBridge = bridge;
         if (!activeBridge) return;
+        const sensorAwareBridge = createSensorAwareBridge(
+          activeBridge,
+          updateSensorStatus,
+          sensorStatus,
+        );
         const nextRoutingStatus = await getRoutingStatus()
           .catch(() => ({ enabled: false }));
         if (cancelled) return;
@@ -288,7 +355,7 @@ export function useHudController({
           ? { status: "fresh" }
           : { status: "disabled" });
         aiRuntime = createAiRuntime({
-          bridge: activeBridge,
+          bridge: sensorAwareBridge,
           getKey: () => companionOpenAiKeyRef.current,
           getSonioxKey: () => companionSonioxKeyRef.current,
           getLocale: currentLocale,
@@ -313,7 +380,7 @@ export function useHudController({
           },
         });
         conversateRuntime = createConversateRuntime({
-          bridge: activeBridge,
+          bridge: sensorAwareBridge,
           getKey: () => companionOpenAiKeyRef.current,
           getSonioxKey: () => companionSonioxKeyRef.current,
           getLocale: currentLocale,
@@ -334,7 +401,7 @@ export function useHudController({
           },
         });
         liveSession = createLiveDashboardSession({
-          bridge: activeBridge,
+          bridge: sensorAwareBridge,
           routingStatus: nextRoutingStatus,
           canRefreshNews: () => view.mode !== "news",
           getLocale: currentLocale,
@@ -445,6 +512,8 @@ export function useHudController({
     setCompanionStorage,
     setPhonePreferences,
     setCompanionAiSnapshot,
+    setCompanionDisplayVisible,
+    setCompanionSensors,
     setConversateSnapshot,
     setRoutingStatus,
     setStatus,

@@ -19,7 +19,7 @@ import {
   DEFAULT_PHONE_PREFERENCES,
   resolvePhonePreferences,
 } from "./phone-preferences";
-import type { PhonePreferences } from "./phone-types";
+import type { PhonePreferences, SensorStatus } from "./phone-types";
 import { PhoneCompanion } from "./phone/PhoneCompanion";
 import {
   defaultRssSources,
@@ -107,6 +107,11 @@ export function App({ autoStart = true }: AppProps) {
     FastCanvasBattery | undefined
   >();
   const [companionDisplayVisible, setCompanionDisplayVisible] = useState(true);
+  const [companionSensors, setCompanionSensors] = useState<SensorStatus>({
+    microphone: "unknown",
+    location: "unknown",
+    imu: "unknown",
+  });
   const [companionStorage, setCompanionStorage] = useState<EvenStorage>(
     createBrowserStorage,
   );
@@ -280,6 +285,7 @@ export function App({ autoStart = true }: AppProps) {
     setCompanionAiSnapshot,
     setConversateSnapshot: conversate.setSnapshot,
     setCompanionDisplayVisible,
+    setCompanionSensors,
   });
 
   const startCompanionRoute = async (
@@ -318,6 +324,7 @@ export function App({ autoStart = true }: AppProps) {
         status={status}
         battery={companionBattery}
         displayVisible={companionDisplayVisible}
+        sensors={companionSensors}
         live={companionLive}
         routingStatus={effectiveRoutingStatus}
         preferences={phonePreferences}

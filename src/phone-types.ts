@@ -40,6 +40,14 @@ export type PhonePreferences = {
   readonly dashboardMapEnabled: boolean;
 };
 
+export type SensorStatus = {
+  readonly microphone: SensorState;
+  readonly location: SensorState;
+  readonly imu: SensorState;
+};
+
+export type SensorState = "on" | "off" | "unknown";
+
 export type PhoneControllerSnapshot = {
   readonly status: string;
   readonly battery?: FastCanvasBattery;
