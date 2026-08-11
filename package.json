@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test:sites": "npm run build && node --test --test-concurrency=1 tests/sites-worker.test.mjs tests/realtime-api.test.mjs tests/ai-web-search-api.test.mjs tests/conversate-api.test.mjs",
     "verify:rss-live": "node scripts/verify-rss-feeds.mjs",
-    "qr": "evenhub qr --url \"http://100.127.255.11:4179/\"",
+    "qr": "evenhub qr --url \"$HUD_URL\"",
     "pack": "npm run build && evenhub pack app.json dist/client -o sandevistan.ehpk"
   },
   "dependencies": {

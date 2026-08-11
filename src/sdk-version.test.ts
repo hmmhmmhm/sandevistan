@@ -11,7 +11,7 @@ describe("Even Hub SDK compatibility", () => {
     expect(appManifest.min_sdk_version).toBe(installed);
     expect(appManifest.min_app_version).toBe("2.2.6");
     expect(packageManifest.scripts.qr).toBe(
-      'evenhub qr --url "http://100.127.255.11:4179/"',
+      'evenhub qr --url "$HUD_URL"',
     );
   });
 
@@ -55,7 +55,7 @@ describe("Even Hub SDK compatibility", () => {
     ));
 
     expect(qrScripts).toEqual([
-      'evenhub qr --url "http://100.127.255.11:4179/"',
+      'evenhub qr --url "$HUD_URL"',
     ]);
   });
 });

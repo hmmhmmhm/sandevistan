@@ -334,12 +334,11 @@ address; Vite hot reload serves source changes through the same URL.
 You can generate the configured QR code with:
 
 ```bash
-npm run qr
+HUD_URL='https://<YOUR-CANONICAL-HUD-HOST>/' npm run qr
 ```
 
-These convenience scripts target the maintainer's current Tailscale hardware
-preview on port `4179`. Other developers should replace the host with their own
-phone-reachable address and the development-server port selected above.
+Set `HUD_URL` to the one canonical HUD URL you are testing. No local machine or
+Tailscale address is embedded in the project configuration.
 
 Use this one QR route for a single active Even Hub WebView.
 
