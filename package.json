@@ -12,14 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test:sites": "npm run build && node --test --test-concurrency=1 tests/sites-worker.test.mjs tests/realtime-api.test.mjs tests/ai-web-search-api.test.mjs tests/conversate-api.test.mjs",
     "verify:rss-live": "node scripts/verify-rss-feeds.mjs",
-    "qr": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11&build=sdk0011-current-063\"",
-    "qr:hide-black": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11&hide=black&build=hide-black-sdk0011-063\"",
-    "qr:rollback": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11&pipeline=1&levels=original&build=rollback-serial-original-sdk0011-063\"",
-    "qr:pipeline2": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11&pipeline=2&build=pipeline-2-sdk0011-063\"",
-    "qr:pipeline3": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11&pipeline=3&build=pipeline-3-sdk0011-063\"",
-    "qr:pipeline4": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11&pipeline=4&build=pipeline-4-sdk0011-063\"",
-    "qr:palette4": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11&pipeline=4&levels=4&build=palette-4-sdk0011-063\"",
-    "qr:bmp1": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11&pipeline=4&format=bmp1&build=bmp1-lz4-sdk0011-063\"",
+    "qr": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11\"",
     "pack": "npm run build && evenhub pack app.json dist/client -o sandevistan.ehpk"
   },
   "dependencies": {

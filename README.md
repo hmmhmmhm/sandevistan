@@ -325,32 +325,23 @@ ORS_API_KEY='<server-only-key>' \
 Open the app through **Even Hub → Scan QR**:
 
 ```text
-http://<PHONE-REACHABLE-IP>:4176/hud-canvas-fast?sdk=0.0.11&build=<BUILD-ID>
+http://<PHONE-REACHABLE-IP>:4176/hud-canvas-fast?sdk=0.0.11
 ```
 
-No performance query is required. The hardware-proven four-call pipeline is the
-production default. For an explicit serial and original-palette comparison,
-use:
-
-```text
-http://<PHONE-REACHABLE-IP>:4176/hud-canvas-fast?sdk=0.0.11&pipeline=1&levels=original&build=<BUILD-ID>
-```
+This is the single development URL. Keep the Even Hub WebView open at this
+address; Vite hot reload serves source changes through the same URL.
 
 You can generate the configured QR code with:
 
 ```bash
 npm run qr
-npm run qr:hide-black
-npm run qr:rollback
 ```
 
 These convenience scripts target the maintainer's current Tailscale hardware
 preview on port `4179`. Other developers should replace the host with their own
 phone-reachable address and the development-server port selected above.
 
-Run the production `qr` and diagnostic `qr:hide-black` routes one at a time.
-Close the first Even Hub WebView before opening the second so their transport
-sessions cannot overlap.
+Use this one QR route for a single active Even Hub WebView.
 
 A normal desktop or mobile browser shows the Canvas preview. G2 transfer starts
 only when the page is opened through the Even app bridge.
