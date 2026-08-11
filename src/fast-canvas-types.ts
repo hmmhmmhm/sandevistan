@@ -112,6 +112,7 @@ export type FastCanvasOptions = {
     battery: FastCanvasBattery | undefined,
   ) => void;
   readonly onDisplayCommitted?: (minute: number) => void;
+  readonly onDisplayVisibilityChange?: (visible: boolean) => void;
   readonly onInput?: (
     input: FastCanvasInput,
   ) => FastCanvasInputResult | Promise<FastCanvasInputResult>;

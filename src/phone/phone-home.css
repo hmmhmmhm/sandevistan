@@ -44,6 +44,11 @@
   mix-blend-mode: normal;
 }
 
+.phone-home__preview[data-active="true"] .phone-home__preview-slot .hud-frame canvas {
+  filter: grayscale(1) invert(1) contrast(0.84);
+  opacity: 0.46;
+}
+
 .phone-home__section-title {
   margin: 28px 12px 16px;
   font-size: 1.26rem;

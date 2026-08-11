@@ -29,6 +29,12 @@ describe("Even-style phone HUD preview", () => {
       /\.phone-home__preview-slot \.hud-frame canvas\s*\{[^}]*mix-blend-mode:\s*normal/s,
     );
   });
+
+  it("raises contrast only while the glasses display is active", () => {
+    expect(css).toMatch(
+      /\.phone-home__preview\[data-active="true"\][\s\S]*?contrast\(0\.84\)[\s\S]*?opacity:\s*0\.46/s,
+    );
+  });
 });
 
 describe("Even-style phone card geometry", () => {

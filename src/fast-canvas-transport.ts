@@ -75,6 +75,7 @@ export async function transmitCanvas(
   tilePaletteMode: G2TilePaletteMode = "original",
   tileImageFormat: G2TileImageFormat = "png",
   displayHideStrategy: G2DisplayHideStrategy = "blank-rebuild",
+  onDisplayVisibilityChange?: (visible: boolean) => void,
 ) {
   onProgress(TRANSPORT_STATUS.preparing);
   const bridge = await dependencies.waitForBridge();
@@ -216,6 +217,7 @@ export async function transmitCanvas(
   const refreshImages = (...args: Parameters<typeof sendImages>) =>
     refreshHealth.run(() => sendImages(...args));
   await refreshImages(source, tiles, TRANSPORT_STATUS.active);
+  onDisplayVisibilityChange?.(true);
   let disposed = false, hidden = false;
   let hiddenSource: HTMLCanvasElement | undefined;
   const nativeText = createFastNativeAiTextController({
@@ -282,6 +284,7 @@ export async function transmitCanvas(
       }
       await refreshImages(source, tiles, TRANSPORT_STATUS.active);
       hidden = false;
+      onDisplayVisibilityChange?.(true);
       logDiagnostic("REFRESH", "restore complete");
     } else {
       if (displayHideStrategy === "blank-rebuild") {
@@ -299,6 +302,7 @@ export async function transmitCanvas(
         );
         lastSuccessfulTilePayload.clear();
         hidden = true;
+        onDisplayVisibilityChange?.(false);
         onProgress(TRANSPORT_STATUS.active);
         logDiagnostic("REFRESH", "hide complete");
         return;
@@ -312,6 +316,7 @@ export async function transmitCanvas(
         undefined, "original", "png",
       );
       hidden = true;
+      onDisplayVisibilityChange?.(false);
       logDiagnostic("REFRESH", "hide complete");
     }
   };

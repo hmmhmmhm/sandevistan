@@ -34,7 +34,7 @@ export function useHudController({
   imageSendConcurrency, tileImageFormat, tilePaletteMode, modes, setStatus,
   setRoutingStatus, setCompanionRoute, setCompanionLive, setCompanionBattery,
   setCompanionStorage, setPhonePreferences, setCompanionAiSnapshot,
-  setConversateSnapshot,
+  setConversateSnapshot, setCompanionDisplayVisible,
 }: UseHudControllerOptions) {
   useEffect(() => {
     if (!autoStart || !canvasRef.current) return;
@@ -203,6 +203,7 @@ export function useHudController({
                 `display committed · minute ${minute}`,
               );
             },
+            onDisplayVisibilityChange: setCompanionDisplayVisible,
             onInput: handleFastInput,
             onRawEvent: (event) => {
               if (!event.hidden) return;

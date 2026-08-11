@@ -16,16 +16,22 @@ export function PhoneHome({
   t,
   cards,
   preview,
+  previewActive = false,
   onOpen,
 }: {
   readonly t: (key: PhoneStringKey) => string;
   readonly cards: readonly HomeCard[];
   readonly preview: ReactNode;
+  readonly previewActive?: boolean;
   readonly onOpen: (screen: Exclude<PhoneScreen, "home">) => void;
 }) {
   return (
     <div className="phone-home">
-      <section className="phone-home__preview" aria-label={t("liveHudPreview")}>
+      <section
+        className="phone-home__preview"
+        data-active={previewActive || undefined}
+        aria-label={t("liveHudPreview")}
+      >
         <div className="phone-home__preview-slot" data-phone-preview-slot>
           {preview}
         </div>

@@ -107,6 +107,7 @@ export async function transmitFastCanvas(
     options.tilePaletteMode ?? "original",
     options.tileImageFormat ?? "png",
     options.displayHideStrategy ?? "blank-rebuild",
+    options.onDisplayVisibilityChange,
   );
   let cleaned = false;
   let unsubscribeDeviceStatus: (() => void) | undefined;

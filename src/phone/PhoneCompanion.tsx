@@ -54,6 +54,7 @@ type PhoneCompanionProps = {
   readonly canvas: ReactNode;
   readonly status: string;
   readonly battery?: FastCanvasBattery;
+  readonly displayVisible?: boolean;
   readonly live: LiveDashboardState;
   readonly routingStatus: RoutingStatus;
   readonly preferences: PhonePreferences;
@@ -103,6 +104,7 @@ export function PhoneCompanion({
   canvas,
   status,
   battery,
+  displayVisible = true,
   live,
   routingStatus,
   preferences,
@@ -382,6 +384,7 @@ export function PhoneCompanion({
           t={t}
           cards={cards}
           preview={canvas}
+          previewActive={displayVisible}
           onOpen={setScreen}
         />
       </div>

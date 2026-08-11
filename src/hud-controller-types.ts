@@ -53,4 +53,5 @@ export type UseHudControllerOptions = {
   readonly setPhonePreferences: (value: PhonePreferences) => void;
   readonly setCompanionAiSnapshot: (value: AiHudSnapshot) => void;
   readonly setConversateSnapshot: (value: ConversateSnapshot) => void;
+  readonly setCompanionDisplayVisible: (value: boolean) => void;
 };

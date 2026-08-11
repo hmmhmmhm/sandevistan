@@ -106,6 +106,7 @@ export function App({ autoStart = true }: AppProps) {
   const [companionBattery, setCompanionBattery] = useState<
     FastCanvasBattery | undefined
   >();
+  const [companionDisplayVisible, setCompanionDisplayVisible] = useState(true);
   const [companionStorage, setCompanionStorage] = useState<EvenStorage>(
     createBrowserStorage,
   );
@@ -278,6 +279,7 @@ export function App({ autoStart = true }: AppProps) {
     setPhonePreferences,
     setCompanionAiSnapshot,
     setConversateSnapshot: conversate.setSnapshot,
+    setCompanionDisplayVisible,
   });
 
   const startCompanionRoute = async (
@@ -315,6 +317,7 @@ export function App({ autoStart = true }: AppProps) {
         canvas={hudSurface}
         status={status}
         battery={companionBattery}
+        displayVisible={companionDisplayVisible}
         live={companionLive}
         routingStatus={effectiveRoutingStatus}
         preferences={phonePreferences}
