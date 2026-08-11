@@ -59,10 +59,10 @@ export const G2_FAST_TILES = [
   G2_TILES[2],
 ] as const;
 export const G2_TEXT_FIRST_TILES = [
-  G2_TILES[1],
   G2_TILES[0],
-  G2_TILES[3],
+  G2_TILES[1],
   G2_TILES[2],
+  G2_TILES[3],
 ] as const;
 export const G2_LEFT_TILES = [G2_TILES[0], G2_TILES[2]] as const;
 export const G2_RIGHT_TILES = [G2_TILES[1], G2_TILES[3]] as const;

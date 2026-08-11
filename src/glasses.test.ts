@@ -459,7 +459,7 @@ describe("G2 raster transport", () => {
 
     expect(module.G2_TILES.map(({ id }) => id)).toEqual([2, 3, 4, 5]);
     expect(module.G2_FAST_TILES?.map(({ id }) => id)).toEqual([3, 5, 2, 4]);
-    expect(module.G2_TEXT_FIRST_TILES?.map(({ id }) => id)).toEqual([3, 2, 5, 4]);
+    expect(module.G2_TEXT_FIRST_TILES?.map(({ id }) => id)).toEqual([2, 3, 4, 5]);
     expect(module.G2_LEFT_TILES?.map(({ id }) => id)).toEqual([2, 4]);
     expect(module.G2_RIGHT_TILES.map(({ id }) => id)).toEqual([3, 5]);
     expect(module.G2_RIGHT_TOP_TILES?.map(({ id }) => id)).toEqual([3]);
@@ -472,12 +472,12 @@ describe("G2 raster transport", () => {
     const harness = await createFastRefreshHarness({
       getFullRefreshTiles: () => module.G2_TEXT_FIRST_TILES!,
     });
-    expect(harness.encodedTileIds).toEqual([[3, 2, 5, 4]]);
+    expect(harness.encodedTileIds).toEqual([[2, 3, 4, 5]]);
 
     harness.request("all");
     await vi.waitFor(() => expect(harness.encodedTileIds).toEqual([
-      [3, 2, 5, 4],
-      [3, 2, 5, 4],
+      [2, 3, 4, 5],
+      [2, 3, 4, 5],
     ]));
   });
 
