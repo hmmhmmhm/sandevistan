@@ -7,9 +7,9 @@
 
 .phone-home__preview {
   margin-top: 4px;
-  padding: 26px 28px;
+  padding: 8px 0;
   border-radius: 9px;
-  background: var(--phone-preview);
+  background: var(--phone-bg);
 }
 
 .phone-home__preview-slot {
@@ -18,7 +18,7 @@
   overflow: hidden;
   border: 1px solid #bdbdbd;
   border-radius: 5px;
-  background: #f5f5f5;
+  background: var(--phone-bg);
 }
 
 .phone-home__preview-slot .hud-frame {
@@ -28,7 +28,7 @@
   margin: 0;
   padding: 0;
   border: 0;
-  background: #f5f5f5;
+  background: var(--phone-bg);
 }
 
 .phone-home__preview-slot .hud-frame::after {
