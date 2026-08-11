@@ -47,12 +47,10 @@ import {
 } from "../x-feed";
 import type { XOAuthConfig } from "../x-key";
 import {
-  clearXOAuthPending,
-  resolveXOAuthPending,
   resolveXOAuthTokens,
   writeXOAuthTokens,
 } from "../x-key";
-import { exchangeXOAuthCode, refreshXOAuthTokens } from "../x-oauth";
+import { refreshXOAuthTokens } from "../x-oauth";
 import {
   createConversateSnapshot,
   DEFAULT_CONVERSATE_SETTINGS,
@@ -191,30 +189,6 @@ export function PhoneCompanion({
     document.body.scrollTop = 0;
     document.body.scrollLeft = 0;
   }, [screen]);
-
-  useEffect(() => {
-    if (!storage || !xOAuthConfig || !xRelayUrl) return;
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    const state = params.get("state");
-    if (!code || !state) return;
-    void resolveXOAuthPending(storage).then(async (pending) => {
-      if (!pending || pending.state !== state) {
-        setXError("X sign-in could not be verified. Start Connect X again.");
-        return;
-      }
-      try {
-        const tokens = await exchangeXOAuthCode(xOAuthConfig, code, pending.codeVerifier, xRelayUrl);
-        await writeXOAuthTokens(storage, tokens);
-        await clearXOAuthPending(storage);
-        onXAccessTokenChange?.(tokens.accessToken);
-        window.history.replaceState({}, "", window.location.pathname);
-        setScreen("x");
-      } catch (error) {
-        setXError(error instanceof Error ? error.message : "X sign-in failed.");
-      }
-    });
-  }, [storage, xOAuthConfig, xRelayUrl, onXAccessTokenChange]);
 
   useEffect(() => {
     if (!storage || !xOAuthConfig || !xRelayUrl) return;
@@ -512,6 +486,7 @@ export function PhoneCompanion({
             t={t}
             onOpenAiKeyChange={onOpenAiKeyChange}
             onSonioxKeyChange={onSonioxKeyChange}
+            onXAccessTokenChange={onXAccessTokenChange}
             onXRelayUrlChange={onXRelayUrlChange}
             onXOAuthConfigChange={onXOAuthConfigChange}
           />

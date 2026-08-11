@@ -1,20 +1,5 @@
 import type { XOAuthConfig, XOAuthTokens } from "./x-key";
 
-const AUTHORIZE_URL = "https://twitter.com/i/oauth2/authorize";
-
-const base64Url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes))
-  .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-
-const verifier = () => {
-  const bytes = new Uint8Array(48);
-  crypto.getRandomValues(bytes);
-  return base64Url(bytes);
-};
-
-const challengeFor = async (value: string) => base64Url(new Uint8Array(
-  await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)),
-));
-
 const tokenRequest = async (
   config: XOAuthConfig,
   body: URLSearchParams,
@@ -40,33 +25,6 @@ const tokenRequest = async (
     expiresAt: Date.now() + json.expires_in * 1_000,
   };
 };
-
-export async function beginXOAuth(config: XOAuthConfig) {
-  const codeVerifier = verifier();
-  const state = verifier();
-  const params = new URLSearchParams({
-    response_type: "code",
-    client_id: config.clientId,
-    redirect_uri: config.redirectUri,
-    scope: "tweet.read users.read offline.access",
-    state,
-    code_challenge: await challengeFor(codeVerifier),
-    code_challenge_method: "S256",
-  });
-  return { codeVerifier, state, url: `${AUTHORIZE_URL}?${params}` };
-}
-
-export const exchangeXOAuthCode = (
-  config: XOAuthConfig,
-  code: string,
-  codeVerifier: string,
-  relayUrl: string,
-) => tokenRequest(config, new URLSearchParams({
-  grant_type: "authorization_code",
-  code,
-  redirect_uri: config.redirectUri,
-  code_verifier: codeVerifier,
-}), relayUrl);
 
 export const refreshXOAuthTokens = (
   config: XOAuthConfig,

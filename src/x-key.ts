@@ -9,7 +9,6 @@ export const DEFAULT_X_RELAY_URL = "https://sandevistan-x-relay.hmmhmmhm.workers
 
 export type XOAuthConfig = {
   readonly clientId: string;
-  readonly redirectUri: string;
 };
 
 export type XOAuthTokens = {
@@ -18,7 +17,6 @@ export type XOAuthTokens = {
   readonly expiresAt: number;
 };
 
-export type XOAuthPending = { readonly state: string; readonly codeVerifier: string };
 
 const isValid = (value: string) => (
   value.trim().length >= 20
@@ -70,29 +68,20 @@ const validClientId = (value: string) => value.trim().length >= 8
   && value.trim().length <= 512
   && !/[\u0000-\u001f\u007f]/.test(value);
 
-const validRedirectUri = (value: string) => {
-  try {
-    const url = new URL(value.trim());
-    return (url.protocol === "https:" || url.hostname === "localhost")
-      && !url.username && !url.password && !url.hash;
-  } catch {
-    return false;
-  }
-};
-
-export const validateXOAuthConfig = (clientId: string, redirectUri: string) => (
-  validClientId(clientId) && validRedirectUri(redirectUri)
-    ? { ok: true as const, value: { clientId: clientId.trim(), redirectUri: redirectUri.trim() } }
+export const validateXOAuthConfig = (clientId: string) => (
+  validClientId(clientId)
+    ? { ok: true as const, value: { clientId: clientId.trim() } }
     : { ok: false as const }
 );
 
 export const resolveXOAuthConfig = (storage: EvenStorage) => readCache(
   storage,
   "x-oauth-config",
-  (value): value is XOAuthConfig => typeof value === "object" && value !== null
-    && "clientId" in value && "redirectUri" in value
-    && typeof value.clientId === "string" && typeof value.redirectUri === "string"
-    && validClientId(value.clientId) && validRedirectUri(value.redirectUri),
+  (value): value is XOAuthConfig => {
+    if (typeof value !== "object" || value === null || !("clientId" in value)
+      || typeof value.clientId !== "string" || !validClientId(value.clientId)) return false;
+    return true;
+  },
 );
 
 export const writeXOAuthConfig = (storage: EvenStorage, value: XOAuthConfig) =>
@@ -114,20 +103,6 @@ export const writeXOAuthTokens = (storage: EvenStorage, value: XOAuthTokens) =>
   writeCache(storage, "x-oauth-tokens", value);
 
 export const clearXOAuthTokens = (storage: EvenStorage) => clearCache(storage, "x-oauth-tokens");
-
-export const resolveXOAuthPending = (storage: EvenStorage) => readCache(
-  storage,
-  "x-oauth-pending",
-  (value): value is XOAuthPending => typeof value === "object" && value !== null
-    && "state" in value && "codeVerifier" in value
-    && typeof value.state === "string" && typeof value.codeVerifier === "string"
-    && value.state.length >= 20 && value.codeVerifier.length >= 20,
-);
-
-export const writeXOAuthPending = (storage: EvenStorage, value: XOAuthPending) =>
-  writeCache(storage, "x-oauth-pending", value);
-
-export const clearXOAuthPending = (storage: EvenStorage) => clearCache(storage, "x-oauth-pending");
 
 export const validateXRelayUrl = (value: string) => isValidRelayUrl(value)
   ? { ok: true as const, value: value.trim().replace(/\/$/, "") }

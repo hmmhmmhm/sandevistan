@@ -15,16 +15,17 @@ import {
 } from "../soniox-key";
 import {
   clearXRelayUrl,
+  clearXAccessToken,
   DEFAULT_X_RELAY_URL,
+  validateXAccessToken,
   validateXRelayUrl,
+  writeXAccessToken,
   writeXRelayUrl,
   type XOAuthConfig,
   validateXOAuthConfig,
   writeXOAuthConfig,
-  clearXOAuthConfig,
-  writeXOAuthPending,
+  writeXOAuthTokens,
 } from "../x-key";
-import { beginXOAuth } from "../x-oauth";
 
 type Validation = { readonly ok: true; readonly value: string } | { readonly ok: false };
 
@@ -122,6 +123,7 @@ export function ByokScreen({
   t,
   onOpenAiKeyChange,
   onSonioxKeyChange,
+  onXAccessTokenChange,
   onXRelayUrlChange,
   onXOAuthConfigChange,
 }: {
@@ -134,31 +136,37 @@ export function ByokScreen({
   readonly t: (key: PhoneStringKey) => string;
   readonly onOpenAiKeyChange?: (value: string | undefined) => void;
   readonly onSonioxKeyChange?: (value: string | undefined) => void;
+  readonly onXAccessTokenChange?: (value: string | undefined) => void;
   readonly onXRelayUrlChange?: (value: string | undefined) => void;
   readonly onXOAuthConfigChange?: (value: XOAuthConfig | undefined) => void;
 }) {
   const [customRelayOpen, setCustomRelayOpen] = useState(false);
   const activeRelayUrl = xRelayUrl ?? DEFAULT_X_RELAY_URL;
   const [clientId, setClientId] = useState(xOAuthConfig?.clientId ?? "");
-  const [redirectUri, setRedirectUri] = useState(xOAuthConfig?.redirectUri ?? window.location.href.split("?")[0]);
+  const [accessToken, setAccessToken] = useState("");
+  const [refreshToken, setRefreshToken] = useState("");
   const [oauthError, setOauthError] = useState<string>();
-  const saveOAuthConfig = async () => {
+  const saveOAuthTokens = async () => {
     if (!storage) return;
-    const validated = validateXOAuthConfig(clientId, redirectUri);
-    if (!validated.ok || !await writeXOAuthConfig(storage, validated.value)) {
-      setOauthError("Enter the X Client ID and an HTTPS Redirect URI.");
+    const config = validateXOAuthConfig(clientId);
+    const access = validateXAccessToken(accessToken);
+    const refresh = validateXAccessToken(refreshToken);
+    if (!config.ok || !access.ok || !refresh.ok
+      || !await writeXOAuthConfig(storage, config.value)
+      || !await writeXAccessToken(storage, access.value)
+      || !await writeXOAuthTokens(storage, {
+        accessToken: access.value,
+        refreshToken: refresh.value,
+        expiresAt: Date.now() + 55 * 60 * 1_000,
+      })) {
+      setOauthError("Enter your X Client ID, Access Token, and Refresh Token.");
       return;
     }
+    setAccessToken("");
+    setRefreshToken("");
     setOauthError(undefined);
-    onXOAuthConfigChange?.(validated.value);
-  };
-  const connectX = async () => {
-    if (!storage) return;
-    const validated = validateXOAuthConfig(clientId, redirectUri);
-    if (!validated.ok) { setOauthError("Save a valid X Client ID and Redirect URI first."); return; }
-    const pending = await beginXOAuth(validated.value);
-    if (!await writeXOAuthPending(storage, pending)) { setOauthError("Could not save the secure PKCE session."); return; }
-    window.location.assign(pending.url);
+    onXOAuthConfigChange?.(config.value);
+    onXAccessTokenChange?.(access.value);
   };
   return (
     <div className="phone-detail-stack">
@@ -169,13 +177,13 @@ export function ByokScreen({
         <p>{t("keylessDataInfo")}</p>
       </section>
       <section className="phone-panel phone-stacked-form">
-        <div className="phone-key-status"><div><strong>X OAuth 2.0 (PKCE)</strong><span>{xAccessToken ? "Connected · auto-renews locally" : "Not connected"}</span></div>{xOAuthConfig && <button type="button" className="phone-danger-button" onClick={async () => { if (storage && await clearXOAuthConfig(storage)) onXOAuthConfigChange?.(undefined); }}>Delete</button>}</div>
-        <a className="phone-key-link" href="https://developer.x.com/en/portal/dashboard" target="_blank" rel="noreferrer">Configure X OAuth callback ↗</a>
+        <div className="phone-key-status"><div><strong>X OAuth 2.0</strong><span>{xAccessToken ? "Connected · auto-renews locally" : "Not connected"}</span></div>{xAccessToken && <button type="button" className="phone-danger-button" onClick={async () => { if (storage && await clearXAccessToken(storage)) onXAccessTokenChange?.(undefined); }}>Delete</button>}</div>
+        <a className="phone-key-link" href="https://developer.x.com/en/portal/dashboard" target="_blank" rel="noreferrer">Open X Developer Portal ↗</a>
         <label><span>X Client ID</span><input autoComplete="off" value={clientId} onChange={(event) => setClientId(event.target.value)} /></label>
-        <label><span>Redirect URI</span><input type="url" autoComplete="off" value={redirectUri} onChange={(event) => setRedirectUri(event.target.value)} /></label>
-        <button type="button" className="phone-primary-button" onClick={saveOAuthConfig}>Save OAuth settings</button>
-        <button type="button" className="phone-primary-button" onClick={connectX} disabled={!storage}>Connect X securely</button>
-        <p className="phone-form-message">Register this exact Redirect URI in X. Enable OAuth 2.0, PKCE, and tweet.read, users.read, offline.access. Do not enter a Client Secret.</p>
+        <label><span>X Access Token</span><input type="password" autoComplete="off" value={accessToken} onChange={(event) => setAccessToken(event.target.value)} /></label>
+        <label><span>X Refresh Token</span><input type="password" autoComplete="off" value={refreshToken} onChange={(event) => setRefreshToken(event.target.value)} /></label>
+        <button type="button" className="phone-primary-button" onClick={saveOAuthTokens} disabled={!storage}>Save X tokens</button>
+        <p className="phone-form-message">The Access Token is used now; the Refresh Token renews it automatically. Client ID is required by X for renewal. Redirect URI and Client Secret are not needed here.</p>
         {oauthError && <p role="alert" className="phone-form-message">{oauthError}</p>}
       </section>
       <section className="phone-panel phone-stacked-form">

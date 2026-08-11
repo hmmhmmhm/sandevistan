@@ -58,11 +58,9 @@ async function oauthTokenRelay(request) {
   const form = await request.formData();
   const grantType = form.get("grant_type");
   const clientId = form.get("client_id");
-  const allowed = grantType === "authorization_code"
-    ? ["grant_type", "client_id", "code", "redirect_uri", "code_verifier"]
-    : grantType === "refresh_token"
-      ? ["grant_type", "client_id", "refresh_token"]
-      : [];
+  const allowed = grantType === "refresh_token"
+    ? ["grant_type", "client_id", "refresh_token"]
+    : [];
   if (!allowed.length || typeof clientId !== "string" || clientId.length > 512
     || [...form.keys()].some((key) => !allowed.includes(key))
     || allowed.some((key) => typeof form.get(key) !== "string" || !form.get(key))) {
