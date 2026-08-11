@@ -78,7 +78,6 @@ export function PhoneHome({
         >
           <PhoneIcon name="github" size={24} />
         </a>
-        <p>{t("developmentBuild")}</p>
       </footer>
     </div>
   );

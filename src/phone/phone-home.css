@@ -141,15 +141,9 @@
   font-size: 0.92rem;
 }
 
-.phone-home__footer span,
-.phone-home__footer p {
+.phone-home__footer span {
   color: var(--phone-muted);
   font-size: 0.72rem;
-}
-
-.phone-home__footer p {
-  grid-column: 1 / -1;
-  margin: 0;
 }
 
 .phone-home__footer a {
