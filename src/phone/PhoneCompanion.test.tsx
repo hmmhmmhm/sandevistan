@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { EvenStorage } from "../live-cache";
 import {
@@ -71,6 +71,57 @@ describe("PhoneCompanion", () => {
     const companion = screen.getByTestId("phone-companion");
     expect(companion.getAttribute("lang")).toBe("en");
     expect(companion.getAttribute("dir")).toBe("ltr");
+  });
+
+  it("refreshes an expired X session before requesting the timeline", async () => {
+    const storage = new TestStorage();
+    const expiredAccessToken = "expired-access-token-12345";
+    const refreshedAccessToken = "refreshed-access-token-12345";
+    storage.values.set("sandevistan:x-oauth-tokens:v1", JSON.stringify({
+      accessToken: expiredAccessToken,
+      refreshToken: "refresh-token-1234567890",
+      expiresAt: Date.now() - 1,
+    }));
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: refreshedAccessToken,
+          refresh_token: "rotated-refresh-token-12345",
+          expires_in: 7_200,
+        }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { id: "42" } }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: [], meta: {} }) });
+    vi.stubGlobal("fetch", fetchMock);
+    const onXAccessTokenChange = vi.fn();
+    const xOAuthConfig = { clientId: "x-client-id-12345" };
+
+    render(
+      <PhoneCompanion
+        canvas={<canvas width="576" height="288" />}
+        status="Ready"
+        live={createInitialLiveDashboardState()}
+        routingStatus={{ enabled: false }}
+        preferences={DEFAULT_PHONE_PREFERENCES}
+        storage={storage}
+        onPreferencesChange={vi.fn()}
+        onTodosChange={vi.fn()}
+        onWeatherRefresh={vi.fn(async (): Promise<"accepted"> => "accepted")}
+        routeControls={<div>Route controls</div>}
+        xAccessToken={expiredAccessToken}
+        xRelayUrl="https://relay.example.workers.dev"
+        xOAuthConfig={xOAuthConfig}
+        onXAccessTokenChange={onXAccessTokenChange}
+      />,
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://relay.example.workers.dev/oauth2/token");
+    expect(fetchMock.mock.calls[1]?.[0]).toContain("/2/users/me");
+    expect(fetchMock.mock.calls[1]?.[1]?.headers.authorization)
+      .toBe(`Bearer ${refreshedAccessToken}`);
+    expect(onXAccessTokenChange).toHaveBeenCalledWith(refreshedAccessToken);
   });
 
   it("renders the approved nine full-card destinations and footer", () => {

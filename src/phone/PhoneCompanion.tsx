@@ -128,7 +128,7 @@ function transportStatusLabel(
 function xErrorMessage(error: unknown): string {
   if (!(error instanceof XApiError)) return "Could not reach X from this WebView.";
   if (error.reason === "network") return "X blocked this browser request (network or CORS).";
-  if (error.status === 401) return "X rejected the token. Use OAuth 2.0 User Access Token, not Bearer Token or Refresh Token.";
+  if (error.status === 401) return "X rejected the access token. It may be expired; reconnect X from BYOK Keys if refresh fails.";
   if (error.status === 403) return "X denied timeline access. Check tweet.read/users.read and your X API plan.";
   if (error.status === 402) return "X Home Timeline requires a paid X API plan for this project. The relay is connected; upgrade X access or use another feed.";
   if (error.status === 429) return "X rate limit reached. Try again later.";
@@ -176,6 +176,10 @@ export function PhoneCompanion({
   const [xTimeline, setXTimeline] = useState<XTimeline>({ posts: [] });
   const [xLoading, setXLoading] = useState(false);
   const [xError, setXError] = useState<string>();
+  const [xSessionAccessToken, setXSessionAccessToken] = useState(xAccessToken);
+  const [xSessionReady, setXSessionReady] = useState(
+    !storage || !xOAuthConfig || !xRelayUrl,
+  );
   const locale = resolvePhoneLocale(
     preferences.locale,
     typeof navigator === "undefined" ? "en" : navigator.language,
@@ -191,34 +195,56 @@ export function PhoneCompanion({
   }, [screen]);
 
   useEffect(() => {
-    if (!storage || !xOAuthConfig || !xRelayUrl) return;
+    if (!xAccessToken || !storage || !xOAuthConfig || !xRelayUrl) {
+      setXSessionAccessToken(xAccessToken);
+      setXSessionReady(true);
+      return;
+    }
     let timer: number | undefined;
     let cancelled = false;
     const schedule = async () => {
       const tokens = await resolveXOAuthTokens(storage);
-      if (!tokens || cancelled) return;
+      if (cancelled) return;
+      if (!tokens) {
+        setXSessionAccessToken(xAccessToken);
+        setXSessionReady(true);
+        return;
+      }
       const renew = async () => {
         try {
           const refreshed = await refreshXOAuthTokens(xOAuthConfig, tokens.refreshToken, xRelayUrl);
           if (cancelled) return;
           await writeXOAuthTokens(storage, refreshed);
           onXAccessTokenChange?.(refreshed.accessToken);
+          setXSessionAccessToken(refreshed.accessToken);
+          setXSessionReady(true);
           timer = window.setTimeout(() => void schedule(), Math.max(30_000, refreshed.expiresAt - Date.now() - 60_000));
         } catch {
-          if (!cancelled) setXError("X session expired. Connect X again from BYOK Keys.");
+          if (!cancelled) {
+            setXSessionAccessToken(undefined);
+            setXSessionReady(true);
+            setXError("X session refresh failed. Connect X again from BYOK Keys.");
+          }
         }
       };
-      const delay = Math.max(0, tokens.expiresAt - Date.now() - 60_000);
-      timer = window.setTimeout(() => void renew(), delay);
+      if (tokens.expiresAt <= Date.now() + 60_000) {
+        await renew();
+        return;
+      }
+      setXSessionAccessToken(tokens.accessToken);
+      setXSessionReady(true);
+      timer = window.setTimeout(() => void renew(), tokens.expiresAt - Date.now() - 60_000);
     };
+    setXSessionReady(false);
     void schedule();
     return () => { cancelled = true; if (timer !== undefined) window.clearTimeout(timer); };
-  }, [storage, xOAuthConfig, xRelayUrl, onXAccessTokenChange]);
+  }, [storage, xAccessToken, xOAuthConfig, xRelayUrl, onXAccessTokenChange]);
 
   useEffect(() => {
-    if (!xAccessToken) {
+    if (!xSessionReady) return;
+    if (!xSessionAccessToken) {
       setXTimeline({ posts: [] });
-      setXError(undefined);
+      if (!xAccessToken) setXError(undefined);
       onXTimelineChange?.({ posts: [] });
       return;
     }
@@ -227,8 +253,8 @@ export function PhoneCompanion({
     setXError(undefined);
     void (async () => {
       try {
-        const userId = await resolveXUserId(xAccessToken, fetch, xRelayUrl);
-        const timeline = await fetchXHomeTimeline(xAccessToken, userId, undefined, fetch, xRelayUrl);
+        const userId = await resolveXUserId(xSessionAccessToken, fetch, xRelayUrl);
+        const timeline = await fetchXHomeTimeline(xSessionAccessToken, userId, undefined, fetch, xRelayUrl);
         if (active) {
           setXTimeline(timeline);
           onXTimelineChange?.(timeline);
@@ -240,16 +266,16 @@ export function PhoneCompanion({
       }
     })();
     return () => { active = false; };
-  }, [xAccessToken, xRelayUrl, onXTimelineChange]);
+  }, [xAccessToken, xRelayUrl, xSessionAccessToken, xSessionReady, onXTimelineChange]);
 
   const loadMoreX = () => {
-    if (!xAccessToken || !xTimeline.next || xLoading) return;
+    if (!xSessionAccessToken || !xTimeline.next || xLoading) return;
     setXLoading(true);
     setXError(undefined);
     void (async () => {
       try {
-        const userId = await resolveXUserId(xAccessToken, fetch, xRelayUrl);
-        const next = await fetchXHomeTimeline(xAccessToken, userId, xTimeline.next, fetch, xRelayUrl);
+        const userId = await resolveXUserId(xSessionAccessToken, fetch, xRelayUrl);
+        const next = await fetchXHomeTimeline(xSessionAccessToken, userId, xTimeline.next, fetch, xRelayUrl);
         setXTimeline((current) => {
           const timeline = { posts: [...current.posts, ...next.posts], next: next.next };
           onXTimelineChange?.(timeline);
