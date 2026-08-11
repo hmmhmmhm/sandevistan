@@ -52,6 +52,7 @@ export type XHudPost = {
   readonly imageUrl?: string;
   readonly avatarUrl?: string;
   readonly repostedFrom?: { readonly name: string; readonly username: string };
+  readonly quotedPost?: { readonly author: string; readonly username: string; readonly text: string };
   readonly metrics?: { readonly replies: number; readonly reposts: number; readonly likes: number; readonly quotes: number };
 };
 

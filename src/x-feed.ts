@@ -19,6 +19,7 @@ export type XPost = {
   readonly media: readonly XMedia[];
   readonly metrics?: { readonly replies: number; readonly reposts: number; readonly likes: number; readonly quotes: number };
   readonly repostedFrom?: { readonly name: string; readonly username: string };
+  readonly quotedPost?: { readonly author: XAuthor; readonly text: string };
 };
 
 export type XTimeline = {
@@ -49,7 +50,7 @@ type XTimelineResponse = {
       readonly url?: string;
       readonly preview_image_url?: string;
     }[];
-    readonly tweets?: readonly { readonly id: string; readonly author_id?: string }[];
+    readonly tweets?: readonly { readonly id: string; readonly author_id?: string; readonly text?: string }[];
   };
   readonly meta?: { readonly next_token?: string };
 };
@@ -122,7 +123,10 @@ export async function fetchXHomeTimeline(
     posts: (json.data ?? []).map((tweet) => {
       const author = tweet.author_id ? authors.get(tweet.author_id) : undefined;
       const repost = tweet.referenced_tweets?.find((item) => item.type === "retweeted");
+      const quote = tweet.referenced_tweets?.find((item) => item.type === "quoted");
       const repostAuthor = repost ? authors.get(referenced.get(repost.id)?.author_id ?? "") : undefined;
+      const quotedTweet = quote ? referenced.get(quote.id) : undefined;
+      const quotedAuthor = quotedTweet ? authors.get(quotedTweet.author_id ?? "") : undefined;
       return {
         id: tweet.id,
         text: tweet.text,
@@ -148,6 +152,15 @@ export async function fetchXHomeTimeline(
           quotes: tweet.public_metrics?.quote_count ?? 0,
         },
         repostedFrom: repostAuthor ? { name: repostAuthor.name ?? "X", username: repostAuthor.username ?? "unknown" } : undefined,
+        quotedPost: quotedTweet?.text && quotedAuthor ? {
+          author: {
+            id: quotedAuthor.id,
+            name: quotedAuthor.name ?? "X",
+            username: quotedAuthor.username ?? "unknown",
+            avatarUrl: quotedAuthor.profile_image_url,
+          },
+          text: quotedTweet.text,
+        } : undefined,
       };
     }),
     next: json.meta?.next_token,

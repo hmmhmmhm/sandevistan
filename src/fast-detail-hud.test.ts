@@ -240,7 +240,7 @@ describe("drawFastDetailHud", () => {
       "Even Realities",
       "@evenrealities",
       "The attached photo and tweet text stay together",
-      "SCROLL // TWEETS",
+      "0",
     ]));
   });
 

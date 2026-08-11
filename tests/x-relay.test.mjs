@@ -57,7 +57,7 @@ test("relays only registered RSS feeds without X credentials", async () => {
   }
 });
 
-test("relays only X-hosted attached media", async () => {
+test("relays only X-hosted attached media and profile images", async () => {
   const originalFetch = globalThis.fetch;
   const calls = [];
   globalThis.fetch = async (input) => {
@@ -74,6 +74,14 @@ test("relays only X-hosted attached media", async () => {
     assert.equal(response.status, 200);
     assert.equal(calls[0], media);
     assert.equal(response.headers.get("content-type"), "image/jpeg");
+    const avatar = "https://pbs.twimg.com/profile_images/123/avatar.jpg";
+    assert.equal(
+      (await worker.fetch(new Request(
+        `https://relay.example/media?url=${encodeURIComponent(avatar)}`,
+      ))).status,
+      200,
+    );
+    assert.equal(calls[1], avatar);
     assert.equal(
       (await worker.fetch(new Request("https://relay.example/media?url=https://example.com/image.jpg"))).status,
       404,

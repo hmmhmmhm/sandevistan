@@ -177,9 +177,10 @@ function drawXMetric(
   kind: "reply" | "repost" | "like" | "quote",
   value: number,
   x: number,
+  y: number,
 ) {
-  drawXMetricIcon(context, kind, x, 214);
-  drawText(context, String(value), x + 23, 213, 15, COLOR.secondary, "bold");
+  drawXMetricIcon(context, kind, x, y);
+  drawText(context, String(value), x + 23, y - 1, 15, COLOR.secondary, "bold");
 }
 
 function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHudPost[]>, index: number, locale: PhoneLocale) {
@@ -189,7 +190,7 @@ function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHud
   drawFrame(context, 14, 44, 548, 204);
   if (!post) { drawEmptyState(context, "X timeline unavailable", "Check your X token and plan."); return; }
   const authorY = post.repostedFrom ? 72 : 52;
-  if (post.repostedFrom) drawText(context, `REPOSTED · @${post.repostedFrom.username}`, 30, 52, 11, COLOR.dim, "bold");
+  if (post.repostedFrom) drawText(context, `REPOSTED · ${post.repostedFrom.name}`, 30, 52, 11, COLOR.dim, "bold");
   const avatar = post.avatarUrl ? loadXImage(post.avatarUrl) : undefined;
   if (avatar?.complete && avatar.naturalWidth > 0) {
     context.drawImage(avatar, 28, authorY, 28, 28);
@@ -201,21 +202,40 @@ function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHud
   drawText(context, post.author, 66, authorY, 17, COLOR.primary, "bold");
   drawText(context, `@${post.username}`, 66, authorY + 19, 12, COLOR.secondary, "bold");
   const image = post.imageUrl ? loadXImage(post.imageUrl) : undefined;
-  if (image?.complete && image.naturalWidth > 0) {
+  const imageVisible = Boolean(image?.complete && image.naturalWidth > 0);
+  if (imageVisible && image) {
     context.filter = "grayscale(1) contrast(1.6)";
     context.drawImage(image, 346, 92, 194, 106);
     context.filter = "none";
   }
   const textY = authorY + 36;
-  wrapHudText(post.text, image ? 25 : 48, image ? 4 : 5).forEach((line, lineIndex) => drawText(context, line, 28, textY + lineIndex * 22, 19, COLOR.primary, "bold"));
+  const quote = post.quotedPost;
+  const textLines = wrapHudText(
+    post.text,
+    imageVisible ? 25 : 48,
+    quote ? (imageVisible ? 2 : 3) : (imageVisible ? 4 : 6),
+  );
+  textLines.forEach((line, lineIndex) => drawText(context, line, 28, textY + lineIndex * 22, 19, COLOR.primary, "bold"));
+  if (quote) {
+    const quoteY = textY + textLines.length * 22 + 4;
+    context.fillStyle = COLOR.dim;
+    context.fillRect(28, quoteY, imageVisible ? 300 : 500, 1);
+    drawText(context, `QUOTE · ${quote.author}`, 28, quoteY + 6, 12, COLOR.secondary, "bold");
+    wrapHudText(quote.text, imageVisible ? 24 : 43, 2).forEach((line, lineIndex) => (
+      drawText(context, line, 28, quoteY + 21 + lineIndex * 16, 13, COLOR.primary, "bold")
+    ));
+  }
   const metrics = post.metrics;
   const day = post.createdAt ? new Date(post.createdAt).toLocaleDateString(locale) : "";
-  drawText(context, day, 28, 216, 12, COLOR.secondary, "bold");
-  drawXMetric(context, "reply", metrics?.replies ?? 0, 144);
-  drawXMetric(context, "repost", metrics?.reposts ?? 0, 232);
-  drawXMetric(context, "like", metrics?.likes ?? 0, 320);
-  drawXMetric(context, "quote", metrics?.quotes ?? 0, 408);
-  drawFooter(context, "SCROLL // TWEETS");
+  context.fillStyle = COLOR.background;
+  context.fillRect(0, 254, WIDTH, 34);
+  context.fillStyle = COLOR.dim;
+  context.fillRect(14, 254, 548, 1);
+  drawText(context, day, 20, 263, 12, COLOR.secondary, "bold");
+  drawXMetric(context, "reply", metrics?.replies ?? 0, 150, 260);
+  drawXMetric(context, "repost", metrics?.reposts ?? 0, 238, 260);
+  drawXMetric(context, "like", metrics?.likes ?? 0, 326, 260);
+  drawXMetric(context, "quote", metrics?.quotes ?? 0, 414, 260);
 }
 
 function todoLabel(state: DataState<readonly TodoItem[]>): string {

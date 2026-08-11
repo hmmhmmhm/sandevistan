@@ -86,6 +86,11 @@ export function App({ autoStart = true }: AppProps) {
       imageUrl: post.media.find((media) => media.kind === "photo")?.url,
       avatarUrl: post.author.avatarUrl,
       repostedFrom: post.repostedFrom,
+      quotedPost: post.quotedPost ? {
+        author: post.quotedPost.author.name,
+        username: post.quotedPost.author.username,
+        text: post.quotedPost.text,
+      } : undefined,
       metrics: post.metrics,
     }));
     xHudPostsRef.current = posts;

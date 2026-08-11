@@ -36,7 +36,7 @@ function xMediaUrl(value) {
     const url = new URL(value);
     return url.protocol === "https:"
       && url.hostname === "pbs.twimg.com"
-      && url.pathname.startsWith("/media/")
+      && (url.pathname.startsWith("/media/") || url.pathname.startsWith("/profile_images/"))
       ? url.toString()
       : undefined;
   } catch {
