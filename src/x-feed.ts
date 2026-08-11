@@ -51,16 +51,35 @@ type XTimelineResponse = {
 
 const headers = (token: string) => ({ authorization: `Bearer ${token}` });
 
+export class XApiError extends Error {
+  constructor(
+    readonly reason: "network" | "auth" | "profile" | "timeline",
+    readonly status?: number,
+  ) {
+    super(`x_${reason}${status ? `_${status}` : ""}`);
+  }
+}
+
+const request = async (
+  url: string,
+  token: string,
+  fetchImpl: typeof fetch,
+) => {
+  try {
+    return await fetchImpl(url, { headers: headers(token) });
+  } catch {
+    throw new XApiError("network");
+  }
+};
+
 export async function resolveXUserId(
   token: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<string> {
-  const response = await fetchImpl("https://api.x.com/2/users/me", {
-    headers: headers(token),
-  });
-  if (!response.ok) throw new Error("x_auth");
+  const response = await request("https://api.x.com/2/users/me", token, fetchImpl);
+  if (!response.ok) throw new XApiError("auth", response.status);
   const json = await response.json() as { data?: { id?: string } };
-  if (!json.data?.id) throw new Error("x_profile");
+  if (!json.data?.id) throw new XApiError("profile");
   return json.data.id;
 }
 
@@ -78,11 +97,12 @@ export async function fetchXHomeTimeline(
     "media.fields": "url,preview_image_url,type",
   });
   if (page) params.set("pagination_token", page);
-  const response = await fetchImpl(
+  const response = await request(
     `https://api.x.com/2/users/${encodeURIComponent(userId)}/timelines/reverse_chronological?${params}`,
-    { headers: headers(token) },
+    token,
+    fetchImpl,
   );
-  if (!response.ok) throw new Error("x_timeline");
+  if (!response.ok) throw new XApiError("timeline", response.status);
   const json = await response.json() as XTimelineResponse;
   const authors = new Map((json.includes?.users ?? []).map((author) => [author.id, author]));
   const media = new Map((json.includes?.media ?? []).map((item) => [item.media_key, item]));

@@ -42,6 +42,7 @@ import { XScreen } from "./XScreen";
 import {
   fetchXHomeTimeline,
   resolveXUserId,
+  XApiError,
   type XTimeline,
 } from "../x-feed";
 import {
@@ -113,6 +114,15 @@ function transportStatusLabel(
   return t(transportStatusKey(status));
 }
 
+function xErrorMessage(error: unknown): string {
+  if (!(error instanceof XApiError)) return "Could not reach X from this WebView.";
+  if (error.reason === "network") return "X blocked this browser request (network or CORS).";
+  if (error.status === 401) return "X rejected the token. Use OAuth 2.0 User Access Token, not Bearer Token or Refresh Token.";
+  if (error.status === 403) return "X denied timeline access. Check tweet.read/users.read and your X API plan.";
+  if (error.status === 429) return "X rate limit reached. Try again later.";
+  return `X request failed (${error.status ?? "unknown"}).`;
+}
+
 export function PhoneCompanion({
   canvas,
   status,
@@ -177,8 +187,8 @@ export function PhoneCompanion({
         const userId = await resolveXUserId(xAccessToken);
         const timeline = await fetchXHomeTimeline(xAccessToken, userId);
         if (active) setXTimeline(timeline);
-      } catch {
-        if (active) setXError("Could not load X. Check the token and its tweet.read/users.read scopes.");
+      } catch (error) {
+        if (active) setXError(xErrorMessage(error));
       } finally {
         if (active) setXLoading(false);
       }
@@ -198,8 +208,8 @@ export function PhoneCompanion({
           posts: [...current.posts, ...next.posts],
           next: next.next,
         }));
-      } catch {
-        setXError("Could not load more posts. Please try again.");
+      } catch (error) {
+        setXError(xErrorMessage(error));
       } finally {
         setXLoading(false);
       }

@@ -132,6 +132,7 @@ export function ByokScreen({
         validate={validateXAccessToken} write={writeXAccessToken} clear={clearXAccessToken}
         mask={maskXAccessToken} onChange={onXAccessTokenChange}
       />
+      <p className="phone-form-message">For Home timeline, paste the OAuth 2.0 User Access Token only — not X's app Bearer Token, Client Secret, or Refresh Token.</p>
       <KeyPanel
         storage={storage}
         title="OpenAI API key"

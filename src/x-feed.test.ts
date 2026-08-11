@@ -46,4 +46,12 @@ describe("X home timeline", () => {
     await fetchXHomeTimeline("token-for-test", "me", "next-page", fetchMock);
     expect(fetchMock.mock.calls[0]?.[0]).toContain("pagination_token=next-page");
   });
+
+  it("keeps the HTTP status for an actionable OAuth error", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response("", { status: 401 }));
+    await expect(resolveXUserId("token-for-test", fetchMock)).rejects.toMatchObject({
+      reason: "auth",
+      status: 401,
+    });
+  });
 });
