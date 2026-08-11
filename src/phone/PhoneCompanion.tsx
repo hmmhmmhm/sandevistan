@@ -45,6 +45,14 @@ import {
   XApiError,
   type XTimeline,
 } from "../x-feed";
+import type { XOAuthConfig } from "../x-key";
+import {
+  clearXOAuthPending,
+  resolveXOAuthPending,
+  resolveXOAuthTokens,
+  writeXOAuthTokens,
+} from "../x-key";
+import { exchangeXOAuthCode, refreshXOAuthTokens } from "../x-oauth";
 import {
   createConversateSnapshot,
   DEFAULT_CONVERSATE_SETTINGS,
@@ -82,11 +90,13 @@ type PhoneCompanionProps = {
   readonly sonioxKey?: string;
   readonly xAccessToken?: string;
   readonly xRelayUrl?: string;
+  readonly xOAuthConfig?: XOAuthConfig;
   readonly aiSnapshot?: AiHudSnapshot;
   readonly onOpenAiKeyChange?: (key: string | undefined) => void;
   readonly onSonioxKeyChange?: (key: string | undefined) => void;
   readonly onXAccessTokenChange?: (key: string | undefined) => void;
   readonly onXRelayUrlChange?: (url: string | undefined) => void;
+  readonly onXOAuthConfigChange?: (value: XOAuthConfig | undefined) => void;
   readonly onXTimelineChange?: (timeline: XTimeline) => void;
   readonly onAiSnapshotChange?: (snapshot: AiHudSnapshot) => void;
   readonly conversateSettings?: ConversateSettings;
@@ -150,11 +160,13 @@ export function PhoneCompanion({
   sonioxKey,
   xAccessToken,
   xRelayUrl,
+  xOAuthConfig,
   aiSnapshot = createAiHudSnapshot(false),
   onOpenAiKeyChange,
   onSonioxKeyChange,
   onXAccessTokenChange,
   onXRelayUrlChange,
+  onXOAuthConfigChange,
   onXTimelineChange,
   onAiSnapshotChange,
   conversateSettings = DEFAULT_CONVERSATE_SETTINGS,
@@ -179,6 +191,55 @@ export function PhoneCompanion({
     document.body.scrollTop = 0;
     document.body.scrollLeft = 0;
   }, [screen]);
+
+  useEffect(() => {
+    if (!storage || !xOAuthConfig || !xRelayUrl) return;
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const state = params.get("state");
+    if (!code || !state) return;
+    void resolveXOAuthPending(storage).then(async (pending) => {
+      if (!pending || pending.state !== state) {
+        setXError("X sign-in could not be verified. Start Connect X again.");
+        return;
+      }
+      try {
+        const tokens = await exchangeXOAuthCode(xOAuthConfig, code, pending.codeVerifier, xRelayUrl);
+        await writeXOAuthTokens(storage, tokens);
+        await clearXOAuthPending(storage);
+        onXAccessTokenChange?.(tokens.accessToken);
+        window.history.replaceState({}, "", window.location.pathname);
+        setScreen("x");
+      } catch (error) {
+        setXError(error instanceof Error ? error.message : "X sign-in failed.");
+      }
+    });
+  }, [storage, xOAuthConfig, xRelayUrl, onXAccessTokenChange]);
+
+  useEffect(() => {
+    if (!storage || !xOAuthConfig || !xRelayUrl) return;
+    let timer: number | undefined;
+    let cancelled = false;
+    const schedule = async () => {
+      const tokens = await resolveXOAuthTokens(storage);
+      if (!tokens || cancelled) return;
+      const renew = async () => {
+        try {
+          const refreshed = await refreshXOAuthTokens(xOAuthConfig, tokens.refreshToken, xRelayUrl);
+          if (cancelled) return;
+          await writeXOAuthTokens(storage, refreshed);
+          onXAccessTokenChange?.(refreshed.accessToken);
+          timer = window.setTimeout(() => void schedule(), Math.max(30_000, refreshed.expiresAt - Date.now() - 60_000));
+        } catch {
+          if (!cancelled) setXError("X session expired. Connect X again from BYOK Keys.");
+        }
+      };
+      const delay = Math.max(0, tokens.expiresAt - Date.now() - 60_000);
+      timer = window.setTimeout(() => void renew(), delay);
+    };
+    void schedule();
+    return () => { cancelled = true; if (timer !== undefined) window.clearTimeout(timer); };
+  }, [storage, xOAuthConfig, xRelayUrl, onXAccessTokenChange]);
 
   useEffect(() => {
     if (!xAccessToken) {
@@ -447,11 +508,12 @@ export function PhoneCompanion({
             sonioxKey={sonioxKey}
             xAccessToken={xAccessToken}
             xRelayUrl={xRelayUrl}
+            xOAuthConfig={xOAuthConfig}
             t={t}
             onOpenAiKeyChange={onOpenAiKeyChange}
             onSonioxKeyChange={onSonioxKeyChange}
-            onXAccessTokenChange={onXAccessTokenChange}
             onXRelayUrlChange={onXRelayUrlChange}
+            onXOAuthConfigChange={onXOAuthConfigChange}
           />
         );
       case "conversate":

@@ -82,3 +82,31 @@ test("relays only X-hosted attached media", async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test("relays only PKCE OAuth token exchanges", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (input, init) => {
+    calls.push([input, init]);
+    return new Response(JSON.stringify({ access_token: "new", refresh_token: "renew", expires_in: 7200 }), {
+      headers: { "content-type": "application/json" },
+    });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://relay.example/oauth2/token", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: "grant_type=refresh_token&client_id=public-client&refresh_token=renew",
+    }));
+    assert.equal(response.status, 200);
+    assert.equal(calls[0][0], "https://api.x.com/2/oauth2/token");
+    assert.match(
+      (await worker.fetch(new Request("https://relay.example/oauth2/token", { method: "OPTIONS" })))
+        .headers.get("access-control-allow-methods"),
+      /POST/,
+    );
+    assert.equal((await worker.fetch(new Request("https://relay.example/oauth2/token"))).status, 405);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

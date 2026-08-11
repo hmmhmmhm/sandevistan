@@ -1,6 +1,7 @@
 import { BUILT_IN_RSS_FEEDS } from "../server/news-feeds.js";
 
 const X_API_ORIGIN = "https://api.x.com";
+const X_OAUTH_TOKEN_URL = `${X_API_ORIGIN}/2/oauth2/token`;
 const MAX_TOKEN_LENGTH = 4096;
 const MAX_NEWS_BYTES = 1_000_000;
 const ALLOWED_PATHS = [
@@ -10,7 +11,7 @@ const ALLOWED_PATHS = [
 const NEWS_FEEDS = new Map(BUILT_IN_RSS_FEEDS.map(({ id, url }) => [id, url]));
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, OPTIONS",
+  "access-control-allow-methods": "GET, POST, OPTIONS",
   "access-control-allow-headers": "authorization, content-type",
   "access-control-max-age": "86400",
 };
@@ -49,6 +50,41 @@ function validAuthorization(value) {
     && !/[\u0000-\u001f\u007f]/.test(value);
 }
 
+async function oauthTokenRelay(request) {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.startsWith("application/x-www-form-urlencoded")) {
+    return response({ error: "invalid_oauth_content_type" }, 415);
+  }
+  const form = await request.formData();
+  const grantType = form.get("grant_type");
+  const clientId = form.get("client_id");
+  const allowed = grantType === "authorization_code"
+    ? ["grant_type", "client_id", "code", "redirect_uri", "code_verifier"]
+    : grantType === "refresh_token"
+      ? ["grant_type", "client_id", "refresh_token"]
+      : [];
+  if (!allowed.length || typeof clientId !== "string" || clientId.length > 512
+    || [...form.keys()].some((key) => !allowed.includes(key))
+    || allowed.some((key) => typeof form.get(key) !== "string" || !form.get(key))) {
+    return response({ error: "invalid_oauth_request" }, 400);
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const upstream = await fetch(X_OAUTH_TOKEN_URL, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+      body: new URLSearchParams([...form.entries()].map(([key, value]) => [key, String(value)])),
+      signal: controller.signal,
+    });
+    return relayResponse(upstream);
+  } catch {
+    return response({ error: "x_oauth_unavailable" }, 502);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function relayResponse(upstream) {
   const headers = new Headers(CORS_HEADERS);
   headers.set("content-type", upstream.headers.get("content-type") ?? "application/json; charset=utf-8");
@@ -72,9 +108,13 @@ function newsResponse(upstream) {
 export default {
   async fetch(request) {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
-    if (request.method !== "GET") return response({ error: "method_not_allowed" }, 405);
-
     const url = new URL(request.url);
+    if (url.pathname === "/oauth2/token") {
+      return request.method === "POST"
+        ? oauthTokenRelay(request)
+        : response({ error: "method_not_allowed" }, 405);
+    }
+    if (request.method !== "GET") return response({ error: "method_not_allowed" }, 405);
     if (url.pathname === "/media") {
       const media = xMediaUrl(url.searchParams.get("url"));
       if (!media || [...url.searchParams.keys()].some((key) => key !== "url")) {

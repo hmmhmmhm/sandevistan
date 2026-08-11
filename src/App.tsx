@@ -44,7 +44,7 @@ import {
 import { resolveAiConversationHistory } from "./ai-history";
 import { resolveOpenAiKey } from "./openai-key";
 import { resolveSonioxKey } from "./soniox-key";
-import { resolveXAccessToken, resolveXRelayUrl } from "./x-key";
+import { resolveXAccessToken, resolveXOAuthConfig, resolveXRelayUrl, type XOAuthConfig } from "./x-key";
 import type { XTimeline } from "./x-feed";
 import { TRANSPORT_STATUS } from "./transport-status";
 import { useConversateCompanion } from "./use-conversate-companion";
@@ -141,6 +141,7 @@ export function App({ autoStart = true }: AppProps) {
   const [companionSonioxKey, setCompanionSonioxKeyState] = useState<string>();
   const [companionXAccessToken, setCompanionXAccessToken] = useState<string>();
   const [companionXRelayUrl, setCompanionXRelayUrl] = useState<string>();
+  const [companionXOAuthConfig, setCompanionXOAuthConfig] = useState<XOAuthConfig>();
   const companionSonioxKeyRef = useRef<string | undefined>(undefined);
   const [companionAiSnapshot, setCompanionAiSnapshotState] = useState(
     () => createAiHudSnapshot(false),
@@ -253,15 +254,17 @@ export function App({ autoStart = true }: AppProps) {
       resolveOpenAiKey(companionStorage),
       resolveSonioxKey(companionStorage),
       resolveXAccessToken(companionStorage),
+      resolveXOAuthConfig(companionStorage),
       resolveXRelayUrl(companionStorage),
       resolveAiConversationHistory(companionStorage),
       resolveAiUsageLedger(companionStorage),
-    ]).then(([key, sonioxKey, xAccessToken, xRelayUrl, history, ledger]) => {
+    ]).then(([key, sonioxKey, xAccessToken, xOAuthConfig, xRelayUrl, history, ledger]) => {
       if (!active) return;
       const costs = costSummaryForCurrentPeriod(ledger);
       setCompanionOpenAiKey(key);
       setCompanionSonioxKey(sonioxKey);
       setCompanionXAccessToken(xAccessToken);
+      setCompanionXOAuthConfig(xOAuthConfig);
       setCompanionXRelayUrl(xRelayUrl);
       setCompanionAiSnapshot(createAiHudSnapshot(
         Boolean(key),
@@ -369,6 +372,7 @@ export function App({ autoStart = true }: AppProps) {
         openAiKey={companionOpenAiKey}
         sonioxKey={companionSonioxKey}
         xAccessToken={companionXAccessToken}
+        xOAuthConfig={companionXOAuthConfig}
         xRelayUrl={companionXRelayUrl}
         aiSnapshot={companionAiSnapshot}
         onOpenAiKeyChange={(key) => {
@@ -384,6 +388,7 @@ export function App({ autoStart = true }: AppProps) {
         }}
         onSonioxKeyChange={setCompanionSonioxKey}
         onXAccessTokenChange={setCompanionXAccessToken}
+        onXOAuthConfigChange={setCompanionXOAuthConfig}
         onXRelayUrlChange={setCompanionXRelayUrl}
         onXTimelineChange={syncXTimelineToHud}
         onAiSnapshotChange={(snapshot) => {
