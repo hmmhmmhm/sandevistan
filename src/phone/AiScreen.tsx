@@ -28,6 +28,7 @@ export function AiScreen({
   onSnapshotChange,
   textIntervalMs = 200,
   onTextIntervalChange,
+  onOpenByok,
 }: {
   readonly storage?: EvenStorage;
   readonly openAiKey?: string;
@@ -37,6 +38,7 @@ export function AiScreen({
   readonly onSnapshotChange?: (snapshot: AiHudSnapshot) => void;
   readonly textIntervalMs?: number;
   readonly onTextIntervalChange?: (value: number) => void;
+  readonly onOpenByok?: () => void;
 }) {
   const [candidate, setCandidate] = useState("");
   const [busy, setBusy] = useState(false);
@@ -128,6 +130,9 @@ export function AiScreen({
         >
           Get an OpenAI API key ↗
         </a>
+        <button type="button" className="phone-primary-button" onClick={onOpenByok}>
+          Set up in BYOK Keys
+        </button>
       </section>
       {openAiKey ? (
         <section className="phone-panel phone-key-status">

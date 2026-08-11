@@ -143,7 +143,13 @@ function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHud
   drawHeader(context, state.status === "fresh" ? "X // HOME" : "X // UNAVAILABLE", post ? compactPosition(index, posts.length) : "00/00");
   drawFrame(context, 14, 44, 548, 204);
   if (!post) { drawEmptyState(context, "X timeline unavailable", "Check your X token and plan."); return; }
-  drawText(context, `@${post.username} · ${post.author}`, 30, 62, 15, COLOR.secondary, "bold");
+  const authorY = post.repostedFrom ? 84 : 62;
+  if (post.repostedFrom) drawText(context, `↻ @${post.repostedFrom.username} reposted`, 30, 62, 11, COLOR.dim, "bold");
+  context.fillStyle = COLOR.secondary;
+  context.fillRect(30, authorY, 18, 18);
+  drawText(context, post.author.slice(0, 1).toUpperCase(), 35, authorY + 2, 11, COLOR.background, "bold");
+  drawText(context, post.author, 56, authorY, 15, COLOR.primary, "bold");
+  drawText(context, `@${post.username}`, 56, authorY + 17, 11, COLOR.secondary, "bold");
   const image = post.imageUrl ? xImages.get(post.imageUrl) : undefined;
   if (post.imageUrl && !image) {
     const next = new Image();
@@ -154,8 +160,16 @@ function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHud
     next.src = `https://sandevistan-x-relay.hmmhmmhm.workers.dev/media?url=${encodeURIComponent(post.imageUrl)}`;
     xImages.set(post.imageUrl, next);
   }
-  if (image?.complete && image.naturalWidth > 0) context.drawImage(image, 352, 78, 188, 126);
-  wrapHudText(post.text, image ? 25 : 44, image ? 4 : 6).forEach((line, lineIndex) => drawText(context, line, 28, 100 + lineIndex * 25, 20, COLOR.primary, "bold"));
+  if (image?.complete && image.naturalWidth > 0) {
+    context.filter = "grayscale(1) contrast(1.6)";
+    context.drawImage(image, 352, 100, 188, 112);
+    context.filter = "none";
+  }
+  const textY = authorY + 46;
+  wrapHudText(post.text, image ? 25 : 44, image ? 3 : 4).forEach((line, lineIndex) => drawText(context, line, 28, textY + lineIndex * 23, 18, COLOR.primary, "bold"));
+  const metrics = post.metrics;
+  const day = post.createdAt ? new Date(post.createdAt).toLocaleDateString(locale) : "";
+  drawText(context, `${day}  ↩${metrics?.replies ?? 0}  ↻${metrics?.reposts ?? 0}  ♡${metrics?.likes ?? 0}  ▱${metrics?.quotes ?? 0}`, 28, 226, 10, COLOR.secondary, "bold");
   drawFooter(context, "SCROLL // TWEETS");
 }
 

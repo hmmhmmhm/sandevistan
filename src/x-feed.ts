@@ -17,6 +17,8 @@ export type XPost = {
   readonly createdAt?: string;
   readonly author: XAuthor;
   readonly media: readonly XMedia[];
+  readonly metrics?: { readonly replies: number; readonly reposts: number; readonly likes: number; readonly quotes: number };
+  readonly repostedFrom?: { readonly name: string; readonly username: string };
 };
 
 export type XTimeline = {
@@ -31,6 +33,8 @@ type XTimelineResponse = {
     readonly created_at?: string;
     readonly author_id?: string;
     readonly attachments?: { readonly media_keys?: readonly string[] };
+    readonly referenced_tweets?: readonly { readonly type: string; readonly id: string }[];
+    readonly public_metrics?: { readonly reply_count?: number; readonly retweet_count?: number; readonly like_count?: number; readonly quote_count?: number };
   }[];
   readonly includes?: {
     readonly users?: readonly {
@@ -45,6 +49,7 @@ type XTimelineResponse = {
       readonly url?: string;
       readonly preview_image_url?: string;
     }[];
+    readonly tweets?: readonly { readonly id: string; readonly author_id?: string }[];
   };
   readonly meta?: { readonly next_token?: string };
 };
@@ -97,8 +102,8 @@ export async function fetchXHomeTimeline(
 ): Promise<XTimeline> {
   const params = new URLSearchParams({
     max_results: "10",
-    expansions: "author_id,attachments.media_keys",
-    "tweet.fields": "created_at,author_id,attachments",
+    expansions: "author_id,attachments.media_keys,referenced_tweets.id,referenced_tweets.id.author_id",
+    "tweet.fields": "created_at,author_id,attachments,public_metrics,referenced_tweets",
     "user.fields": "name,username,profile_image_url",
     "media.fields": "url,preview_image_url,type",
   });
@@ -112,9 +117,12 @@ export async function fetchXHomeTimeline(
   const json = await response.json() as XTimelineResponse;
   const authors = new Map((json.includes?.users ?? []).map((author) => [author.id, author]));
   const media = new Map((json.includes?.media ?? []).map((item) => [item.media_key, item]));
+  const referenced = new Map((json.includes?.tweets ?? []).map((item) => [item.id, item]));
   return {
     posts: (json.data ?? []).map((tweet) => {
       const author = tweet.author_id ? authors.get(tweet.author_id) : undefined;
+      const repost = tweet.referenced_tweets?.find((item) => item.type === "retweeted");
+      const repostAuthor = repost ? authors.get(referenced.get(repost.id)?.author_id ?? "") : undefined;
       return {
         id: tweet.id,
         text: tweet.text,
@@ -133,6 +141,13 @@ export async function fetchXHomeTimeline(
             url: item.url ?? item.preview_image_url,
           }] : [];
         }),
+        metrics: {
+          replies: tweet.public_metrics?.reply_count ?? 0,
+          reposts: tweet.public_metrics?.retweet_count ?? 0,
+          likes: tweet.public_metrics?.like_count ?? 0,
+          quotes: tweet.public_metrics?.quote_count ?? 0,
+        },
+        repostedFrom: repostAuthor ? { name: repostAuthor.name ?? "X", username: repostAuthor.username ?? "unknown" } : undefined,
       };
     }),
     next: json.meta?.next_token,

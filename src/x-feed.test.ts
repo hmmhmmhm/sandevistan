@@ -14,6 +14,7 @@ describe("X home timeline", () => {
           text: "Hello from X",
           created_at: "2026-08-11T00:00:00.000Z",
           author_id: "author-1",
+          public_metrics: { reply_count: 2, retweet_count: 3, like_count: 4, quote_count: 5 },
           attachments: { media_keys: ["media-1"] },
         }],
         includes: {
@@ -38,6 +39,8 @@ describe("X home timeline", () => {
         createdAt: "2026-08-11T00:00:00.000Z",
         author: { id: "author-1", name: "Ada", username: "ada", avatarUrl: "https://image.test/avatar.jpg" },
         media: [{ id: "media-1", kind: "photo", url: "https://image.test/photo.jpg" }],
+        metrics: { replies: 2, reposts: 3, likes: 4, quotes: 5 },
+        repostedFrom: undefined,
       }],
       next: "page-2",
     });

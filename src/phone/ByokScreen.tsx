@@ -69,12 +69,14 @@ function KeyPanel({
     onChange?.(result.value);
   };
   return (
-    <section className="phone-panel phone-stacked-form">
-      <div className="phone-key-status">
+    <details className="phone-panel phone-key-accordion">
+      <summary className="phone-key-status">
         <div>
           <strong>{title}</strong>
           <span>{value ? mask(value) : "Not configured"}</span>
         </div>
+      </summary>
+      <div className="phone-stacked-form phone-key-accordion__content">
         {value && (
           <button
             type="button"
@@ -86,30 +88,30 @@ function KeyPanel({
             Delete
           </button>
         )}
+        <a className="phone-key-link" href={issueUrl} target="_blank" rel="noreferrer">
+          {issueLabel} ↗
+        </a>
+        <form className="phone-stacked-form" onSubmit={save}>
+          <label>
+            <span>{title}</span>
+            <input
+              type={inputType}
+              autoComplete="off"
+              value={candidate}
+              onChange={(event) => setCandidate(event.target.value)}
+            />
+          </label>
+          <button
+            type="submit"
+            className="phone-primary-button"
+            disabled={!validate(candidate).ok}
+          >
+            Save
+          </button>
+        </form>
+        {error && <p role="alert" className="phone-form-message">Validation failed.</p>}
       </div>
-      <a className="phone-key-link" href={issueUrl} target="_blank" rel="noreferrer">
-        {issueLabel} ↗
-      </a>
-      <form className="phone-stacked-form" onSubmit={save}>
-        <label>
-          <span>{title}</span>
-          <input
-            type={inputType}
-            autoComplete="off"
-            value={candidate}
-            onChange={(event) => setCandidate(event.target.value)}
-          />
-        </label>
-        <button
-          type="submit"
-          className="phone-primary-button"
-          disabled={!validate(candidate).ok}
-        >
-          Save
-        </button>
-      </form>
-      {error && <p role="alert" className="phone-form-message">Validation failed.</p>}
-    </section>
+    </details>
   );
 }
 
@@ -176,8 +178,10 @@ export function ByokScreen({
         <p>These keys are shared by Ask AI and Conversate.</p>
         <p>{t("keylessDataInfo")}</p>
       </section>
-      <section className="phone-panel phone-stacked-form">
-        <div className="phone-key-status"><div><strong>X OAuth 2.0</strong><span>{xAccessToken ? "Connected · auto-renews locally" : "Not connected"}</span></div>{xAccessToken && <button type="button" className="phone-danger-button" onClick={async () => { if (storage && await clearXAccessToken(storage)) onXAccessTokenChange?.(undefined); }}>Delete</button>}</div>
+      <details className="phone-panel phone-key-accordion">
+        <summary className="phone-key-status"><div><strong>X OAuth 2.0</strong><span>{xAccessToken ? "Connected · auto-renews locally" : "Not connected"}</span></div></summary>
+        <div className="phone-stacked-form phone-key-accordion__content">
+        {xAccessToken && <button type="button" className="phone-danger-button" onClick={async () => { if (storage && await clearXAccessToken(storage)) onXAccessTokenChange?.(undefined); }}>Delete</button>}
         <a className="phone-key-link" href="https://developer.x.com/en/portal/dashboard" target="_blank" rel="noreferrer">Open X Developer Portal ↗</a>
         <label><span>X Client ID</span><input autoComplete="off" value={clientId} onChange={(event) => setClientId(event.target.value)} /></label>
         <label><span>X Access Token</span><input type="password" autoComplete="off" value={accessToken} onChange={(event) => setAccessToken(event.target.value)} /></label>
@@ -185,21 +189,24 @@ export function ByokScreen({
         <button type="button" className="phone-primary-button" onClick={saveOAuthTokens} disabled={!storage}>Save X tokens</button>
         <p className="phone-form-message">The Access Token is used now; the Refresh Token renews it automatically. Client ID is required by X for renewal. Redirect URI and Client Secret are not needed here.</p>
         {oauthError && <p role="alert" className="phone-form-message">{oauthError}</p>}
-      </section>
-      <section className="phone-panel phone-stacked-form">
-        <div className="phone-key-status">
+        </div>
+      </details>
+      <details className="phone-panel phone-key-accordion">
+        <summary className="phone-key-status">
           <div>
             <strong>X Relay</strong>
             <span>{activeRelayUrl === DEFAULT_X_RELAY_URL ? "Default X-only relay" : "Custom X-only relay"}</span>
           </div>
-        </div>
+        </summary>
+        <div className="phone-stacked-form phone-key-accordion__content">
         <a className="phone-key-link" href={DEFAULT_X_RELAY_URL} target="_blank" rel="noreferrer">
           Open default relay ↗
         </a>
         <button type="button" className="phone-primary-button" onClick={() => setCustomRelayOpen((value) => !value)}>
           {customRelayOpen ? "Close custom relay" : "Customize relay"}
         </button>
-      </section>
+        </div>
+      </details>
       {customRelayOpen && (
         <KeyPanel
           storage={storage}

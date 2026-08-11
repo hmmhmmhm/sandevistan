@@ -368,7 +368,7 @@ function drawX(context: CanvasRenderingContext2D, live: LiveDashboardState) {
     return;
   }
   posts.slice(0, 4).forEach((post, index) => {
-    drawText(context, `@${post.username}`, 308, 106 + index * 39, 11, COLOR.secondary, "bold");
+    drawText(context, `${post.author} · @${post.username}`, 308, 106 + index * 39, 10, COLOR.secondary, "bold");
     drawText(context, truncateHudTitle(post.text, 27), 308, 121 + index * 39, 14, COLOR.primary, "bold");
   });
   drawText(context, "TAP // TWEETS", 308, 257, 10, COLOR.secondary, "bold");

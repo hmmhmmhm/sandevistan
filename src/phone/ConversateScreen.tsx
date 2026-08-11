@@ -35,6 +35,7 @@ export function ConversateScreen({
   onSnapshotChange,
   onKeyChange,
   onSonioxKeyChange,
+  onOpenByok,
 }: {
   readonly storage?: EvenStorage;
   readonly locale: PhoneLocale;
@@ -47,6 +48,7 @@ export function ConversateScreen({
   readonly onSnapshotChange?: (value: ConversateSnapshot) => void;
   readonly onKeyChange?: (value: string | undefined) => void;
   readonly onSonioxKeyChange?: (value: string | undefined) => void;
+  readonly onOpenByok?: () => void;
 }) {
   const [candidate, setCandidate] = useState("");
   const [sonioxCandidate, setSonioxCandidate] = useState("");
@@ -100,6 +102,12 @@ export function ConversateScreen({
   };
   return (
     <div className="phone-detail-stack">
+      <section className="phone-panel phone-key-intro">
+        <p>Manage OpenAI and Soniox keys once for every AI feature.</p>
+        <button type="button" className="phone-primary-button" onClick={onOpenByok}>
+          Set up in BYOK Keys
+        </button>
+      </section>
       <section className="phone-panel phone-stacked-form">
         <a
           className="phone-key-link"

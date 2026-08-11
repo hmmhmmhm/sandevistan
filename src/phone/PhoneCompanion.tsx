@@ -419,6 +419,7 @@ export function PhoneCompanion({
             canLoadMore={Boolean(xTimeline.next)}
             t={t}
             onLoadMore={loadMoreX}
+            onOpenByok={() => setScreen("byok")}
           />
         );
       case "todo":
@@ -472,6 +473,7 @@ export function PhoneCompanion({
             onSnapshotChange={onAiSnapshotChange}
             textIntervalMs={preferences.aiTextIntervalMs}
             onTextIntervalChange={updateAiTextInterval}
+            onOpenByok={() => setScreen("byok")}
           />
         );
       case "byok":
@@ -505,6 +507,7 @@ export function PhoneCompanion({
             onSnapshotChange={onConversateSnapshotChange}
             onKeyChange={onOpenAiKeyChange}
             onSonioxKeyChange={onSonioxKeyChange}
+            onOpenByok={() => setScreen("byok")}
           />
         );
       case "developer":
@@ -537,7 +540,6 @@ export function PhoneCompanion({
           preview={canvas}
           previewLoading={previewLoading}
           previewActive={displayVisible}
-          xPosts={xTimeline.posts.slice(0, 7)}
           onOpen={setScreen}
         />
       </div>

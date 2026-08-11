@@ -582,7 +582,7 @@ describe("fast split Canvas HUD", () => {
 
     expect(x.values).toEqual(expect.arrayContaining([
       "X // HOME",
-      "@evenrealities",
+      "Even Realities · @evenrealities",
     ]));
     expect(x.values.some((value) => value.startsWith("A fresh post is now"))).toBe(true);
   });

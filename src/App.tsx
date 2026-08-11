@@ -82,6 +82,9 @@ export function App({ autoStart = true }: AppProps) {
       username: post.author.username,
       createdAt: post.createdAt,
       imageUrl: post.media.find((media) => media.kind === "photo")?.url,
+      avatarUrl: post.author.avatarUrl,
+      repostedFrom: post.repostedFrom,
+      metrics: post.metrics,
     })));
   }, []);
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -445,16 +445,14 @@
 }
 
 .phone-x-feed__title,
-.phone-x-post__header,
-.phone-home__x-preview > div {
+.phone-x-post__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.phone-x-feed__title h2,
-.phone-home__x-preview h2 { margin: 0; }
+.phone-x-feed__title h2 { margin: 0; }
 
 .phone-x-feed__title p,
 .phone-x-feed__title span {
@@ -472,8 +470,7 @@
 
 .phone-x-post__header { justify-content: flex-start; }
 .phone-x-post__header > div { display: grid; min-width: 0; }
-.phone-x-post__header span,
-.phone-home__x-preview strong span { color: var(--phone-muted); font-weight: 400; }
+.phone-x-post__header span { color: var(--phone-muted); font-weight: 400; }
 
 .phone-x-post__avatar {
   width: 40px;
@@ -491,6 +488,8 @@
 }
 
 .phone-x-post > p { margin: 12px 0; white-space: pre-wrap; line-height: 1.45; }
+.phone-x-post__repost { margin: 0 0 8px !important; color: var(--phone-muted); font-size: 0.78rem; }
+.phone-x-post__metrics { display: flex; flex-wrap: wrap; gap: 8px; color: var(--phone-muted); font-size: 0.78rem; }
 
 .phone-x-post__media {
   width: 100%;
@@ -501,35 +500,23 @@
 
 .phone-x-empty { color: var(--phone-muted); }
 
-.phone-home__x-preview {
-  display: grid;
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--phone-line);
-  border-radius: 14px;
-  background: var(--phone-line);
+.phone-key-accordion > summary {
+  cursor: pointer;
+  list-style: none;
 }
 
-.phone-home__x-preview > div { padding: 13px 14px; background: #fff; }
-.phone-home__x-preview > div button { color: var(--phone-muted); border: 0; background: transparent; }
+.phone-key-accordion > summary::-webkit-details-marker { display: none; }
 
-.phone-home__x-preview > button {
-  display: grid;
-  gap: 4px;
-  padding: 12px 14px;
-  overflow: hidden;
-  color: var(--phone-text);
-  text-align: left;
-  border: 0;
-  background: #fff;
-}
-
-.phone-home__x-preview p {
-  display: -webkit-box;
-  margin: 0;
-  overflow: hidden;
+.phone-key-accordion > summary::after {
   color: var(--phone-muted);
-  line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  content: "+";
+  font-size: 1.25rem;
+}
+
+.phone-key-accordion[open] > summary::after { content: "−"; }
+
+.phone-key-accordion__content {
+  border-top: 1px solid var(--phone-line);
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
 }

@@ -50,6 +50,9 @@ export type XHudPost = {
   readonly username: string;
   readonly createdAt?: string;
   readonly imageUrl?: string;
+  readonly avatarUrl?: string;
+  readonly repostedFrom?: { readonly name: string; readonly username: string };
+  readonly metrics?: { readonly replies: number; readonly reposts: number; readonly likes: number; readonly quotes: number };
 };
 
 export type TodoItem = {

@@ -19,16 +19,20 @@ afterEach(cleanup);
 
 describe("AiScreen", () => {
   it("links directly to the official OpenAI API key page", () => {
+    const onOpenByok = vi.fn();
     render(
       <AiScreen
         snapshot={createAiHudSnapshot(false)}
         t={(name) => translatePhone("en", name)}
+        onOpenByok={onOpenByok}
       />,
     );
 
     expect(
       screen.getByRole("link", { name: "Get an OpenAI API key ↗" }).getAttribute("href"),
     ).toBe("https://platform.openai.com/api-keys");
+    fireEvent.click(screen.getByRole("button", { name: "Set up in BYOK Keys" }));
+    expect(onOpenByok).toHaveBeenCalledOnce();
   });
 
   it("stores a validated BYOK key locally and only renders its masked form", async () => {

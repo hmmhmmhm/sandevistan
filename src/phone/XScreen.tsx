@@ -12,8 +12,10 @@ const dateLabel = (value?: string) => {
 
 function XPostCard({ post }: { readonly post: XPost }) {
   const label = dateLabel(post.createdAt);
+  const metrics = post.metrics;
   return (
     <article className="phone-x-post">
+      {post.repostedFrom && <p className="phone-x-post__repost">↻ {post.repostedFrom.name} (@{post.repostedFrom.username}) reposted</p>}
       <header className="phone-x-post__header">
         {post.author.avatarUrl ? (
           <img className="phone-x-post__avatar" src={post.author.avatarUrl} alt="" />
@@ -33,6 +35,13 @@ function XPostCard({ post }: { readonly post: XPost }) {
           loading="lazy"
         />
       ) : null)}
+      <footer className="phone-x-post__metrics">
+        <span>{label}</span>
+        <span>↩ {metrics?.replies ?? 0}</span>
+        <span>↻ {metrics?.reposts ?? 0}</span>
+        <span>♡ {metrics?.likes ?? 0}</span>
+        <span>▱ {metrics?.quotes ?? 0}</span>
+      </footer>
     </article>
   );
 }
@@ -45,6 +54,7 @@ export function XScreen({
   canLoadMore,
   t,
   onLoadMore,
+  onOpenByok,
 }: {
   readonly configured: boolean;
   readonly posts: readonly XPost[];
@@ -53,6 +63,7 @@ export function XScreen({
   readonly canLoadMore: boolean;
   readonly t: (key: PhoneStringKey) => string;
   readonly onLoadMore: () => void;
+  readonly onOpenByok?: () => void;
 }) {
   if (!configured) {
     return (
@@ -60,6 +71,7 @@ export function XScreen({
         <h2>X (Twitter)</h2>
         <p>Add an OAuth 2.0 access token in BYOK Keys to read your Home timeline.</p>
         <p className="phone-form-message">Required scopes: tweet.read and users.read.</p>
+        <button type="button" className="phone-primary-button" onClick={onOpenByok}>Set up BYOK Keys</button>
       </section>
     );
   }

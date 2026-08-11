@@ -4,7 +4,6 @@ import type { PhoneStringKey } from "../phone-i18n";
 import type { PhoneIconName } from "../phone-icons";
 import { PhoneIcon } from "../phone-icons";
 import type { PhoneScreen } from "../phone-types";
-import type { XPost } from "../x-feed";
 
 type HomeCard = {
   readonly screen: Exclude<PhoneScreen, "home">;
@@ -20,7 +19,6 @@ export function PhoneHome({
   preview,
   previewLoading = false,
   previewActive = false,
-  xPosts = [],
   onOpen,
 }: {
   readonly t: (key: PhoneStringKey) => string;
@@ -28,7 +26,6 @@ export function PhoneHome({
   readonly preview: ReactNode;
   readonly previewLoading?: boolean;
   readonly previewActive?: boolean;
-  readonly xPosts?: readonly XPost[];
   readonly onOpen: (screen: Exclude<PhoneScreen, "home">) => void;
 }) {
   return (
@@ -69,20 +66,6 @@ export function PhoneHome({
           </button>
         ))}
       </nav>
-      {xPosts.length > 0 && (
-        <section className="phone-home__x-preview" aria-label="X timeline preview">
-          <div>
-            <h2>X (Twitter)</h2>
-            <button type="button" onClick={() => onOpen("x")}>View all</button>
-          </div>
-          {xPosts.map((post) => (
-            <button key={post.id} type="button" onClick={() => onOpen("x")}>
-              <strong>{post.author.name} <span>@{post.author.username}</span></strong>
-              <p>{post.text}</p>
-            </button>
-          ))}
-        </section>
-      )}
       <footer className="phone-home__footer">
         <div>
           <strong>Even Realities</strong>

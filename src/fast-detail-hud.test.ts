@@ -237,7 +237,8 @@ describe("drawFastDetailHud", () => {
 
     expect(values(texts)).toEqual(expect.arrayContaining([
       "X // HOME",
-      "@evenrealities · Even Realities",
+      "Even Realities",
+      "@evenrealities",
       "The attached photo and tweet text stay",
       "SCROLL // TWEETS",
     ]));
