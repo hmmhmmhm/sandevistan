@@ -239,7 +239,7 @@ describe("drawFastDetailHud", () => {
       "X // HOME",
       "Even Realities",
       "@evenrealities",
-      "The attached photo and tweet text stay",
+      "The attached photo and tweet text stay together",
       "SCROLL // TWEETS",
     ]));
   });

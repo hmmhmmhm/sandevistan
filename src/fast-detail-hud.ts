@@ -137,39 +137,84 @@ function drawNews(
 
 const xImages = new Map<string, HTMLImageElement>();
 
+function loadXImage(url: string): HTMLImageElement | undefined {
+  const cached = xImages.get(url);
+  if (cached) return cached;
+  const image = new Image();
+  image.crossOrigin = "anonymous";
+  image.onload = () => window.dispatchEvent(new Event("sandevistan-x-image-ready"));
+  image.src = `https://sandevistan-x-relay.hmmhmmhm.workers.dev/media?url=${encodeURIComponent(url)}`;
+  xImages.set(url, image);
+  return image;
+}
+
+function drawXMetricIcon(
+  context: CanvasRenderingContext2D,
+  kind: "reply" | "repost" | "like" | "quote",
+  x: number,
+  y: number,
+) {
+  context.fillStyle = COLOR.secondary;
+  if (kind === "reply") {
+    context.fillRect(x, y, 16, 3); context.fillRect(x, y, 3, 12);
+    context.fillRect(x + 13, y, 3, 12); context.fillRect(x + 4, y + 9, 9, 3);
+    context.fillRect(x + 3, y + 12, 4, 3);
+  } else if (kind === "repost") {
+    context.fillRect(x + 2, y + 2, 11, 3); context.fillRect(x + 10, y, 6, 7);
+    context.fillRect(x + 3, y + 11, 11, 3); context.fillRect(x, y + 9, 6, 7);
+  } else if (kind === "like") {
+    context.fillRect(x + 2, y, 5, 4); context.fillRect(x + 10, y, 5, 4);
+    context.fillRect(x, y + 3, 17, 6); context.fillRect(x + 3, y + 8, 11, 4);
+    context.fillRect(x + 6, y + 12, 5, 3);
+  } else {
+    context.fillRect(x, y, 5, 7); context.fillRect(x + 7, y, 5, 7);
+    context.fillRect(x + 3, y + 5, 5, 6); context.fillRect(x + 10, y + 5, 5, 6);
+  }
+}
+
+function drawXMetric(
+  context: CanvasRenderingContext2D,
+  kind: "reply" | "repost" | "like" | "quote",
+  value: number,
+  x: number,
+) {
+  drawXMetricIcon(context, kind, x, 214);
+  drawText(context, String(value), x + 23, 213, 15, COLOR.secondary, "bold");
+}
+
 function drawX(context: CanvasRenderingContext2D, state: DataState<readonly XHudPost[]>, index: number, locale: PhoneLocale) {
   const posts = state.value ?? [];
   const post = state.status === "fresh" || state.status === "stale" ? posts[Math.min(index, posts.length - 1)] : undefined;
   drawHeader(context, state.status === "fresh" ? "X // HOME" : "X // UNAVAILABLE", post ? compactPosition(index, posts.length) : "00/00");
   drawFrame(context, 14, 44, 548, 204);
   if (!post) { drawEmptyState(context, "X timeline unavailable", "Check your X token and plan."); return; }
-  const authorY = post.repostedFrom ? 84 : 62;
-  if (post.repostedFrom) drawText(context, `↻ @${post.repostedFrom.username} reposted`, 30, 62, 11, COLOR.dim, "bold");
-  context.fillStyle = COLOR.secondary;
-  context.fillRect(30, authorY, 18, 18);
-  drawText(context, post.author.slice(0, 1).toUpperCase(), 35, authorY + 2, 11, COLOR.background, "bold");
-  drawText(context, post.author, 56, authorY, 15, COLOR.primary, "bold");
-  drawText(context, `@${post.username}`, 56, authorY + 17, 11, COLOR.secondary, "bold");
-  const image = post.imageUrl ? xImages.get(post.imageUrl) : undefined;
-  if (post.imageUrl && !image) {
-    const next = new Image();
-    next.crossOrigin = "anonymous";
-    next.onload = () => {
-      window.dispatchEvent(new Event("sandevistan-x-image-ready"));
-    };
-    next.src = `https://sandevistan-x-relay.hmmhmmhm.workers.dev/media?url=${encodeURIComponent(post.imageUrl)}`;
-    xImages.set(post.imageUrl, next);
+  const authorY = post.repostedFrom ? 72 : 52;
+  if (post.repostedFrom) drawText(context, `REPOSTED · @${post.repostedFrom.username}`, 30, 52, 11, COLOR.dim, "bold");
+  const avatar = post.avatarUrl ? loadXImage(post.avatarUrl) : undefined;
+  if (avatar?.complete && avatar.naturalWidth > 0) {
+    context.drawImage(avatar, 28, authorY, 28, 28);
+  } else {
+    context.fillStyle = COLOR.secondary;
+    context.fillRect(28, authorY, 28, 28);
+    drawText(context, post.author.slice(0, 1).toUpperCase(), 36, authorY + 5, 15, COLOR.background, "bold");
   }
+  drawText(context, post.author, 66, authorY, 17, COLOR.primary, "bold");
+  drawText(context, `@${post.username}`, 66, authorY + 19, 12, COLOR.secondary, "bold");
+  const image = post.imageUrl ? loadXImage(post.imageUrl) : undefined;
   if (image?.complete && image.naturalWidth > 0) {
     context.filter = "grayscale(1) contrast(1.6)";
-    context.drawImage(image, 352, 100, 188, 112);
+    context.drawImage(image, 346, 92, 194, 106);
     context.filter = "none";
   }
-  const textY = authorY + 46;
-  wrapHudText(post.text, image ? 25 : 44, image ? 3 : 4).forEach((line, lineIndex) => drawText(context, line, 28, textY + lineIndex * 23, 18, COLOR.primary, "bold"));
+  const textY = authorY + 36;
+  wrapHudText(post.text, image ? 25 : 48, image ? 4 : 5).forEach((line, lineIndex) => drawText(context, line, 28, textY + lineIndex * 22, 19, COLOR.primary, "bold"));
   const metrics = post.metrics;
   const day = post.createdAt ? new Date(post.createdAt).toLocaleDateString(locale) : "";
-  drawText(context, `${day}  ↩${metrics?.replies ?? 0}  ↻${metrics?.reposts ?? 0}  ♡${metrics?.likes ?? 0}  ▱${metrics?.quotes ?? 0}`, 28, 226, 10, COLOR.secondary, "bold");
+  drawText(context, day, 28, 216, 12, COLOR.secondary, "bold");
+  drawXMetric(context, "reply", metrics?.replies ?? 0, 144);
+  drawXMetric(context, "repost", metrics?.reposts ?? 0, 232);
+  drawXMetric(context, "like", metrics?.likes ?? 0, 320);
+  drawXMetric(context, "quote", metrics?.quotes ?? 0, 408);
   drawFooter(context, "SCROLL // TWEETS");
 }
 
