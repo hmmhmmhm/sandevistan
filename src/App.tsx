@@ -43,6 +43,7 @@ import {
 } from "./ai-cost";
 import { resolveAiConversationHistory } from "./ai-history";
 import { resolveOpenAiKey } from "./openai-key";
+import { resolveSonioxKey } from "./soniox-key";
 import { TRANSPORT_STATUS } from "./transport-status";
 import { useConversateCompanion } from "./use-conversate-companion";
 import { HudSurface } from "./HudSurface";
@@ -119,6 +120,8 @@ export function App({ autoStart = true }: AppProps) {
   const companionOrsKeyRef = useRef<string | undefined>(undefined);
   const [companionOpenAiKey, setCompanionOpenAiKeyState] = useState<string>();
   const companionOpenAiKeyRef = useRef<string | undefined>(undefined);
+  const [companionSonioxKey, setCompanionSonioxKeyState] = useState<string>();
+  const companionSonioxKeyRef = useRef<string | undefined>(undefined);
   const [companionAiSnapshot, setCompanionAiSnapshotState] = useState(
     () => createAiHudSnapshot(false),
   );
@@ -165,6 +168,10 @@ export function App({ autoStart = true }: AppProps) {
   const setCompanionOpenAiKey = (value: string | undefined) => {
     companionOpenAiKeyRef.current = value;
     setCompanionOpenAiKeyState(value);
+  };
+  const setCompanionSonioxKey = (value: string | undefined) => {
+    companionSonioxKeyRef.current = value;
+    setCompanionSonioxKeyState(value);
   };
   const setCompanionAiSnapshot = useCallback((value: AiHudSnapshot) => {
     aiSnapshotRef.current = value;
@@ -224,12 +231,14 @@ export function App({ autoStart = true }: AppProps) {
     let active = true;
     void Promise.all([
       resolveOpenAiKey(companionStorage),
+      resolveSonioxKey(companionStorage),
       resolveAiConversationHistory(companionStorage),
       resolveAiUsageLedger(companionStorage),
-    ]).then(([key, history, ledger]) => {
+    ]).then(([key, sonioxKey, history, ledger]) => {
       if (!active) return;
       const costs = costSummaryForCurrentPeriod(ledger);
       setCompanionOpenAiKey(key);
+      setCompanionSonioxKey(sonioxKey);
       setCompanionAiSnapshot(createAiHudSnapshot(
         Boolean(key),
         history,
@@ -251,6 +260,7 @@ export function App({ autoStart = true }: AppProps) {
     displayRefreshRef,
     companionOrsKeyRef,
     companionOpenAiKeyRef,
+    companionSonioxKeyRef,
     aiSnapshotRef,
     conversateSettingsRef: conversate.settingsRef,
     conversateSnapshotRef: conversate.snapshotRef,
@@ -328,6 +338,7 @@ export function App({ autoStart = true }: AppProps) {
         }}
         onOrsKeyChange={setCompanionOrsKey}
         openAiKey={companionOpenAiKey}
+        sonioxKey={companionSonioxKey}
         aiSnapshot={companionAiSnapshot}
         onOpenAiKeyChange={(key) => {
           setCompanionOpenAiKey(key);
@@ -340,6 +351,7 @@ export function App({ autoStart = true }: AppProps) {
           setCompanionAiSnapshot(next);
           displayRefreshRef.current?.();
         }}
+        onSonioxKeyChange={setCompanionSonioxKey}
         onAiSnapshotChange={(snapshot) => {
           setCompanionAiSnapshot(snapshot);
           displayRefreshRef.current?.();

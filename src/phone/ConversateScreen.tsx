@@ -16,6 +16,12 @@ import {
   validateOpenAiKey,
   writeOpenAiKey,
 } from "../openai-key";
+import {
+  clearSonioxKey,
+  maskSonioxKey,
+  validateSonioxKey,
+  writeSonioxKey,
+} from "../soniox-key";
 
 export function ConversateScreen({
   storage,
@@ -23,22 +29,27 @@ export function ConversateScreen({
   settings,
   snapshot,
   openAiKey,
+  sonioxKey,
   t,
   onSettingsChange,
   onSnapshotChange,
   onKeyChange,
+  onSonioxKeyChange,
 }: {
   readonly storage?: EvenStorage;
   readonly locale: PhoneLocale;
   readonly settings: ConversateSettings;
   readonly snapshot: ConversateSnapshot;
   readonly openAiKey?: string;
+  readonly sonioxKey?: string;
   readonly t: (key: PhoneStringKey) => string;
   readonly onSettingsChange?: (value: ConversateSettings) => void;
   readonly onSnapshotChange?: (value: ConversateSnapshot) => void;
   readonly onKeyChange?: (value: string | undefined) => void;
+  readonly onSonioxKeyChange?: (value: string | undefined) => void;
 }) {
   const [candidate, setCandidate] = useState("");
+  const [sonioxCandidate, setSonioxCandidate] = useState("");
   const [keyError, setKeyError] = useState<string>();
   const tc = (key: Parameters<typeof translateConversate>[1]) => (
     translateConversate(locale, key)
@@ -75,12 +86,24 @@ export function ConversateScreen({
     setKeyError(undefined);
     onKeyChange?.(validated.value);
   };
+  const saveSonioxKey = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!storage) return;
+    const validated = validateSonioxKey(sonioxCandidate);
+    if (!validated.ok || !await writeSonioxKey(storage, validated.value)) {
+      setKeyError(t("validationFailed"));
+      return;
+    }
+    setSonioxCandidate("");
+    setKeyError(undefined);
+    onSonioxKeyChange?.(validated.value);
+  };
   return (
     <div className="phone-detail-stack">
       <section className="phone-panel phone-stacked-form">
         {openAiKey ? (
           <div className="phone-key-status">
-            <div><strong>{t("openAiKey")}</strong><span>{maskOpenAiKey(openAiKey)}</span></div>
+            <div><strong>{tc("openAiAnalysisKey")}</strong><span>{maskOpenAiKey(openAiKey)}</span></div>
             <button
               type="button"
               className="phone-danger-button"
@@ -92,7 +115,7 @@ export function ConversateScreen({
         ) : (
           <form className="phone-stacked-form" onSubmit={saveKey}>
             <label>
-              <span>{t("openAiKey")}</span>
+              <span>{tc("openAiAnalysisKey")}</span>
               <input
                 type="password"
                 autoComplete="off"
@@ -104,6 +127,34 @@ export function ConversateScreen({
           </form>
         )}
         {keyError && <p className="phone-ai-cost-warning">{keyError}</p>}
+      </section>
+      <section className="phone-panel phone-stacked-form">
+        <p className="phone-ai-cost-warning">{tc("sonioxHint")}</p>
+        {sonioxKey ? (
+          <div className="phone-key-status">
+            <div><strong>{tc("sonioxKey")}</strong><span>{maskSonioxKey(sonioxKey)}</span></div>
+            <button
+              type="button"
+              className="phone-danger-button"
+              onClick={async () => {
+                if (storage && await clearSonioxKey(storage)) onSonioxKeyChange?.(undefined);
+              }}
+            >{t("delete")}</button>
+          </div>
+        ) : (
+          <form className="phone-stacked-form" onSubmit={saveSonioxKey}>
+            <label>
+              <span>{tc("sonioxKey")}</span>
+              <input
+                type="password"
+                autoComplete="off"
+                value={sonioxCandidate}
+                onChange={(event) => setSonioxCandidate(event.target.value)}
+              />
+            </label>
+            <button type="submit" className="phone-primary-button">{t("save")}</button>
+          </form>
+        )}
       </section>
       <section className="phone-panel phone-choice-list">
         {toggle("translation", tc("translation"))}

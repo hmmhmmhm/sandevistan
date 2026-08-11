@@ -4,7 +4,7 @@ export type RealtimeSocket = {
   onmessage: ((event: MessageEvent<string>) => void) | null;
   onerror: (() => void) | null;
   onclose: (() => void) | null;
-  send(value: string): void;
+  send(value: string | ArrayBufferLike | ArrayBufferView): void;
   close(): void;
 };
 

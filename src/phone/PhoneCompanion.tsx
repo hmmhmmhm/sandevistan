@@ -66,8 +66,10 @@ type PhoneCompanionProps = {
   readonly onOrsKeyChange?: (key: string | undefined) => void;
   readonly onDeleteRoute?: () => void | Promise<void>;
   readonly openAiKey?: string;
+  readonly sonioxKey?: string;
   readonly aiSnapshot?: AiHudSnapshot;
   readonly onOpenAiKeyChange?: (key: string | undefined) => void;
+  readonly onSonioxKeyChange?: (key: string | undefined) => void;
   readonly onAiSnapshotChange?: (snapshot: AiHudSnapshot) => void;
   readonly conversateSettings?: ConversateSettings;
   readonly conversateSnapshot?: ConversateSnapshot;
@@ -112,8 +114,10 @@ export function PhoneCompanion({
   onOrsKeyChange,
   onDeleteRoute,
   openAiKey,
+  sonioxKey,
   aiSnapshot = createAiHudSnapshot(false),
   onOpenAiKeyChange,
+  onSonioxKeyChange,
   onAiSnapshotChange,
   conversateSettings = DEFAULT_CONVERSATE_SETTINGS,
   conversateSnapshot = createConversateSnapshot(),
@@ -325,10 +329,12 @@ export function PhoneCompanion({
             settings={conversateSettings}
             snapshot={conversateSnapshot}
             openAiKey={openAiKey}
+            sonioxKey={sonioxKey}
             t={t}
             onSettingsChange={onConversateSettingsChange}
             onSnapshotChange={onConversateSnapshotChange}
             onKeyChange={onOpenAiKeyChange}
+            onSonioxKeyChange={onSonioxKeyChange}
           />
         );
       case "developer":

@@ -2,6 +2,8 @@ import type { PhoneLocale } from "./phone-types";
 
 const EN = {
   conversate: "Conversate", ready: "Ready", live: "Listening", keyRequired: "OpenAI key required",
+  openAiAnalysisKey: "OpenAI LLM key", sonioxKey: "Soniox ASR key",
+  sonioxHint: "When set, Soniox handles transcription. OpenAI still handles translation, Inform, and Copilot.",
   transcription: "Transcription", translation: "Translation", inform: "Inform",
   prepNote: "Prep Note", prepNoteHelp: "Context used before Inform is generated.",
   spokenLanguages: "Expected spoken languages", spokenLanguagesHelp: "Language codes, for example: ko, en",
@@ -16,6 +18,8 @@ const EN = {
 
 const KO: Record<keyof typeof EN, string> = {
   conversate: "Conversate", ready: "준비됨", live: "듣는 중", keyRequired: "OpenAI 키가 필요합니다",
+  openAiAnalysisKey: "OpenAI LLM 키", sonioxKey: "Soniox ASR 키",
+  sonioxHint: "입력하면 Soniox가 전사를 처리합니다. 번역·Inform·Copilot은 계속 OpenAI를 사용합니다.",
   transcription: "전사", translation: "번역", inform: "Inform",
   prepNote: "Prep Note", prepNoteHelp: "Inform 생성 전에 참고할 사전 지식입니다.",
   spokenLanguages: "예상 대화 언어", spokenLanguagesHelp: "언어 코드를 입력하세요. 예: ko, en",

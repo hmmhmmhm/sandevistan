@@ -29,7 +29,7 @@ import { prepareFastHudBridge, stopIdleSdkSensors, type FastHudBridge } from "./
 type LiveSession = ReturnType<typeof createLiveDashboardSession>;
 export function useHudController({
   autoStart, canvasRef, liveSessionRef, phonePreferencesRef, displayRefreshRef,
-  companionOrsKeyRef, companionOpenAiKeyRef, aiSnapshotRef,
+  companionOrsKeyRef, companionOpenAiKeyRef, companionSonioxKeyRef, aiSnapshotRef,
   conversateSettingsRef, conversateSnapshotRef, displayHideStrategy,
   imageSendConcurrency, tileImageFormat, tilePaletteMode, modes, setStatus,
   setRoutingStatus, setCompanionRoute, setCompanionLive, setCompanionBattery,
@@ -312,6 +312,7 @@ export function useHudController({
         conversateRuntime = createConversateRuntime({
           bridge: activeBridge,
           getKey: () => companionOpenAiKeyRef.current,
+          getSonioxKey: () => companionSonioxKeyRef.current,
           getLocale: currentLocale,
           getSettings: () => conversateSettingsRef.current,
           getSnapshot: () => conversateSnapshotRef.current,

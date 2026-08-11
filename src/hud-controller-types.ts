@@ -33,6 +33,7 @@ export type UseHudControllerOptions = {
   readonly displayRefreshRef: MutableRefObject<(() => void) | undefined>;
   readonly companionOrsKeyRef: MutableRefObject<string | undefined>;
   readonly companionOpenAiKeyRef: MutableRefObject<string | undefined>;
+  readonly companionSonioxKeyRef: MutableRefObject<string | undefined>;
   readonly aiSnapshotRef: MutableRefObject<AiHudSnapshot>;
   readonly conversateSettingsRef: MutableRefObject<ConversateSettings>;
   readonly conversateSnapshotRef: MutableRefObject<ConversateSnapshot>;

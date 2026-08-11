@@ -41,6 +41,7 @@ describe("Conversate realtime transcription", () => {
           readyState: 1,
           onopen: null, onmessage: null, onerror: null, onclose: null,
           send(value) {
+            if (typeof value !== "string") return;
             messages.push(value);
             if (JSON.parse(value).type === "session.update") {
               queueMicrotask(() => socket.onmessage?.({

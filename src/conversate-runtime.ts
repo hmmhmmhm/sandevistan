@@ -1,6 +1,7 @@
 import type { AudioInputSource, EvenHubEvent } from "@evenrealities/even_hub_sdk";
 import { requestConversateAnalysis } from "./conversate-analysis";
 import { createConversateRealtimeSession } from "./conversate-realtime-session";
+import { createSonioxRealtimeSession } from "./soniox-realtime-session";
 import {
   type ConversateInform,
   type ConversateSegment,
@@ -26,6 +27,8 @@ export type ConversateRuntime = {
   scroll(delta: -1 | 1): void;
   dispose(): void;
 };
+
+type TranscriptionSession = Pick<ReturnType<typeof createConversateRealtimeSession>, "start" | "stop">;
 
 const clamp = (value: number, count: number) => Math.min(
   Math.max(0, value),
@@ -59,6 +62,7 @@ function transcriptionHints(settings: ConversateSettings, locale: PhoneLocale) {
 export function createConversateRuntime(options: {
   readonly bridge: Bridge;
   readonly getKey: () => string | undefined;
+  readonly getSonioxKey?: () => string | undefined;
   readonly getLocale: () => PhoneLocale;
   readonly getSettings: () => ConversateSettings;
   readonly getSnapshot: () => ConversateSnapshot;
@@ -67,8 +71,9 @@ export function createConversateRuntime(options: {
     priority?: NativeConversateUpdatePriority,
   ) => void | Promise<void>;
   readonly createSession?: typeof createConversateRealtimeSession;
+  readonly createSonioxSession?: typeof createSonioxRealtimeSession;
 }) : ConversateRuntime {
-  let session: ReturnType<typeof createConversateRealtimeSession> | undefined;
+  let session: TranscriptionSession | undefined;
   let disposed = false;
   let startedAt = "";
   let hideTimer: ReturnType<typeof setTimeout> | undefined;
@@ -167,8 +172,9 @@ export function createConversateRuntime(options: {
     async start() {
       if (disposed || session) return false;
       const key = options.getKey();
-      if (!key) {
-        publish({ phase: "error", error: "OpenAI key required" }, "input");
+      const sonioxKey = options.getSonioxKey?.();
+      if (!key && !sonioxKey) {
+        publish({ phase: "error", error: "Soniox ASR or OpenAI key required" }, "input");
         return false;
       }
       startedAt = new Date().toISOString();
@@ -180,19 +186,16 @@ export function createConversateRuntime(options: {
       const settings = options.getSettings();
       const locale = options.getLocale();
       const hints = transcriptionHints(settings, locale);
-      session = (options.createSession ?? createConversateRealtimeSession)({
+      const callbacks = {
         bridge: options.bridge,
-        key,
-        locale,
-        ...hints,
-        onPartial: (_itemId, text) => {
+        onPartial: (_itemId: string, text: string) => {
           clearTimeout(hideTimer);
           publish({
             partial: text.slice(-500), activeInform: undefined,
             suggestions: [], selectedSuggestion: 0, copilotOpen: false,
           }, "transcript");
         },
-        onCompleted: (itemId, text) => {
+        onCompleted: (itemId: string, text: string) => {
           const current = options.getSnapshot();
           const segment: ConversateSegment = {
             id: itemId,
@@ -207,7 +210,7 @@ export function createConversateRuntime(options: {
           }, "transcript");
           void analyzeLatest();
         },
-        onRefined: (itemId, text) => {
+        onRefined: (itemId: string, text: string) => {
           const current = options.getSnapshot();
           const index = current.segments.findIndex(({ id }) => id === itemId);
           if (index < 0 || current.segments[index]?.text === text) return;
@@ -218,8 +221,19 @@ export function createConversateRuntime(options: {
           publish({ segments }, "transcript");
           void analyzeLatest();
         },
-        onError: (error) => publish({ phase: "error", error }, "transcript"),
-      });
+        onError: (error: string) => publish({ phase: "error", error }, "transcript"),
+      };
+      session = sonioxKey
+        ? (options.createSonioxSession ?? createSonioxRealtimeSession)({
+            ...callbacks,
+            key: sonioxKey,
+          })
+        : (options.createSession ?? createConversateRealtimeSession)({
+            ...callbacks,
+            key: key ?? "",
+            locale,
+            ...hints,
+          });
       try {
         await session.start();
         publish({ phase: "listening", error: undefined }, "input");
