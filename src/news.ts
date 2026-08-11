@@ -293,9 +293,13 @@ export async function resolveNews(
           },
           signal: controller.signal,
         });
-        if (!response.ok) return [];
+        if (!response.ok) {
+          logDiagnostic("ERROR", `news source ${source.id} failed · ${response.status}`);
+          return [];
+        }
         return parseNewsFeed(await response.text(), source);
       } catch {
+        logDiagnostic("ERROR", `news source ${source.id} request failed`);
         return [];
       }
     }));

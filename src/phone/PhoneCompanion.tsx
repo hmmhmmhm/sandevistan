@@ -121,6 +121,7 @@ function xErrorMessage(error: unknown): string {
   if (error.reason === "network") return "X blocked this browser request (network or CORS).";
   if (error.status === 401) return "X rejected the token. Use OAuth 2.0 User Access Token, not Bearer Token or Refresh Token.";
   if (error.status === 403) return "X denied timeline access. Check tweet.read/users.read and your X API plan.";
+  if (error.status === 402) return "X Home Timeline requires a paid X API plan for this project. The relay is connected; upgrade X access or use another feed.";
   if (error.status === 429) return "X rate limit reached. Try again later.";
   return `X request failed (${error.status ?? "unknown"}).`;
 }
@@ -198,7 +199,7 @@ export function PhoneCompanion({
       }
     })();
     return () => { active = false; };
-  }, [xAccessToken]);
+  }, [xAccessToken, xRelayUrl]);
 
   const loadMoreX = () => {
     if (!xAccessToken || !xTimeline.next || xLoading) return;
