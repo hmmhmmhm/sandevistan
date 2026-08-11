@@ -119,6 +119,7 @@ export function ByokScreen({
         <h2>{t("byokKeys")}</h2>
         <p>{t("keyLocalOnly")}</p>
         <p>These keys are shared by Ask AI and Conversate.</p>
+        <p>{t("keylessDataInfo")}</p>
       </section>
       <KeyPanel
         storage={storage}
