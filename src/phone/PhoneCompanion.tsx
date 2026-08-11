@@ -81,10 +81,12 @@ type PhoneCompanionProps = {
   readonly openAiKey?: string;
   readonly sonioxKey?: string;
   readonly xAccessToken?: string;
+  readonly xRelayUrl?: string;
   readonly aiSnapshot?: AiHudSnapshot;
   readonly onOpenAiKeyChange?: (key: string | undefined) => void;
   readonly onSonioxKeyChange?: (key: string | undefined) => void;
   readonly onXAccessTokenChange?: (key: string | undefined) => void;
+  readonly onXRelayUrlChange?: (url: string | undefined) => void;
   readonly onAiSnapshotChange?: (snapshot: AiHudSnapshot) => void;
   readonly conversateSettings?: ConversateSettings;
   readonly conversateSnapshot?: ConversateSnapshot;
@@ -145,10 +147,12 @@ export function PhoneCompanion({
   openAiKey,
   sonioxKey,
   xAccessToken,
+  xRelayUrl,
   aiSnapshot = createAiHudSnapshot(false),
   onOpenAiKeyChange,
   onSonioxKeyChange,
   onXAccessTokenChange,
+  onXRelayUrlChange,
   onAiSnapshotChange,
   conversateSettings = DEFAULT_CONVERSATE_SETTINGS,
   conversateSnapshot = createConversateSnapshot(),
@@ -184,8 +188,8 @@ export function PhoneCompanion({
     setXError(undefined);
     void (async () => {
       try {
-        const userId = await resolveXUserId(xAccessToken);
-        const timeline = await fetchXHomeTimeline(xAccessToken, userId);
+        const userId = await resolveXUserId(xAccessToken, fetch, xRelayUrl);
+        const timeline = await fetchXHomeTimeline(xAccessToken, userId, undefined, fetch, xRelayUrl);
         if (active) setXTimeline(timeline);
       } catch (error) {
         if (active) setXError(xErrorMessage(error));
@@ -202,8 +206,8 @@ export function PhoneCompanion({
     setXError(undefined);
     void (async () => {
       try {
-        const userId = await resolveXUserId(xAccessToken);
-        const next = await fetchXHomeTimeline(xAccessToken, userId, xTimeline.next);
+        const userId = await resolveXUserId(xAccessToken, fetch, xRelayUrl);
+        const next = await fetchXHomeTimeline(xAccessToken, userId, xTimeline.next, fetch, xRelayUrl);
         setXTimeline((current) => ({
           posts: [...current.posts, ...next.posts],
           next: next.next,
@@ -434,10 +438,12 @@ export function PhoneCompanion({
             openAiKey={openAiKey}
             sonioxKey={sonioxKey}
             xAccessToken={xAccessToken}
+            xRelayUrl={xRelayUrl}
             t={t}
             onOpenAiKeyChange={onOpenAiKeyChange}
             onSonioxKeyChange={onSonioxKeyChange}
             onXAccessTokenChange={onXAccessTokenChange}
+            onXRelayUrlChange={onXRelayUrlChange}
           />
         );
       case "conversate":

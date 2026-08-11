@@ -13,7 +13,15 @@ import {
   validateSonioxKey,
   writeSonioxKey,
 } from "../soniox-key";
-import { clearXAccessToken, maskXAccessToken, validateXAccessToken, writeXAccessToken } from "../x-key";
+import {
+  clearXAccessToken,
+  clearXRelayUrl,
+  maskXAccessToken,
+  validateXAccessToken,
+  validateXRelayUrl,
+  writeXAccessToken,
+  writeXRelayUrl,
+} from "../x-key";
 
 type Validation = { readonly ok: true; readonly value: string } | { readonly ok: false };
 
@@ -27,6 +35,7 @@ function KeyPanel({
   write,
   clear,
   mask,
+  inputType = "password",
   onChange,
 }: {
   readonly storage?: EvenStorage;
@@ -38,6 +47,7 @@ function KeyPanel({
   readonly write: (storage: EvenStorage, value: string) => Promise<boolean>;
   readonly clear: (storage: EvenStorage) => Promise<boolean>;
   readonly mask: (value: string) => string;
+  readonly inputType?: "password" | "url";
   readonly onChange?: (value: string | undefined) => void;
 }) {
   const [candidate, setCandidate] = useState("");
@@ -80,7 +90,7 @@ function KeyPanel({
         <label>
           <span>{title}</span>
           <input
-            type="password"
+            type={inputType}
             autoComplete="off"
             value={candidate}
             onChange={(event) => setCandidate(event.target.value)}
@@ -104,19 +114,23 @@ export function ByokScreen({
   openAiKey,
   sonioxKey,
   xAccessToken,
+  xRelayUrl,
   t,
   onOpenAiKeyChange,
   onSonioxKeyChange,
   onXAccessTokenChange,
+  onXRelayUrlChange,
 }: {
   readonly storage?: EvenStorage;
   readonly openAiKey?: string;
   readonly sonioxKey?: string;
   readonly xAccessToken?: string;
+  readonly xRelayUrl?: string;
   readonly t: (key: PhoneStringKey) => string;
   readonly onOpenAiKeyChange?: (value: string | undefined) => void;
   readonly onSonioxKeyChange?: (value: string | undefined) => void;
   readonly onXAccessTokenChange?: (value: string | undefined) => void;
+  readonly onXRelayUrlChange?: (value: string | undefined) => void;
 }) {
   return (
     <div className="phone-detail-stack">
@@ -131,6 +145,19 @@ export function ByokScreen({
         issueUrl="https://developer.x.com/en/portal/dashboard" issueLabel="Open X Developer Portal"
         validate={validateXAccessToken} write={writeXAccessToken} clear={clearXAccessToken}
         mask={maskXAccessToken} onChange={onXAccessTokenChange}
+      />
+      <KeyPanel
+        storage={storage}
+        title="X Relay URL"
+        value={xRelayUrl}
+        issueUrl="https://sandevistan-x-relay.hmmhmmhm.workers.dev"
+        issueLabel="Open personal X Relay"
+        validate={validateXRelayUrl}
+        write={writeXRelayUrl}
+        clear={clearXRelayUrl}
+        mask={(value) => value}
+        inputType="url"
+        onChange={onXRelayUrlChange}
       />
       <p className="phone-form-message">For Home timeline, paste the OAuth 2.0 User Access Token only — not X's app Bearer Token, Client Secret, or Refresh Token.</p>
       <KeyPanel

@@ -50,6 +50,8 @@ type XTimelineResponse = {
 };
 
 const headers = (token: string) => ({ authorization: `Bearer ${token}` });
+const X_API_ORIGIN = "https://api.x.com";
+const apiUrl = (baseUrl: string, path: string) => `${baseUrl.replace(/\/$/, "")}${path}`;
 
 export class XApiError extends Error {
   constructor(
@@ -75,8 +77,9 @@ const request = async (
 export async function resolveXUserId(
   token: string,
   fetchImpl: typeof fetch = fetch,
+  baseUrl = X_API_ORIGIN,
 ): Promise<string> {
-  const response = await request("https://api.x.com/2/users/me", token, fetchImpl);
+  const response = await request(apiUrl(baseUrl, "/2/users/me"), token, fetchImpl);
   if (!response.ok) throw new XApiError("auth", response.status);
   const json = await response.json() as { data?: { id?: string } };
   if (!json.data?.id) throw new XApiError("profile");
@@ -88,6 +91,7 @@ export async function fetchXHomeTimeline(
   userId: string,
   page?: string,
   fetchImpl: typeof fetch = fetch,
+  baseUrl = X_API_ORIGIN,
 ): Promise<XTimeline> {
   const params = new URLSearchParams({
     max_results: "10",
@@ -98,7 +102,7 @@ export async function fetchXHomeTimeline(
   });
   if (page) params.set("pagination_token", page);
   const response = await request(
-    `https://api.x.com/2/users/${encodeURIComponent(userId)}/timelines/reverse_chronological?${params}`,
+    apiUrl(baseUrl, `/2/users/${encodeURIComponent(userId)}/timelines/reverse_chronological?${params}`),
     token,
     fetchImpl,
   );

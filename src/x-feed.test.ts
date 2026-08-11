@@ -47,6 +47,12 @@ describe("X home timeline", () => {
     expect(fetchMock.mock.calls[0]?.[0]).toContain("pagination_token=next-page");
   });
 
+  it("uses a configured X-only relay as the API base URL", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response({ data: [] }));
+    await fetchXHomeTimeline("token-for-test", "me", undefined, fetchMock, "https://relay.example/");
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("https://relay.example/2/users/me/timelines");
+  });
+
   it("keeps the HTTP status for an actionable OAuth error", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response("", { status: 401 }));
     await expect(resolveXUserId("token-for-test", fetchMock)).rejects.toMatchObject({

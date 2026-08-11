@@ -44,7 +44,7 @@ import {
 import { resolveAiConversationHistory } from "./ai-history";
 import { resolveOpenAiKey } from "./openai-key";
 import { resolveSonioxKey } from "./soniox-key";
-import { resolveXAccessToken } from "./x-key";
+import { resolveXAccessToken, resolveXRelayUrl } from "./x-key";
 import { TRANSPORT_STATUS } from "./transport-status";
 import { useConversateCompanion } from "./use-conversate-companion";
 import { HudSurface } from "./HudSurface";
@@ -129,6 +129,7 @@ export function App({ autoStart = true }: AppProps) {
   const companionOpenAiKeyRef = useRef<string | undefined>(undefined);
   const [companionSonioxKey, setCompanionSonioxKeyState] = useState<string>();
   const [companionXAccessToken, setCompanionXAccessToken] = useState<string>();
+  const [companionXRelayUrl, setCompanionXRelayUrl] = useState<string>();
   const companionSonioxKeyRef = useRef<string | undefined>(undefined);
   const [companionAiSnapshot, setCompanionAiSnapshotState] = useState(
     () => createAiHudSnapshot(false),
@@ -241,14 +242,16 @@ export function App({ autoStart = true }: AppProps) {
       resolveOpenAiKey(companionStorage),
       resolveSonioxKey(companionStorage),
       resolveXAccessToken(companionStorage),
+      resolveXRelayUrl(companionStorage),
       resolveAiConversationHistory(companionStorage),
       resolveAiUsageLedger(companionStorage),
-    ]).then(([key, sonioxKey, xAccessToken, history, ledger]) => {
+    ]).then(([key, sonioxKey, xAccessToken, xRelayUrl, history, ledger]) => {
       if (!active) return;
       const costs = costSummaryForCurrentPeriod(ledger);
       setCompanionOpenAiKey(key);
       setCompanionSonioxKey(sonioxKey);
       setCompanionXAccessToken(xAccessToken);
+      setCompanionXRelayUrl(xRelayUrl);
       setCompanionAiSnapshot(createAiHudSnapshot(
         Boolean(key),
         history,
@@ -355,6 +358,7 @@ export function App({ autoStart = true }: AppProps) {
         openAiKey={companionOpenAiKey}
         sonioxKey={companionSonioxKey}
         xAccessToken={companionXAccessToken}
+        xRelayUrl={companionXRelayUrl}
         aiSnapshot={companionAiSnapshot}
         onOpenAiKeyChange={(key) => {
           setCompanionOpenAiKey(key);
@@ -369,6 +373,7 @@ export function App({ autoStart = true }: AppProps) {
         }}
         onSonioxKeyChange={setCompanionSonioxKey}
         onXAccessTokenChange={setCompanionXAccessToken}
+        onXRelayUrlChange={setCompanionXRelayUrl}
         onAiSnapshotChange={(snapshot) => {
           setCompanionAiSnapshot(snapshot);
           displayRefreshRef.current?.();
