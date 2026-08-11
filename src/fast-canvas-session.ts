@@ -91,6 +91,7 @@ export async function transmitFastCanvas(
     },
     {
       beforeExternalRefresh: options.beforeExternalRefresh,
+      getFullRefreshTiles: options.getFullRefreshTiles,
       onRefreshReady: options.onRefreshReady,
       onNativeTextReady: options.onNativeTextReady,
       targetTiles: {

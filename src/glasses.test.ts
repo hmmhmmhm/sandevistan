@@ -47,6 +47,14 @@ type FastRefreshHarnessConfig = {
   readonly beforeRestore?: () => void | Promise<void>;
   readonly displayHideStrategy?: "black-tiles" | "blank-rebuild";
   readonly imageSendConcurrency?: 1 | 2 | 3 | 4;
+  readonly getFullRefreshTiles?: () => readonly {
+    readonly id: number;
+    readonly name: string;
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+  }[];
   readonly tileImageFormat?: "png" | "bmp-1";
   readonly tilePaletteMode?: "original" | "hud-4";
   readonly encode?: (
@@ -185,6 +193,7 @@ async function createFastRefreshHarness(
       };
       displayHideStrategy?: "black-tiles" | "blank-rebuild";
       imageSendConcurrency?: 1 | 2 | 3 | 4;
+      getFullRefreshTiles?: () => readonly { id: number }[];
       tileImageFormat?: "png" | "bmp-1";
       tilePaletteMode?: "original" | "hud-4";
       onRefreshReady: (
@@ -206,6 +215,7 @@ async function createFastRefreshHarness(
     {
       beforeExternalRefresh: config.beforeExternalRefresh,
       beforeRestore: config.beforeRestore,
+      getFullRefreshTiles: config.getFullRefreshTiles,
       createHiddenSource: () => blackSource,
       dependencies: {
         waitForBridge: async () => bridge,
@@ -449,9 +459,26 @@ describe("G2 raster transport", () => {
 
     expect(module.G2_TILES.map(({ id }) => id)).toEqual([2, 3, 4, 5]);
     expect(module.G2_FAST_TILES?.map(({ id }) => id)).toEqual([3, 5, 2, 4]);
+    expect(module.G2_TEXT_FIRST_TILES?.map(({ id }) => id)).toEqual([3, 2, 5, 4]);
     expect(module.G2_LEFT_TILES?.map(({ id }) => id)).toEqual([2, 4]);
     expect(module.G2_RIGHT_TILES.map(({ id }) => id)).toEqual([3, 5]);
     expect(module.G2_RIGHT_TOP_TILES?.map(({ id }) => id)).toEqual([3]);
+  });
+
+  it("uses top-row-first tiles for text-priority full refreshes", async () => {
+    const module = await loadGlasses();
+    if (!module?.G2_TEXT_FIRST_TILES) return;
+
+    const harness = await createFastRefreshHarness({
+      getFullRefreshTiles: () => module.G2_TEXT_FIRST_TILES!,
+    });
+    expect(harness.encodedTileIds).toEqual([[3, 2, 5, 4]]);
+
+    harness.request("all");
+    await vi.waitFor(() => expect(harness.encodedTileIds).toEqual([
+      [3, 2, 5, 4],
+      [3, 2, 5, 4],
+    ]));
   });
 
   it("builds four image containers plus one blank event layer", async () => {

@@ -46,6 +46,7 @@ export type DisplayToggle = {
 
 export type ExternalRefresh = {
   readonly beforeExternalRefresh?: () => void | Promise<void>;
+  readonly getFullRefreshTiles?: () => readonly Tile[];
   readonly onRefreshReady?: (request: FastCanvasRefreshRequest) => void;
   readonly onNativeTextReady?: (
     controller: FastCanvasNativeTextController,
@@ -105,6 +106,7 @@ export type FastCanvasOptions = {
   readonly dependencies?: TransportDependencies;
   readonly displayHideStrategy?: G2DisplayHideStrategy;
   readonly imageSendConcurrency?: ImageSendConcurrency;
+  readonly getFullRefreshTiles?: () => readonly Tile[];
   readonly tileImageFormat?: G2TileImageFormat;
   readonly tilePaletteMode?: G2TilePaletteMode;
   readonly now?: () => number;

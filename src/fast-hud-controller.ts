@@ -27,6 +27,7 @@ import { createConversateRuntime, type ConversateRuntime } from "./conversate-ru
 import { createNativeConversateContent } from "./native-conversate-text";
 import { prepareFastHudBridge, stopIdleSdkSensors, type FastHudBridge } from "./fast-hud-bootstrap";
 import type { SensorStatus } from "./phone-types";
+import { G2_FAST_TILES, G2_TEXT_FIRST_TILES } from "./g2-canvas";
 type LiveSession = ReturnType<typeof createLiveDashboardSession>;
 
 function createSensorAwareBridge(
@@ -236,6 +237,9 @@ export function useHudController({
             beforeExternalRefresh: drawCurrentPage,
             beforeRestore: drawCurrentPage,
             displayHideStrategy,
+            getFullRefreshTiles: () => (
+              view.mode === "news" ? G2_TEXT_FIRST_TILES : G2_FAST_TILES
+            ),
             imageSendConcurrency,
             tileImageFormat,
             tilePaletteMode,

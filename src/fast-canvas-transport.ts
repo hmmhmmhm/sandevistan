@@ -216,7 +216,10 @@ export async function transmitCanvas(
   };
   const refreshImages = (...args: Parameters<typeof sendImages>) =>
     refreshHealth.run(() => sendImages(...args));
-  await refreshImages(source, tiles, TRANSPORT_STATUS.active);
+  const fullRefreshTiles = () => (
+    externalRefresh?.getFullRefreshTiles?.() ?? tiles
+  );
+  await refreshImages(source, fullRefreshTiles(), TRANSPORT_STATUS.active);
   onDisplayVisibilityChange?.(true);
   let disposed = false, hidden = false;
   let hiddenSource: HTMLCanvasElement | undefined;
@@ -224,7 +227,11 @@ export async function transmitCanvas(
     bridge, tiles,
     waitForImagePageReady: dependencies.waitForPageReady,
     invalidateImages: () => lastSuccessfulTilePayload.clear(),
-    restoreImages: () => refreshImages(source, tiles, TRANSPORT_STATUS.active),
+    restoreImages: () => refreshImages(
+      source,
+      fullRefreshTiles(),
+      TRANSPORT_STATUS.active,
+    ),
     onFailure: (operation) => {
       logDiagnostic("ERROR", `native AI text ${operation} failed`);
     },
@@ -282,7 +289,7 @@ export async function transmitCanvas(
         );
         lastSuccessfulTilePayload.clear();
       }
-      await refreshImages(source, tiles, TRANSPORT_STATUS.active);
+      await refreshImages(source, fullRefreshTiles(), TRANSPORT_STATUS.active);
       hidden = false;
       onDisplayVisibilityChange?.(true);
       logDiagnostic("REFRESH", "restore complete");
@@ -333,7 +340,7 @@ export async function transmitCanvas(
     logDiagnostic("INPUT", `${input} result · ${result}`);
     if (disposed) return;
     if (result === "redraw") {
-      await refreshImages(source, tiles, TRANSPORT_STATUS.active);
+      await refreshImages(source, fullRefreshTiles(), TRANSPORT_STATUS.active);
     } else if (result === "unhandled") {
       await fallback?.();
     }
@@ -351,7 +358,9 @@ export async function transmitCanvas(
       if (hidden || disposed) return;
       await refreshImages(
         source,
-        externalRefresh!.targetTiles[target],
+        target === "all"
+          ? fullRefreshTiles()
+          : externalRefresh!.targetTiles[target],
         TRANSPORT_STATUS.active,
         () => !disposed && !hidden,
       );
