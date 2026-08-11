@@ -6,6 +6,38 @@ import {
 } from "./fast-hud-view";
 
 describe("fast HUD native Ask AI input flow", () => {
+  it("loads the next X page when scrolling past the final loaded post", async () => {
+    let view: FastHudViewState = {
+      ...createFastHudViewState(),
+      mode: "x",
+      newsIndex: 1,
+    };
+    const loadMoreX = vi.fn(async () => true);
+    const draw = vi.fn();
+    const input = createFastHudInputController({
+      getView: () => view,
+      setView: (next) => { view = next; },
+      getPage: () => "x",
+      getContext: () => ({
+        newsCount: 2,
+        newsPageCounts: [1, 1],
+        todoCount: 0,
+        maneuverCount: 0,
+        activeManeuverIndex: 0,
+      }),
+      getLiveSession: () => undefined,
+      getAiRuntime: () => undefined,
+      getNativeText: () => undefined,
+      nativeContent: () => "",
+      drawCurrentPage: draw,
+      loadMoreX,
+    });
+
+    await expect(input("scroll-next")).resolves.toBe("redraw");
+    expect(loadMoreX).toHaveBeenCalledOnce();
+    expect(draw).toHaveBeenCalledOnce();
+  });
+
   it("enters one native page, updates it for history, and restores Canvas", async () => {
     let view = createFastHudViewState();
     let nativeActive = false;

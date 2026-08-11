@@ -30,15 +30,17 @@ export function createFastHudInputController(options: {
   readonly nativeContent: () => string;
   readonly conversateContent?: () => NativeConversateContent;
   readonly drawCurrentPage: () => void;
+  readonly loadMoreX?: () => Promise<boolean>;
   readonly log?: (message: string) => void;
 }) {
   return async (input: FastCanvasInput): Promise<FastCanvasInputResult> => {
     const previous = options.getView();
+    const context = options.getContext();
     const transition = reduceFastHudInput(
       previous,
       options.getPage(),
       input,
-      options.getContext(),
+      context,
     );
     options.setView(transition.state);
     options.log?.(
@@ -51,6 +53,18 @@ export function createFastHudInputController(options: {
         transition.effect.index,
       ) ?? false;
       if (!changed) return "consume";
+      options.drawCurrentPage();
+      return "redraw";
+    }
+
+    if (
+      previous.mode === "x"
+      && input === "scroll-next"
+      && transition.result === "consume"
+      && context.newsCount > 0
+      && options.loadMoreX
+      && await options.loadMoreX()
+    ) {
       options.drawCurrentPage();
       return "redraw";
     }

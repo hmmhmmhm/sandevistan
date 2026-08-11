@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -96,6 +97,7 @@ type PhoneCompanionProps = {
   readonly onXRelayUrlChange?: (url: string | undefined) => void;
   readonly onXOAuthConfigChange?: (value: XOAuthConfig | undefined) => void;
   readonly onXTimelineChange?: (timeline: XTimeline) => void;
+  readonly onXLoadMoreReady?: (load: (() => Promise<boolean>) | undefined) => void;
   readonly onAiSnapshotChange?: (snapshot: AiHudSnapshot) => void;
   readonly conversateSettings?: ConversateSettings;
   readonly conversateSnapshot?: ConversateSnapshot;
@@ -166,6 +168,7 @@ export function PhoneCompanion({
   onXRelayUrlChange,
   onXOAuthConfigChange,
   onXTimelineChange,
+  onXLoadMoreReady,
   onAiSnapshotChange,
   conversateSettings = DEFAULT_CONVERSATE_SETTINGS,
   conversateSnapshot = createConversateSnapshot(),
@@ -268,26 +271,29 @@ export function PhoneCompanion({
     return () => { active = false; };
   }, [xAccessToken, xRelayUrl, xSessionAccessToken, xSessionReady, onXTimelineChange]);
 
-  const loadMoreX = () => {
-    if (!xSessionAccessToken || !xTimeline.next || xLoading) return;
+  const loadMoreX = useCallback(async (): Promise<boolean> => {
+    if (!xSessionAccessToken || !xTimeline.next || xLoading) return false;
     setXLoading(true);
     setXError(undefined);
-    void (async () => {
-      try {
-        const userId = await resolveXUserId(xSessionAccessToken, fetch, xRelayUrl);
-        const next = await fetchXHomeTimeline(xSessionAccessToken, userId, xTimeline.next, fetch, xRelayUrl);
-        setXTimeline((current) => {
-          const timeline = { posts: [...current.posts, ...next.posts], next: next.next };
-          onXTimelineChange?.(timeline);
-          return timeline;
-        });
-      } catch (error) {
-        setXError(xErrorMessage(error));
-      } finally {
-        setXLoading(false);
-      }
-    })();
-  };
+    try {
+      const userId = await resolveXUserId(xSessionAccessToken, fetch, xRelayUrl);
+      const next = await fetchXHomeTimeline(xSessionAccessToken, userId, xTimeline.next, fetch, xRelayUrl);
+      const timeline = { posts: [...xTimeline.posts, ...next.posts], next: next.next };
+      setXTimeline(timeline);
+      onXTimelineChange?.(timeline);
+      return true;
+    } catch (error) {
+      setXError(xErrorMessage(error));
+      return false;
+    } finally {
+      setXLoading(false);
+    }
+  }, [onXTimelineChange, xLoading, xRelayUrl, xSessionAccessToken, xTimeline.next]);
+
+  useEffect(() => {
+    onXLoadMoreReady?.(loadMoreX);
+    return () => onXLoadMoreReady?.(undefined);
+  }, [loadMoreX, onXLoadMoreReady]);
 
   const cards = useMemo(() => {
     const weather = live.weather.value;

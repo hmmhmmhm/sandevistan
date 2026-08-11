@@ -30,6 +30,7 @@ export type UseHudControllerOptions = {
   readonly canvasRef: RefObject<HTMLCanvasElement | null>;
   readonly liveSessionRef: MutableRefObject<LiveSession | undefined>;
   readonly xHudPostsRef: MutableRefObject<readonly XHudPost[]>;
+  readonly xLoadMoreRef: MutableRefObject<(() => Promise<boolean>) | undefined>;
   readonly phonePreferencesRef: MutableRefObject<PhonePreferences>;
   readonly displayRefreshRef: MutableRefObject<(() => void) | undefined>;
   readonly companionOrsKeyRef: MutableRefObject<string | undefined>;

@@ -78,7 +78,7 @@ function createSensorAwareBridge(
 }
 
 export function useHudController({
-  autoStart, canvasRef, liveSessionRef, xHudPostsRef, phonePreferencesRef, displayRefreshRef,
+  autoStart, canvasRef, liveSessionRef, xHudPostsRef, xLoadMoreRef, phonePreferencesRef, displayRefreshRef,
   companionOrsKeyRef, companionOpenAiKeyRef, companionSonioxKeyRef, aiSnapshotRef,
   conversateSettingsRef, conversateSnapshotRef, displayHideStrategy,
   imageSendConcurrency, tileImageFormat, tilePaletteMode, modes, setStatus,
@@ -205,6 +205,7 @@ export function useHudController({
       nativeContent: nativeAiContent,
       conversateContent: nativeConversateContent,
       drawCurrentPage,
+      loadMoreX: async () => xLoadMoreRef.current?.() ?? false,
       log: (message) => logDiagnostic("INPUT", message),
     });
     const requestVisibleRefresh = (target: FastCanvasRefreshTarget) => {

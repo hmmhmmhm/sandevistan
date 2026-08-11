@@ -76,6 +76,10 @@ export function App({ autoStart = true }: AppProps) {
     window.location.search,
   );
   const xHudPostsRef = useRef<readonly XHudPost[]>([]);
+  const xLoadMoreRef = useRef<(() => Promise<boolean>) | undefined>(undefined);
+  const setXLoadMore = useCallback((load: (() => Promise<boolean>) | undefined) => {
+    xLoadMoreRef.current = load;
+  }, []);
   const syncXTimelineToHud = useCallback((timeline: XTimeline) => {
     const posts = timeline.posts.map((post) => ({
       id: post.id,
@@ -296,6 +300,7 @@ export function App({ autoStart = true }: AppProps) {
     canvasRef,
     liveSessionRef,
     xHudPostsRef,
+    xLoadMoreRef,
     phonePreferencesRef,
     displayRefreshRef,
     companionOrsKeyRef,
@@ -404,6 +409,7 @@ export function App({ autoStart = true }: AppProps) {
         onXOAuthConfigChange={setCompanionXOAuthConfig}
         onXRelayUrlChange={setCompanionXRelayUrl}
         onXTimelineChange={syncXTimelineToHud}
+        onXLoadMoreReady={setXLoadMore}
         onAiSnapshotChange={(snapshot) => {
           setCompanionAiSnapshot(snapshot);
           displayRefreshRef.current?.();
