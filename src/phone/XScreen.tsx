@@ -1,96 +1,90 @@
-import type { PhoneStringKey } from "../phone-i18n";
-import type { XPost } from "../x-feed";
+import {
+  summarizeXUsage,
+  X_POST_READ_USD,
+  X_USER_READ_USD,
+  type XDailyUsage,
+  type XUsageSummary,
+} from "../x-usage";
 
-const dateLabel = (value?: string) => {
-  if (!value) return "";
-  const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? "" : new Intl.DateTimeFormat(
-    undefined,
-    { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" },
-  ).format(date);
-};
+const usd = (value: number) => `$${value.toFixed(value < 0.1 ? 3 : 2)}`;
 
-function XPostCard({ post }: { readonly post: XPost }) {
-  const label = dateLabel(post.createdAt);
-  const metrics = post.metrics;
+function UsageRow({ label, value }: { readonly label: string; readonly value: XUsageSummary }) {
   return (
-    <article className="phone-x-post">
-      {post.repostedFrom && <p className="phone-x-post__repost">↻ {post.repostedFrom.name} (@{post.repostedFrom.username}) reposted</p>}
-      <header className="phone-x-post__header">
-        {post.author.avatarUrl ? (
-          <img className="phone-x-post__avatar" src={post.author.avatarUrl} alt="" />
-        ) : <span className="phone-x-post__avatar phone-x-post__avatar--fallback">𝕏</span>}
-        <div>
-          <strong>{post.author.name}</strong>
-          <span>@{post.author.username}{label ? ` · ${label}` : ""}</span>
+    <div className="phone-x-usage__row">
+      <strong>{label}</strong>
+      <span>{usd(value.usd)}</span>
+      <small>{value.posts} posts · {value.users} users</small>
+    </div>
+  );
+}
+
+function UsageChart({ ledger }: { readonly ledger: readonly XDailyUsage[] }) {
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() - (6 - index));
+    const key = date.toISOString().slice(0, 10);
+    const entry = ledger.find((item) => item.date === key);
+    const cost = (entry?.postIds.length ?? 0) * X_POST_READ_USD
+      + (entry?.userIds.length ?? 0) * X_USER_READ_USD;
+    return { label: key.slice(5), cost };
+  });
+  const maximum = Math.max(...days.map((day) => day.cost), 0.001);
+  return (
+    <div className="phone-x-usage__chart" aria-label="Last seven days estimated X API cost">
+      {days.map((day) => (
+        <div key={day.label} className="phone-x-usage__bar">
+          <span style={{ height: `${Math.max(4, day.cost / maximum * 100)}%` }} />
+          <small>{day.label}</small>
         </div>
-      </header>
-      <p>{post.text}</p>
-      {post.media.map((media) => media.url ? (
-        <img
-          key={media.id}
-          className="phone-x-post__media"
-          src={media.url}
-          alt={media.kind === "photo" ? "Attached post media" : "Attached media preview"}
-          loading="lazy"
-        />
-      ) : null)}
-      <footer className="phone-x-post__metrics">
-        <span>{label}</span>
-        <span>↩ {metrics?.replies ?? 0}</span>
-        <span>↻ {metrics?.reposts ?? 0}</span>
-        <span>♡ {metrics?.likes ?? 0}</span>
-        <span>▱ {metrics?.quotes ?? 0}</span>
-      </footer>
-    </article>
+      ))}
+    </div>
   );
 }
 
 export function XScreen({
   configured,
-  posts,
+  ledger,
   loading,
   error,
-  canLoadMore,
-  t,
-  onLoadMore,
   onOpenByok,
 }: {
   readonly configured: boolean;
-  readonly posts: readonly XPost[];
+  readonly ledger: readonly XDailyUsage[];
   readonly loading: boolean;
   readonly error?: string;
-  readonly canLoadMore: boolean;
-  readonly t: (key: PhoneStringKey) => string;
-  readonly onLoadMore: () => void;
   readonly onOpenByok?: () => void;
 }) {
   if (!configured) {
     return (
       <section className="phone-panel phone-x-empty">
         <h2>X (Twitter)</h2>
-        <p>Add an OAuth 2.0 access token in BYOK Keys to read your Home timeline.</p>
-        <p className="phone-form-message">Required scopes: tweet.read and users.read.</p>
+        <p>Connect X in BYOK Keys to show its API usage estimate and load the HUD timeline.</p>
+        <p className="phone-form-message">Required scopes: tweet.read, users.read, and offline.access.</p>
         <button type="button" className="phone-primary-button" onClick={onOpenByok}>Set up BYOK Keys</button>
       </section>
     );
   }
+  const summary = summarizeXUsage(ledger);
   return (
-    <section className="phone-x-feed" aria-busy={loading || undefined}>
+    <section className="phone-x-usage" aria-busy={loading || undefined}>
       <div className="phone-x-feed__title">
-        <div><h2>X (Twitter)</h2><p>Your Home timeline · direct from X</p></div>
-        {loading && <span>Loading…</span>}
+        <div><h2>X (Twitter)</h2><p>Device-local API usage estimate · X timeline remains on the HUD</p></div>
+        {loading && <span>Syncing…</span>}
       </div>
       {error && <p role="alert" className="phone-form-message">{error}</p>}
-      {!loading && !error && posts.length === 0 && (
-        <p className="phone-x-empty">No posts available in this timeline.</p>
-      )}
-      {posts.map((post) => <XPostCard key={post.id} post={post} />)}
-      {canLoadMore && (
-        <button type="button" className="phone-primary-button" onClick={onLoadMore} disabled={loading}>
-          Load 10 more
-        </button>
-      )}
+      <div className="phone-x-usage__rate">
+        <span><strong>Post read</strong>{usd(X_POST_READ_USD)} each</span>
+        <span><strong>User read</strong>{usd(X_USER_READ_USD)} each</span>
+      </div>
+      <UsageChart ledger={ledger} />
+      <div className="phone-x-usage__rows">
+        <UsageRow label="Today" value={summary.today} />
+        <UsageRow label="This week" value={summary.week} />
+        <UsageRow label="This month" value={summary.month} />
+        <UsageRow label="Last month" value={summary.lastMonth} />
+      </div>
+      <p className="phone-form-message">Estimate is stored only on this device. X bills per returned resource and deduplicates reads within each UTC day; the Developer Console remains the billing source of truth.</p>
+      <a className="phone-key-link" href="https://developer.x.com/#pricing" target="_blank" rel="noreferrer">View X API pricing ↗</a>
     </section>
   );
 }

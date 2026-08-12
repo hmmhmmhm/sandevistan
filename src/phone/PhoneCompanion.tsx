@@ -3,6 +3,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -52,6 +53,12 @@ import {
   writeXOAuthTokens,
 } from "../x-key";
 import { refreshXOAuthTokens } from "../x-oauth";
+import {
+  addXUsage,
+  resolveXUsageLedger,
+  writeXUsageLedger,
+  type XDailyUsage,
+} from "../x-usage";
 import {
   createConversateSnapshot,
   DEFAULT_CONVERSATE_SETTINGS,
@@ -179,6 +186,8 @@ export function PhoneCompanion({
   const [xTimeline, setXTimeline] = useState<XTimeline>({ posts: [] });
   const [xLoading, setXLoading] = useState(false);
   const [xError, setXError] = useState<string>();
+  const [xUsage, setXUsage] = useState<readonly XDailyUsage[]>([]);
+  const xUsageRef = useRef<readonly XDailyUsage[]>([]);
   const [xSessionAccessToken, setXSessionAccessToken] = useState(xAccessToken);
   const [xSessionReady, setXSessionReady] = useState(
     !storage || !xOAuthConfig || !xRelayUrl,
@@ -196,6 +205,27 @@ export function PhoneCompanion({
     document.body.scrollTop = 0;
     document.body.scrollLeft = 0;
   }, [screen]);
+
+  useEffect(() => {
+    if (!storage) return;
+    let active = true;
+    void resolveXUsageLedger(storage).then((ledger) => {
+      if (!active) return;
+      xUsageRef.current = ledger;
+      setXUsage(ledger);
+    });
+    return () => { active = false; };
+  }, [storage]);
+
+  const recordXUsage = useCallback((timeline: XTimeline, userId: string) => {
+    const next = addXUsage(xUsageRef.current, {
+      postIds: timeline.posts.map((post) => post.id),
+      userIds: [userId],
+    });
+    xUsageRef.current = next;
+    setXUsage(next);
+    if (storage) void writeXUsageLedger(storage, next);
+  }, [storage]);
 
   useEffect(() => {
     if (!xAccessToken || !storage || !xOAuthConfig || !xRelayUrl) {
@@ -260,6 +290,7 @@ export function PhoneCompanion({
         const timeline = await fetchXHomeTimeline(xSessionAccessToken, userId, undefined, fetch, xRelayUrl);
         if (active) {
           setXTimeline(timeline);
+          recordXUsage(timeline, userId);
           onXTimelineChange?.(timeline);
         }
       } catch (error) {
@@ -269,7 +300,7 @@ export function PhoneCompanion({
       }
     })();
     return () => { active = false; };
-  }, [xAccessToken, xRelayUrl, xSessionAccessToken, xSessionReady, onXTimelineChange]);
+  }, [recordXUsage, xAccessToken, xRelayUrl, xSessionAccessToken, xSessionReady, onXTimelineChange]);
 
   const loadMoreX = useCallback(async (): Promise<boolean> => {
     if (!xSessionAccessToken || !xTimeline.next || xLoading) return false;
@@ -280,6 +311,7 @@ export function PhoneCompanion({
       const next = await fetchXHomeTimeline(xSessionAccessToken, userId, xTimeline.next, fetch, xRelayUrl);
       const timeline = { posts: [...xTimeline.posts, ...next.posts], next: next.next };
       setXTimeline(timeline);
+      recordXUsage(next, userId);
       onXTimelineChange?.(timeline);
       return true;
     } catch (error) {
@@ -288,7 +320,7 @@ export function PhoneCompanion({
     } finally {
       setXLoading(false);
     }
-  }, [onXTimelineChange, xLoading, xRelayUrl, xSessionAccessToken, xTimeline.next]);
+  }, [onXTimelineChange, recordXUsage, xLoading, xRelayUrl, xSessionAccessToken, xTimeline.next, xTimeline.posts]);
 
   useEffect(() => {
     onXLoadMoreReady?.(loadMoreX);
@@ -326,7 +358,7 @@ export function PhoneCompanion({
         title: "X (Twitter)",
         titleKey: "news",
         status: xAccessToken
-          ? `${xTimeline.posts.length} ${t("items")}`
+          ? "Usage & cost"
           : t("notConfigured"),
       },
       {
@@ -396,7 +428,6 @@ export function PhoneCompanion({
     locale,
     openAiKey,
     xAccessToken,
-    xTimeline.posts.length,
     conversateSnapshot.phase,
   ]);
 
@@ -445,12 +476,9 @@ export function PhoneCompanion({
         return (
           <XScreen
             configured={Boolean(xAccessToken)}
-            posts={xTimeline.posts}
+            ledger={xUsage}
             loading={xLoading}
             error={xError}
-            canLoadMore={Boolean(xTimeline.next)}
-            t={t}
-            onLoadMore={loadMoreX}
             onOpenByok={() => setScreen("byok")}
           />
         );
@@ -578,7 +606,7 @@ export function PhoneCompanion({
       {screen !== "home" && (
         <section className="phone-detail-screen">
           <PhoneHeader
-            title={t(SCREEN_TITLE[screen])}
+            title={screen === "x" ? "X (Twitter)" : t(SCREEN_TITLE[screen])}
             parentLabel={t("dashboard")}
             onBack={() => setScreen("home")}
           />

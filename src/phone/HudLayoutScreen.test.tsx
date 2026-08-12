@@ -44,6 +44,9 @@ describe("HudLayoutScreen", () => {
     expect(screen.getByRole("button", {
       name: /Weather.*Enabled/,
     }).querySelector('[data-phone-icon="checkboxOn"]')).toBeTruthy();
+    expect(screen.getByRole("button", {
+      name: /X \(Twitter\).*Enabled/,
+    }).querySelector('[data-phone-icon="checkboxOn"]')).toBeTruthy();
 
     rerender(
       <HudLayoutScreen

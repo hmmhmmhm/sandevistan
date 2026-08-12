@@ -14,6 +14,10 @@ const PAGE_KEYS: Record<HudPageId, PhoneStringKey> = {
   navigation: "navigation",
 };
 
+const pageLabel = (page: HudPageId, t: (key: PhoneStringKey) => string) => (
+  page === "x" ? "X (Twitter)" : t(PAGE_KEYS[page])
+);
+
 export function HudLayoutScreen({
   preferences,
   navigationAvailable,
@@ -97,7 +101,7 @@ export function HudLayoutScreen({
                   size={22}
                 />
                 <span className="phone-toggle-row__copy">
-                  <span>{t(PAGE_KEYS[page])}</span>
+                  <span>{pageLabel(page, t)}</span>
                   <small>
                     {locked
                       ? t("locked")
@@ -110,7 +114,7 @@ export function HudLayoutScreen({
               <div className="phone-reorder-actions">
                 <button
                   type="button"
-                  aria-label={`${t("moveUp")} ${t(PAGE_KEYS[page])}`}
+                  aria-label={`${t("moveUp")} ${pageLabel(page, t)}`}
                   disabled={locked || saving || index <= 1}
                   onClick={() => move(page, -1)}
                 >
@@ -118,7 +122,7 @@ export function HudLayoutScreen({
                 </button>
                 <button
                   type="button"
-                  aria-label={`${t("moveDown")} ${t(PAGE_KEYS[page])}`}
+                  aria-label={`${t("moveDown")} ${pageLabel(page, t)}`}
                   disabled={locked || saving || index === pages.length - 1}
                   onClick={() => move(page, 1)}
                 >

@@ -500,6 +500,65 @@
 
 .phone-x-empty { color: var(--phone-muted); }
 
+.phone-x-usage {
+  display: grid;
+  gap: 16px;
+}
+
+.phone-x-usage__rate,
+.phone-x-usage__rows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.phone-x-usage__rate span,
+.phone-x-usage__row {
+  display: grid;
+  gap: 3px;
+  padding: 13px;
+  border: 1px solid var(--phone-line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.phone-x-usage__rate strong,
+.phone-x-usage__row strong { font-size: 0.82rem; }
+.phone-x-usage__rate span,
+.phone-x-usage__row small { color: var(--phone-muted); font-size: 0.76rem; }
+.phone-x-usage__row > span { font-size: 1.2rem; font-weight: 700; }
+
+.phone-x-usage__chart {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  align-items: end;
+  height: 132px;
+  padding: 14px 10px 8px;
+  border: 1px solid var(--phone-line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.phone-x-usage__bar {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 6px;
+  height: 108px;
+  align-items: end;
+  text-align: center;
+}
+
+.phone-x-usage__bar span {
+  display: block;
+  width: 100%;
+  min-height: 4px;
+  border-radius: 4px 4px 1px 1px;
+  background: #222;
+}
+
+.phone-x-usage__bar small { color: var(--phone-muted); font-size: 0.62rem; }
+
 .phone-key-accordion > summary {
   cursor: pointer;
   list-style: none;
