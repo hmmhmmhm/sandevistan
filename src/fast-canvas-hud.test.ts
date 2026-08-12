@@ -331,6 +331,10 @@ describe("fast split Canvas HUD", () => {
     expect(weather.values).not.toContain("BATTERY --");
     expect(weather.values).not.toContain("경로 키 필요");
     expect(weather.values).not.toContain("ORS 연결 후 사용");
+    expect(weather.texts.find(({ value }) => value === "28°C"))
+      .toMatchObject({ x: 400, y: 116 });
+    expect(weather.texts.find(({ value }) => value === "맑음"))
+      .toMatchObject({ x: 400, y: 154 });
     const iconPoints = weather.strokedPaths
       .filter(({ points }) => points.every(([x]) => x >= 296))
       .flatMap(({ points }) => points);
