@@ -1,5 +1,8 @@
 # G2 Fullscreen Map Checkpoint
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-27
 Branch: `feature/g2-fast-content`
 Tested implementation commit: `3637e3f0f65b80d3c113ed1c03257670d28a0328`
@@ -35,9 +38,7 @@ The implementation commit passed these commands one at a time:
 - news API suite: 6/6 tests passed;
 - `git diff --check`: no whitespace errors.
 
-These results verify state transitions, projection, collision layout, Canvas
-rendering, input routing, refresh targeting, and transport serialization in
-software. They do not establish physical G2 behavior.
+The software checks cover state transitions, projection, collision layout, Canvas rendering, input routing, refresh targeting, and transport serialization. They do not establish physical G2 behavior.
 
 ## Physical G2 observations
 
@@ -53,5 +54,4 @@ software. They do not establish physical G2 behavior.
 - Normal four-page dashboard scrolling: PENDING
 - `SENDFAILED`: PENDING
 
-Only direct observations from this exact build will replace these `PENDING`
-entries.
+Replace these `PENDING` entries only with direct observations from this exact build.

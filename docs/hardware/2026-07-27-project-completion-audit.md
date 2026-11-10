@@ -1,5 +1,8 @@
 # G2 HUD Project Completion Rubric
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-27
 
 Target branch: `feature/g2-ors-routing`
@@ -10,14 +13,12 @@ Target branch: `feature/g2-ors-routing`
 > which tracks the current `main` branch, Weather page, 374-test baseline, and
 > the owner-approved order of remaining work.
 
-This document links the product requirements finalized in the conversation with the current level of verification.
-The most up-to-date link to each item in this document rather than the incomplete checkbox in past experiment documents.
-Prioritize checkpoints.
+This rubric maps the agreed product requirements to their verification status at this checkpoint. For each item, use its linked checkpoint rather than an incomplete checkbox in an older experiment.
 
 The meaning of the status is as follows.
 
-- `PASS`: Automatic verification and required actual G2 confirmation completed.
-- `SOFTWARE PASS`: Implementation and automatic verification have been completed, but the actual G2 confirmation of the build remains.
+- `PASS`: Automated verification and required physical G2 confirmation completed.
+- `SOFTWARE PASS`: Implementation and automated verification completed. Physical G2 confirmation of this build remains pending.
 - `OPTIONAL`: This is an optional feature and requires external credentials for actual verification.
 
 ## Product Requirements
@@ -42,6 +43,9 @@ The meaning of the status is as follows.
 | All general functions operate even without ORS | SOFTWARE PASS | Keyless runtime inspection of optional ORS checkpoints |
 | ORS destination search, route display, re-search and exit | OPTIONAL | Implementation and mock API verification completed, waiting for real key and G2 confirmation |
 
+> Evidence ambiguity: The requirements table calls the transport 1-bit BMP.
+> Linked full-HUD records describe PNG tiles. This record does not resolve that difference.
+
 ## Automatic verification baseline
 
 The current ORS integration branch has passed the following verifications serially:
@@ -57,15 +61,14 @@ The current ORS integration branch has passed the following verifications serial
 ## Remaining real device gates
 
 1. Enter the map, news, TODO, and navigation detail screens at `detail-decks-019`.
-   Both eyes check four tiles, scroll, tap, double tap and return.
+   Check all four tiles in both eyes. Test scroll, tap, double tap, and return.
 2. After changing TODO, open the app again and check whether the saved state is restored.
 3. Check for black screen conversion and restoration, general page conversion, and absence of `SENDFAILED`.
 4. In a state where there is no key, check the maintenance of existing functions and the ‘path key required’ status.
-5. Once you receive the ORS key, you can search for the actual destination and receive route guidance through separate selection verification.
-   Confirm. Key values ​​are recorded only in server environment variables.
+5. After receiving an ORS key, separately verify real destination search and route guidance.
+   Store key values only in server environment variables.
 
-Full screen detailed deck and Mookie ORS will not be implemented until the actual G2 is confirmed.
-Do not push the branch to the default branch or mark it as complete.
+Full-screen detail decks and optional ORS still require physical G2 confirmation. Until that confirmation, do not merge the branch into the default branch or mark the work complete.
 
 ## Connected checkpoint
 

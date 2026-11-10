@@ -1,5 +1,10 @@
 # SDK 0.0.10 Image Transport A/B Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Hold the Sandevistan G2 image diagnostic constant while switching only the Even Hub SDK image-request serialization from `0.0.12` to `0.0.10`.
@@ -202,7 +207,7 @@ git status --short --branch
 ```
 
 Expected: the commit changes only `package.json`, `package-lock.json`,
-`app.json`, and `src/sdk-version.test.ts`; the worktree is clean.
+`app.json`, and `src/sdk-version.test.ts`. The worktree is clean.
 
 ### Task 3: Serve and perform the physical G2 checkpoint
 
@@ -266,7 +271,7 @@ In the Even Realities app:
 2. Open `Even Hub` and scan the new QR.
 3. Wait for `TEXT READY - CLICK TO SEND`.
 4. Press the G2 touchbar or R1 exactly once.
-5. Record the final WebView status exactly; do not retry in the same session.
+5. Record the final WebView status exactly. Do not retry in the same session.
 
 Expected terminal status: either `1-bit BMP transmission completed` or
 `1-bit BMP transmission failed: SENDFAILED`.
@@ -287,7 +292,7 @@ git revert --no-edit HEAD
 Expected: the SDK, manifest, QR metadata and version tests return to `0.0.12`.
 The prior design document remains on the branch.
 
-For `success`, do not revert the A/B commit; preserve the working diagnostic
+For `success`, do not revert the A/B commit. Preserve the working diagnostic
 branch for the subsequent app/firmware compatibility test.
 
 - [ ] **Step 2: Append the exact observed result**

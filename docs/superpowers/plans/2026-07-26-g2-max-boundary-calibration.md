@@ -1,5 +1,10 @@
 # G2 Maximum Boundary Calibration Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a `/calibration-max` mode that draws and transmits an exact `576×288` boundary grid through the proven SDK `0.0.10` four-tile path.

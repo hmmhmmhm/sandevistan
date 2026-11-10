@@ -1,14 +1,19 @@
 # G2 Hybrid Text Console Alignment Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
-**Goal:** Keep one native Text update per scroll while aligning `/hud-hybrid-z` to a fixed right-hand Text console and preserving a large static map on the left.
+**Goal:** Align `/hud-hybrid-z` to a fixed right-hand Text console. Keep one native Text update per scroll and a large static map on the left.
 
-**Architecture:** Add an isolated layered-hybrid background renderer and export its console geometry as the single coordinate contract shared by rendering and page creation. Keep the legacy hybrid renderer and transport unchanged; only the explicit z-order route selects the new background and right-side Text container.
+**Architecture:** Add an isolated layered-hybrid background renderer. Export its console geometry as the shared coordinate contract for rendering and page creation. Keep the legacy hybrid renderer and transport unchanged. Only the explicit z-order route selects the new background and right-side Text container.
 
 **Tech Stack:** React 19, TypeScript, Vitest, Canvas 2D, Even Hub SDK `0.0.10`, Vite
 
@@ -379,9 +384,7 @@ test "$(node -p "require('./node_modules/@evenrealities/even_hub_sdk/package.jso
 git diff --check
 ```
 
-Expected: all commands exit `0`; Vitest reports no failures; Vite and the Sites
-preparation script create the required `dist` files; SDK version is `0.0.10`;
-the diff has no whitespace errors.
+Expected: all commands exit `0`. Vitest reports no failures. Vite and the Sites preparation script create the required `dist` files. The SDK version is `0.0.10`. The diff has no whitespace errors.
 
 - [x] **Step 3: Start the isolated Tailscale preview**
 

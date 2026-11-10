@@ -1,25 +1,26 @@
 # Readable Native Ask AI Text Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
-Make the G2 Ask AI detail experience readable and dependable without returning
-to Canvas rendering. The user must leave the conversation with double tap,
-never pause the microphone with a normal tap, see fast model output at a
-bounded reading speed, and understand every native status and control in the
-selected one of Sandevistan's thirty languages.
+Make native G2 Ask AI details readable and dependable without returning to Canvas.
+Use double tap to leave the conversation.
+A normal tap must never pause the microphone.
+Present fast model output at a bounded reading speed.
+Localize every native status and control in the selected one of Sandevistan's thirty languages.
 
 ## Root cause
 
-The current tap action calls `audioControl(false)` through `pause()`. Some G2
-sessions do not confirm that one-shot close request, so the pause path promotes
-the condition to a fatal `G2 microphone could not close` error and prevents the
-input transition from completing. Tap-level microphone ownership is also
-unnecessary because leaving Ask AI already owns the complete session teardown.
+The current tap action calls `audioControl(false)` through `pause()`.
+Some G2 sessions do not confirm that one-shot close request.
+The pause path then raises the fatal error `G2 microphone could not close` and prevents the input transition from completing.
+Tap-level microphone ownership is unnecessary because Ask AI exit already owns complete session teardown.
 
-The transcript currently follows the newest generated page immediately. A
-fast Realtime response can therefore advance through several six-line pages
-before a successful SDK text update is visible, leaving only the final page on
-screen. Slowing only the SDK update interval would still skip content.
+The transcript currently follows the newest generated page immediately.
+A fast Realtime response can advance through several six-line pages before an SDK text update becomes visible.
+Only the final page may remain on screen.
+Slowing only SDK updates would still skip content.
 
 ## Interaction
 
@@ -41,19 +42,17 @@ Realtime protocol state remains authoritative and unmodified for persistence,
 cost calculation, and conversation continuity. A separate presentation pacer
 owns only the snapshot shown on the glasses.
 
-User transcription is accepted immediately. Assistant output is copied from
-the authoritative snapshot into the presented snapshot by Unicode grapheme,
-up to six graphemes every 250 ms (24 graphemes per second). If the model is
-slower than that limit, text remains effectively live. If it is faster, the
-pacer retains the newest target snapshot and drains toward it without storing
-individual delta events. It never skips undisplayed assistant text.
+Accept user transcription immediately.
+Copy assistant output from the authoritative snapshot to the presented snapshot by Unicode grapheme.
+Copy at most six graphemes every 250 ms, equivalent to 24 graphemes per second.
+If the model is slower, keep the text effectively live.
+If the model is faster, retain the newest target snapshot and advance toward it without storing individual delta events.
+Never skip undisplayed assistant text.
 
-While presented assistant text trails the authoritative response, the native
-status is localized as "displaying response". When the backlog is empty and
-the Realtime phase is listening, a localized listening prompt remains visible
-alongside the latest conversation. Manual history selection disables automatic
-page following but does not pause the pacer; returning to the latest page shows
-the current presented state.
+While presented assistant text trails the authoritative response, show the localized status "displaying response".
+When the backlog is empty and Realtime is listening, show a localized listening prompt alongside the latest conversation.
+Manual history selection disables automatic page following but does not pause the pacer.
+Returning to the latest page shows the current presented state.
 
 The pacer is disposed when leaving Ask AI. Session stop and local persistence
 use the authoritative state, so visual pacing never delays resource cleanup or

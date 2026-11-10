@@ -1,5 +1,7 @@
 # Sandevistan Phone Subheader Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-29
 
 Status: superseded by `2026-07-29-phone-navigation-hierarchy-design.md` and
@@ -50,10 +52,9 @@ The detail header is 52 pixels tall and uses three columns:
 2. A flexible, left-aligned title.
 3. A 44-pixel optional action target.
 
-The header remains sticky for navigation reliability, but its background is
-transparent and has no blur, shadow, bottom border, or elevated card surface.
-Content scrolling beneath it is therefore read as one WebView section rather
-than a second application shell.
+Keep the header sticky for navigation.
+Use a transparent background without blur, shadow, bottom border, or raised card styling.
+Scrolling content should appear within one WebView section rather than a second application shell.
 
 ## Behavior and accessibility
 

@@ -1,22 +1,24 @@
 # Ask AI Live Transcript Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
-Keep the current canvas-based Ask AI detail screen while making it behave like
-a live chat. The user's utterance and the assistant's streaming answer share
-one viewport, the live viewport follows the newest text automatically, and
-scrolling is reserved for intentionally reviewing older conversation content.
+Keep Canvas-based Ask AI details and make the screen behave as a live chat.
+Show user utterances and streaming assistant answers in one viewport.
+In live mode, follow the newest text automatically.
+Reserve scrolling for deliberate review of older conversation content.
 
 ## Approaches considered
 
 ### 1. Canvas conversation viewport — selected
 
-Keep the existing visual system and four-tile transport. Store a bounded
-conversation timeline independently from rendering, compose both roles into
-contiguous pages, and follow the last page while the user is in live mode.
-Realtime deltas update state immediately; the existing latest-wins scheduler
-may coalesce several characters into one transmitted frame when the image
-transport is busy.
+Keep the existing visual system and four-tile transport.
+Store a bounded conversation timeline independently from rendering.
+Compose both roles into contiguous pages.
+In live mode, follow the final page.
+Apply Realtime deltas to state immediately.
+While image transport is busy, the existing latest-wins scheduler may combine several characters into one transmitted frame.
 
 This preserves the established typography and layout and is the lowest-risk
 way to validate the interaction on hardware.
@@ -78,12 +80,12 @@ The header marks the newest page as `LIVE` and older pinned pages as `HISTORY`.
 
 ## Rendering and transport
 
-Every transcription or assistant text delta updates the conversation state as
-received. The 300 ms latest-wins scheduler remains queue-free: it requests a
-new canvas frame when possible, drops attempts while transport is busy, and
-performs a final refresh on completion. Therefore the UI streams progressively
-without waiting for a full response, while hardware throughput may combine
-multiple character deltas into one visible frame.
+Apply every transcription or assistant-text delta to conversation state as it arrives.
+Keep the 300 ms latest-wins scheduler queue-free.
+When transport is available, request a new Canvas frame.
+While transport is busy, drop refresh attempts.
+On completion, request one final refresh.
+The UI therefore streams progressively, although hardware throughput may combine several character deltas into one visible frame.
 
 The conversation model and paging API remain renderer-independent. A later
 SDK text-container renderer can consume the same live page and follow state

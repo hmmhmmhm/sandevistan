@@ -1,9 +1,12 @@
 # Sandevistan Project Readiness Audit
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 > [!NOTE]
 > This historical SDK `0.0.11` audit is superseded by the
 > [2026-08-02 current readiness audit](2026-08-02-project-readiness-audit.md).
-> It remains unchanged below as evidence of the earlier release gate.
+> The results below preserve evidence of the earlier release gate.
 
 Date: 2026-07-29
 
@@ -16,9 +19,7 @@ SDK: `@evenrealities/even_hub_sdk` `0.0.11`
 
 Overall status: `PHASE A PASS — PHASE B PASS — RELEASE DEFERRED`
 
-This is the current source of truth for work remaining before release
-preparation. It supersedes the 2026-07-27 completion rubric, which describes an
-earlier feature branch and an older test baseline.
+At this checkpoint, this audit governed work before release preparation. It superseded the 2026-07-27 completion rubric, which covered an earlier branch and test baseline.
 
 ## Scope decision
 
@@ -134,8 +135,7 @@ preserving Korean road and place names.
 Status: `DEFERRED BY OWNER`
 
 Do not create a version tag, GitHub Release, public package, or Even Hub
-submission yet. Release work begins only after a separate owner-provided
-pre-submission checklist.
+submission yet. Release work requires a separate pre-submission checklist from the owner.
 
 ## Evidence
 

@@ -1,10 +1,15 @@
 # G2 Pipelined Image Transport Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add an opt-in, bounded two- or three-call G2 image pipeline while preserving the serial SDK `0.0.11` default and the existing no-refresh-queue contract.
 
-**Architecture:** Parse `pipeline=1|2|3` once in the application, pass the literal concurrency value through the HUD controller into the fast Canvas transport, and use a transport-independent bounded runner inside each accepted refresh. Keep image encoding, timeout, unchanged-tile detection, success-only caching, refresh busy-drop, and page rollback behavior unchanged.
+**Architecture:** Parse `pipeline=1|2|3` once in the application. Pass the literal concurrency value through the HUD controller into the fast Canvas transport. Use a transport-independent bounded runner inside each accepted refresh. Keep image encoding, timeout, unchanged-tile detection, success-only caching, refresh busy-drop, and page rollback behavior unchanged.
 
 **Tech Stack:** React 19, TypeScript 5.9, Vitest 4, Even Hub SDK `0.0.11`, Canvas 2D, Vite 6
 
@@ -308,14 +313,12 @@ git commit -m "feat: route image pipeline experiment setting"
 - [ ] **Step 1: Extend the transport harness**
 
 Add `imageSendConcurrency?: 1 | 2 | 3` to
-`FastRefreshHarnessConfig`, include it in the test option type, and pass it to
-`transmitFastCanvas`.
+`FastRefreshHarnessConfig`. Include the option in the test option type.
+Pass the option to `transmitFastCanvas`.
 
 - [ ] **Step 2: Write the failing concurrency-two test**
 
-Hold the first two startup calls with deferred promises. Assert that IDs
-`3, 5` start, maximum active calls reaches two, ID `2` starts as soon as one
-slot resolves, and ID `4` follows without exceeding two.
+Hold the first two startup calls with deferred promises. Assert that IDs `3, 5` start and maximum active calls reaches two. ID `2` must start as soon as one slot resolves. ID `4` follows without exceeding two active calls.
 
 Also assert the diagnostic contains:
 
@@ -362,8 +365,8 @@ await runBounded(
   async (bytes, index) => {
 ```
 
-Increment `activeImageSends` immediately before the SDK call, log
-`inflight ${activeImageSends}/${imageSendConcurrency}`, and decrement it in a
+Increment `activeImageSends` immediately before the SDK call.
+Log `inflight ${activeImageSends}/${imageSendConcurrency}`. Decrement the count in a
 `finally` block around the complete SDK send/result-normalization operation.
 Leave unchanged-tile exits before the increment so skips consume no SDK slot.
 Pass `diagnosticDuration(refreshStartedAt)` to the existing
@@ -372,9 +375,7 @@ Pass `diagnosticDuration(refreshStartedAt)` to the existing
 - [ ] **Step 6: Verify fail-fast cache semantics**
 
 Add a test where one of the first two calls fails while its peer remains
-active. Assert no later tile starts after the failure is observed, the refresh
-does not complete until the peer settles, and the next independent refresh
-skips the peer that succeeded while retrying the failed or never-started tile.
+active. After a failure is observed, assert that no later tile starts. The refresh must wait for its active peer to settle. The next independent refresh skips the successful peer and retries the failed or never-started tile.
 
 - [ ] **Step 7: Run transport tests and verify GREEN**
 

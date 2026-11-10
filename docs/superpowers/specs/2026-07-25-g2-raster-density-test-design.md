@@ -1,13 +1,14 @@
 # Sandevistan G2 Raster Information Density Test Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date written: 2026-07-25
 Status: First practical test design approved in conversation
 
 ## Purpose
 
-In the actual G2 optical system, the font size, information amount, contrast,
-Quickly check peripheral placement and central visibility. At this stage
-It does not evaluate real-time data or native text styles.
+Use the actual G2 optical system to check font size, information density, contrast, peripheral placement, and central visibility.
+This test does not evaluate real-time data or native text styles.
 
 ## Range
 
@@ -24,20 +25,19 @@ It is a fixed mock-up. Sensors, microphones, network and storage functions are n
 
 ### Canvas Preview
 
-Reduce the selected original draft to 576 x 288 in the browser. Cell phone and PC
-The preview displays the same Canvas that will be transferred to the glasses.
+Reduce the selected original draft to 576 x 288 in the browser.
+On a phone or PC, the preview displays the same Canvas that the app transfers to the glasses.
 
 ### Tile Encoder
 
-Create four tiles in the order of top left, top right, bottom left, and bottom right. Each tile is a G2 Image
-Use the maximum container size of 288 x 144.
+Create four tiles in this order: top left, top right, bottom left, and bottom right.
+Each tile uses the maximum G2 Image container size of 288 x 144.
 
 ### Glasses Transmitter
 
-Start with one full-screen blank Text event layer and four Image containers.
-Create a page. Image updates are done one at a time to avoid BLE conflicts
-Wait and send. If even one tile fails, your phone will tell you which tile it failed.
-Notify with status text.
+Create a page with one full-screen blank Text event layer and four Image containers.
+To avoid BLE conflicts, wait for each image update to finish before sending the next.
+If a tile fails, display its name in the phone status text.
 
 ## Execution flow
 
@@ -48,8 +48,8 @@ Notify with status text.
 5. Send your PNGs sequentially starting from the top left.
 6. Display completion status on your phone.
 
-Safari doesn't have an Even app bridge, so you only see the Canvas preview. actual
-The glasses test is run with QR sideload in the Even app developer area.
+Safari has no Even app bridge, so it displays only the Canvas preview.
+To test the glasses, use QR sideload in the Even app developer area.
 
 ## Error handling
 

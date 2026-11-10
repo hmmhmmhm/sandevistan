@@ -1,11 +1,12 @@
 # G2 page type HUD design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Target
 
-While maintaining the large text, clarity, and 4-tile transmission path of the current 576×288 tactical HUD.
-Information is distributed over four pages. The default screen is non-navigational and is centered
-The route guidance and bottom intersection card are changed to news. Users have a G2 or R1
-Scroll to cycle back and forth through the page.
+Distribute information across four pages while preserving the large text, clarity, and 4-tile transmission path of the current 576×288 tactical HUD.
+The default page has no navigation guidance. Replace its central route guidance and bottom intersection card with news.
+Use G2 or R1 scroll input to cycle through the pages in either direction.
 
 ## Page order
 
@@ -23,10 +24,10 @@ At the top center of `OVERVIEW`, `NEWS // LOCAL 01`, `Line 2 operating normally`
 Displays `BRIEF // 02`, `today 23°C · clear`, `precipitation 10%`.
 `NAV // ROUTE 01`, `next intersection`, and `right turn` are not displayed in `OVERVIEW`.
 
-The `NEWS` page rearranges the headlines into larger cards, and the `TODO` page
-‘Go to the subway station’, ‘Bring an umbrella’, and ‘Confirm route’ with large checkboxes.
-Display. The data is a static mockup identical to the existing prototype. external news,
-Weather and map API connections are not included in the scope.
+The `NEWS` page uses larger headline cards.
+The `TODO` page shows large checkboxes for "Go to the subway station", "Bring an umbrella", and "Confirm route".
+Keep the static mock data from the existing prototype.
+External news, weather, and map APIs are outside this scope.
 
 ## Input and status
 
@@ -34,17 +35,16 @@ Weather and map API connections are not included in the scope.
 - `SCROLL_TOP_EVENT`: Previous page
 - `DOUBLE_CLICK_EVENT`: Close the app as before
 
-The R1 touchpad also uses the same scroll event as the G2, so there is no separate ring branch.
-No. When you move from the last page to the first page, from the first page
-Moving back takes you to the last page.
+The R1 touchpad uses the same scroll events as the G2, so no separate ring branch is needed.
+Forward scrolling from the last page returns to the first.
+Backward scrolling from the first page returns to the last.
 
 ## Transmission stability
 
-On initial entry only, it creates an empty event capture layer and four image containers.
-The page container is not reorganized during scroll transitions. Next on the same Canvas
-After redrawing the page, only the image data for existing container IDs 2–5 is updated.
-This means that the temporary monocular display observed in the previous actual device is accompanied by page reconstruction.
-Reduces the likelihood of recurrence.
+On initial entry, create an empty event-capture layer and four image containers.
+Do not rebuild the page containers during scroll transitions.
+After drawing the next page on the same Canvas, update only the image data for existing container IDs 2–5.
+Avoiding page rebuilds reduces the risk of the temporary monocular display observed in earlier hardware tests.
 
 Each transition is processed in one queue in the following order.
 
@@ -53,9 +53,9 @@ Each transition is processed in one queue in the following order.
 3. Encode your PNG tiles.
 4. Send one page at a time in the following order: ID 2, 3, 4, and 5.
 
-Additional scrolls in progress are not discarded but placed behind the queue. Therefore, the BLE image
-Updates do not overlap each other and input order is preserved. Conversion failure progresses
-It absorbs errors in the queue so that it can mark the message and receive the next input.
+While a transition is running, append additional scrolls to the queue instead of dropping them.
+This preserves input order and prevents concurrent BLE image updates.
+If a transition fails, display its status and catch the queue error so the next input can run.
 
 ## Visual rules
 
@@ -69,17 +69,13 @@ It absorbs errors in the queue so that it can mark the message and receive the n
 
 ## Automatic verification
 
-- The default call is `OVERVIEW` news content and navigation by drawing `01 / 04`
-  Make sure you are not drawing text.
-- `NAVIGATION`, `NEWS`, and `TODO` are unique phrases and correct pages for each page.
-  Make sure you draw the numbers.
-- Check that all pages adhere to 576×288 and the existing 4-color palette.
-- After scrolling below, the same four image containers are updated once more in order.
-  Verify that page reorganization does not occur.
-- Check whether down and up scrolling is transmitted to `next` and `previous` respectively.
-- Check that the maximum number of simultaneous executions of image transmission is 1 even in continuous input.
-- One-time reconfiguration operation when existing double click ends and initial page creation fails.
-  Make sure it is maintained.
+- Check that the default call draws `OVERVIEW` news content and `01 / 04`, without navigation text.
+- Check unique phrases and page numbers for `NAVIGATION`, `NEWS`, and `TODO`.
+- Check that all pages use 576×288 and the existing 4-color palette.
+- After scrolling, check that the same four containers update in order without rebuilding the page.
+- Check that scroll down and up select `next` and `previous`, respectively.
+- During continuous input, permit at most 1 image transmission at a time.
+- Preserve double-click exit and the one-time rebuild after initial page-creation failure.
 
 ## Check actual device
 
@@ -89,6 +85,6 @@ The build identifier is `paged-hud-004`.
 http://100.96.68.73:4173/hud-canvas?sdk=0.0.10&build=paged-hud-004
 ```
 
-After refreshing on G2, binocular display, basic news screen, down/up scroll cycle,
-R1 scroll cycle, check whether partial screen is completed normally during four tile update
-Check them one by one.
+After refreshing on G2, check binocular display and the default news page.
+Check scroll cycling in both directions on the glasses and R1.
+During four-tile updates, check that all partial screen areas finish normally.

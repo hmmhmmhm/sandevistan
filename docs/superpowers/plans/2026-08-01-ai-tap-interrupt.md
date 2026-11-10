@@ -1,14 +1,19 @@
 # Ask AI Tap Interrupt Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED AND INTEGRATED`
 
 Implementation commit: `cf05477` (`feat: interrupt Ask AI responses on tap`)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Let one Ask AI detail tap instantly finish a completed paced answer or cancel an active answer, reveal its received partial text, and resume listening with 250 ms grapheme pacing.
+**Goal:** Let one Ask AI detail tap instantly finish a completed paced answer. For an active answer, cancel generation and reveal the received partial text. Resume listening with 250 ms grapheme pacing.
 
-**Architecture:** Route the tap as an explicit view effect into an `AiRuntime.interrupt()` boundary. Add a best-effort `response.cancel` operation to the Realtime session and an acknowledgement-serialized `flush()` operation to the replace-latest presentation pacer; do not add a frame queue or restart the microphone session.
+**Architecture:** Route the tap as an explicit view effect into an `AiRuntime.interrupt()` boundary. Add a best-effort `response.cancel` operation to the Realtime session and an acknowledgement-serialized `flush()` operation to the replace-latest presentation pacer. Do not add a frame queue or restart the microphone session.
 
 **Tech Stack:** TypeScript, Vitest fake timers, OpenAI Realtime WebSocket events, Even Hub native text container.
 
@@ -80,10 +85,7 @@ Expected: FAIL because cancellation and local retirement are not exposed.
 
 - [ ] **Step 3: Implement best-effort cancellation**
 
-Add `cancelResponse(): AiRealtimeProtocolState` to `AiRealtimeSession`. When an
-active response exists, send `response.cancel`, archive/retire the response with
-its received text, set the phase to `listening`, publish the new state, and
-return it. When no generating response exists, return the current state without
+Add `cancelResponse(): AiRealtimeProtocolState` to `AiRealtimeSession`. When an active response exists, send `response.cancel`. Archive/retire the response with its received text. Set the phase to `listening`. Publish the new state. Return the state. When no generating response exists, return the current state without
 sending.
 
 - [ ] **Step 4: Run the focused tests**
@@ -100,10 +102,7 @@ Expected: PASS.
 
 - [ ] **Step 1: Write failing pacer tests**
 
-Change cadence expectations to 250 ms. Add one test that calls `flush()` while
-idle and sees the full target immediately, plus one that holds the current
-`onFrame` promise, calls `flush()`, and proves the full target is emitted exactly
-once after that promise resolves.
+Change cadence expectations to 250 ms. Add a test that calls `flush()` while idle and sees the full target immediately. Add another test that holds the current `onFrame` promise and calls `flush()`. Verify that the full target appears exactly once after the promise resolves.
 
 - [ ] **Step 2: Run the pacer test and confirm failure**
 
@@ -177,5 +176,5 @@ Expected: all Vitest tests pass and Vite production build exits 0.
 
 Run: `git diff --check && git status --short`
 
-Expected: no whitespace errors; only the planned source, tests, and docs are
+Expected: no whitespace errors. Only the planned source, tests, and docs are
 modified. Commit with `feat: interrupt Ask AI responses on tap` and push main.

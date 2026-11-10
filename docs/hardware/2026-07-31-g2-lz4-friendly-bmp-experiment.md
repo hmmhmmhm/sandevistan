@@ -1,14 +1,15 @@
 # G2 LZ4-Friendly BMP Hardware Gate
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Reliable physical pass; speed gate failed
 
 ## Goal
 
-Compare the SDK `0.0.13` image path using the current four-level Canvas PNG
-against an opt-in uncompressed 1-bit BMP intended to compress efficiently in
-the Even App LZ4 transport.
+Compare four-level Canvas PNG with an opt-in uncompressed 1-bit BMP on the SDK `0.0.13` image path. The BMP candidate aims to improve compression in the Even App LZ4 transport.
 
 ## Controlled routes
 
@@ -44,14 +45,9 @@ the same minimal black PNG frame.
 ## Transport observation
 
 All four SDK calls entered the in-flight state within a few milliseconds, but
-their completion times remained progressively staggered. This indicates a
-shared downstream transfer path in the Even App, BLE stack, or glasses rather
-than four independent physical channels. The public Web SDK does not expose
-post-LZ4 byte counts, packet scheduling, or acknowledgment timing, so the
-end-to-end hardware duration remains the deciding measurement.
+their completion times remained progressively staggered. This pattern suggests a shared downstream transfer path in the Even App, BLE stack, or glasses. It does not establish four independent physical channels. The public Web SDK does not expose post-LZ4 byte counts, packet scheduling, or acknowledgment timing. Use end-to-end hardware duration to compare the routes.
 
-The supplied two-tile traces are not a strict A/B sample because unchanged
-PNG tiles were skipped in parts of the control run. The controlled four-tile
+The control skipped unchanged PNG tiles in parts of the two-tile run. Those traces are therefore not a controlled A/B sample. The controlled four-tile
 result is already sufficient to reject BMP as the speed default.
 
 ## Stability

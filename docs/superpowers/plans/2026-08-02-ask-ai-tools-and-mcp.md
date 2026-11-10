@@ -1,5 +1,10 @@
 # Ask AI Built-in Tools and MCP Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED AND INTEGRATED`
 
 Implementation commit: `d715c6e`; Web-search preview fix: `fb7dfb9`
@@ -10,8 +15,8 @@ Implementation commit: `d715c6e`; Web-search preview fix: `fb7dfb9`
 
 - OpenAI and MCP credentials remain in Even storage and are never logged or persisted by the application server.
 - Exact coordinates are exposed only after the model explicitly calls the location function.
-- Web search is a bounded same-origin BYOK request; results carry source metadata into local conversation history.
-- Every MCP invocation requires approval on the glasses. One tap approves; double tap rejects and exits.
+- Web search is a bounded same-origin BYOK request. Results carry source metadata into local conversation history.
+- Every MCP invocation requires approval on the glasses. One tap approves. Double tap rejects and exits.
 - Enabled MCP configuration is captured when a new Ask AI session starts. Editing settings never mutates an active session.
 - Tool work has no retry/replay queue. A cancelled, failed, duplicate, or busy call stays failed and a later model turn may try again.
 
@@ -47,7 +52,7 @@ Implementation commit: `d715c6e`; Web-search preview fix: `fb7dfb9`
 
 1. Add failing tests showing runtime resolves MCP servers at session start, supplies the current live location, approves on tap, and preserves citations.
 2. Extend snapshots with a sanitized approval prompt and search sources.
-3. Make normal tap approve only while approval is pending; otherwise retain response interruption/flush behavior.
+3. Make normal tap approve only while approval is pending. Otherwise retain response interruption/flush behavior.
 4. Persist bounded HTTPS citations with the latest conversation excerpt and render them as reference markers on glasses.
 
 ## Task 5: Add phone MCP management and localization

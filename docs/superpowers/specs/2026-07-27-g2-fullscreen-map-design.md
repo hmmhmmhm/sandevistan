@@ -1,5 +1,7 @@
 # G2 Fullscreen Map and Persistent Zoom Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-27
 Branch: `feature/g2-fast-content`
 Baseline: `live-refresh-017`
@@ -7,10 +9,10 @@ Status: APPROVED
 
 ## Goal
 
-Let the user open a full-display live map from the overview with one ring or
-glasses tap, change a shared zoom level with scroll gestures, and return to the
-overview with a double tap without weakening the proven serialized four-tile
-Canvas transport.
+From the overview, let the user open a full-display live map with one ring or glasses tap.
+Use scroll gestures to change a shared zoom level.
+Use a double tap to return to the overview.
+Preserve the proven serialized four-tile Canvas transport.
 
 ## Approved interaction contract
 
@@ -52,11 +54,10 @@ The 850-metre outer step is deliberately modest so the existing bounded OSM
 payload remains useful without expanding the provider query or increasing
 Overpass timeout risk.
 
-The zoom index is shared by the embedded and fullscreen renderers. It survives
-page navigation, fullscreen entry and exit, location movement, map refresh,
-minute changes, and battery changes for the life of the running app. Reloading
-or restarting the app returns to the approved 650-metre default; no new
-persistent-storage contract is introduced.
+The embedded and fullscreen renderers share one zoom index for the running app.
+It survives page navigation, fullscreen entry and exit, movement, map refresh, minute changes, and battery changes.
+On reload or restart, reset the radius to the approved 650-metre default.
+Do not add persistent storage for zoom.
 
 A pure state transition function receives the current state, current HUD page,
 and normalized input. It returns the next state and one of:

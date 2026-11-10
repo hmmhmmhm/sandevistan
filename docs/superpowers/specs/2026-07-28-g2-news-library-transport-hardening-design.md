@@ -1,5 +1,7 @@
 # G2 News Library and Transport Hardening Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 **Date:** 2026-07-28
 
 ## Goal
@@ -45,11 +47,11 @@ The title remains 25 px bold. The summary becomes 21 px bold, which is only
 slightly smaller than the title. Summary text uses the full inner width of the
 548 px article frame with 10 px internal side padding.
 
-Wrapping is based on measured display width instead of a fixed character-unit
-limit. Each line may use up to 528 px. The renderer keeps up to four summary
-lines between the title and publication row. The first summary line remains
-secondary green and the remaining lines use primary green. Long text is
-clipped to the available four lines; the stored RSS summary remains unchanged.
+Wrap text by measured display width instead of a fixed character-unit limit.
+Each line can use up to 528 px.
+Keep up to four summary lines between the title and publication row.
+Use secondary green for the first summary line and primary green for the remaining lines.
+Clip long text to four displayed lines. Keep the stored RSS summary unchanged.
 
 The header, article counter, publication time, footer controls, colors, and
 glow-free Canvas rendering remain unchanged.
@@ -59,10 +61,10 @@ glow-free Canvas rendering remain unchanged.
 ### Storage and merge
 
 `parseNewsRss()` returns up to 100 normalized RSS items instead of six.
-`resolveNews()` reads the persisted library and fetches the latest feed when
-the cache is due. It merges network items before cached items, deduplicates by
-the normalized item ID, sorts dated items newest first, preserves source order
-for ties or missing dates, and stores at most 100 items.
+When the persisted library is due for refresh, `resolveNews()` fetches the latest feed.
+It merges network items before cached items and deduplicates by normalized item ID.
+It sorts dated items newest first and preserves source order for ties or missing dates.
+It stores at most 100 items.
 
 The current feed may expose fewer than 100 distinct items. Therefore the
 library fills progressively across successful hourly refreshes rather than
@@ -86,10 +88,10 @@ library is due. The scheduler does not enqueue work:
 - if a fetch or storage operation fails, the existing library remains stale
   and the attempt ends.
 
-Leaving the news detail deck triggers one immediate due check. If the library
-is not yet one hour old, that check does no network work. A skipped or failed
-check is not retained as a pending job; a later timer, visibility event, or
-detail-exit event may make a new independent attempt.
+On leaving news details, run one immediate due check.
+If the library is less than one hour old, do not fetch data.
+Do not retain skipped or failed checks as pending jobs.
+A later timer, visibility event, or detail-exit event may make an independent attempt.
 
 ### Selection stability
 
@@ -129,10 +131,9 @@ The failed request remains failed. The rollback is local state repair, not an
 automatic display retry. The next independent gesture begins from the page
 that is still visible on the glasses.
 
-Detail-deck state transitions are unchanged. Their redraw failures already
-leave the wearer on a partially or previously transferred raster, but the
-requested hardening is limited to dashboard page navigation where an internal
-page skip was observed.
+Keep detail-deck transitions unchanged.
+A failed detail redraw can already leave a partial or previous raster visible.
+Limit this change to dashboard page navigation, where an internal page skip was observed.
 
 ## Diagnostics
 

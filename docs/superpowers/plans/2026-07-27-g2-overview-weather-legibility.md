@@ -1,12 +1,15 @@
 # G2 Overview weather auxiliary information readability implementation plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Enlarge the two lines at the bottom right of `OVERVIEW` for perceived humidity and precipitation and wind to 14px.
 
-**Architecture:** The data flow, position, color and text of the existing `drawOverview()` are
-Instead of changing it, just adjust the size argument of the two `drawText()` calls. Existing Canvas
-In the collection test, the actual font strings of the two phrases are checked and the size is fixed.
+**Architecture:** Keep the data flow, position, color, and text of the existing `drawOverview()` unchanged. Adjust only the size argument of the two `drawText()` calls. In the Canvas collection test, assert the actual font strings of both phrases to preserve their sizes.
 
 **Tech Stack:** TypeScript 5.9, Canvas 2D, Vitest
 

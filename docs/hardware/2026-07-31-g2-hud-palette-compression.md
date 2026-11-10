@@ -1,5 +1,8 @@
 # G2 HUD Palette Compression Hardware Gate
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Partial physical pass; hide-path refinement required
@@ -8,9 +11,7 @@ Branch: `experiment/g2-pipelined-transport`
 
 ## Goal
 
-Determine whether collapsing transmitted Canvas pixels to the four authored HUD
-gray levels reduces physical G2 image-refresh latency without compromising
-legibility, binocular completeness, or WebView stability.
+Measure G2 image-refresh latency after mapping transmitted Canvas pixels to the four authored HUD gray levels. Verify legibility, binocular completeness, and WebView stability.
 
 ## Baseline
 
@@ -85,8 +86,7 @@ performance gate.
 | Black PNG bytes | 4,704 | 4,704 | unchanged |
 | Complete refresh | 338 ms median, n=5 | 393 ms median, n=8 | 55 ms / 16.3% slower |
 
-The hidden frame was already solid black, so palette processing could not
-reduce its PNG payload and added avoidable CPU work. A follow-up candidate
+The hidden frame was already solid black. Palette processing could not reduce its PNG payload and added CPU work. A follow-up candidate
 should bypass palette conversion for the generated black hidden Canvas while
 retaining four-level conversion for content restores.
 
@@ -102,10 +102,7 @@ retaining four-level conversion for content restores.
 
 ## Decision
 
-Retain the four-level content candidate. Do not promote this exact revision as
-the final default yet: remove redundant hide-frame quantization first, then
-repeat the hide/restore comparison and finish the remaining visual and
-stability checks.
+Retain the four-level content candidate. Before promoting this revision, remove redundant hide-frame quantization. Then repeat the hide and restore comparison. Complete the remaining visual and stability checks.
 
 ## Automated gate
 

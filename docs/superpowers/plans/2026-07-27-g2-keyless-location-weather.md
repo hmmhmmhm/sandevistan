@@ -1,14 +1,19 @@
 # G2 Keyless Location and Weather Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Show a real or clearly labeled fallback location and current Open-Meteo weather without an API key, while preserving fast paging and serialized G2 image sends.
+**Goal:** Show a real or clearly labeled fallback location and current Open-Meteo weather without an API key. Preserve fast paging and serialized G2 image sends.
 
-**Architecture:** Normalize provider data into a framework-independent `LiveDashboardState`; renderers consume snapshots and never fetch. A dashboard session resolves one SDK location, persists small JSON caches, refreshes weather independently, and asks the existing transport for left/right tile refreshes through a coalescing queue.
+**Architecture:** Normalize provider data into a framework-independent `LiveDashboardState`; renderers consume snapshots and never fetch. A dashboard session resolves one SDK location and persists small JSON caches. The session refreshes weather independently. It requests left/right tile refreshes through the existing transport's coalescing queue.
 
 **Tech Stack:** TypeScript, Even Hub SDK `0.0.11`, Open-Meteo Forecast API, Canvas 2D, Vitest
 
@@ -22,7 +27,7 @@ The original Task 5 wording assumed that live OSM data and attribution would
 arrive with location and weather. OSM belongs to the following dedicated plan
 and was not present at this checkpoint. To avoid presenting the schematic as a
 live map, the as-run HUD uses `LOC // LIVE · MAP DEMO`,
-`LOC // LAST FIX · MAP DEMO`, or `LOC // DEMO · MAP DEMO`; the phone WebView
+`LOC // LAST FIX · MAP DEMO`, or `LOC // DEMO · MAP DEMO`. The phone WebView
 uses `Weather: Open-Meteo · Maps: Demo Schematic`. The original intention is recorded
 here as a deviation rather than silently treating the OSM acceptance criteria
 as complete.
@@ -417,11 +422,11 @@ if (code <= 99) return "Thunderstorm";
 return "unknown";
 ```
 
-Reject malformed/non-finite fields. If a cache exists, call `onCached` before
-starting any network request so the HUD can paint it immediately. Return a
-fresh cache without a request when it is younger than 15 minutes. Otherwise
-fetch with an `AbortController` eight-second timeout, persist success, retain
-stale cache on error, and never throw to the dashboard session.
+Reject malformed or non-finite fields. If a cache exists, call `onCached` before
+starting a network request. The HUD can then display the cached data immediately.
+If the cache is younger than 15 minutes, return it without a request.
+Otherwise, fetch with an `AbortController` eight-second timeout. Persist successful results.
+On error, retain the stale cache. Never throw to the dashboard session.
 
 - [x] **Step 4: Verify and commit**
 

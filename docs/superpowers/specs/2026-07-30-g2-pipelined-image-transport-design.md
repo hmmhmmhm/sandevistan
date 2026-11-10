@@ -1,5 +1,7 @@
 # G2 Pipelined Image Transport Experiment Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-30
 
 Status: Approved for implementation
@@ -56,9 +58,9 @@ passes startup, page-transition, binocular, failure, and responsiveness gates.
 
 ### Fixed pair barriers
 
-Sending `3` and `5` together, waiting for both, then sending `2` and `4`
-together is simpler but wastes time whenever one tile in a pair finishes
-earlier. A bounded pool can fill that idle slot without increasing the limit.
+Sending `3` and `5` together, waiting for both, then sending `2` and `4` is simpler.
+However, if one tile finishes early, that method leaves a slot idle.
+A bounded pool fills the available slot without increasing the concurrency limit.
 
 ### All tiles at once
 

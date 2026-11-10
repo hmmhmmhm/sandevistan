@@ -1,14 +1,16 @@
 # G2 Weather detailed/dynamic navigation page design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-28
 
 Status: User approved
 
 ## Target
 
-In G2's basic page configuration, weather that operates without a key is provided as an independent page.
-Users without ORS keys will not see instructions for disabling functions or key settings, and will currently
-Only weather information should be quickly readable with large letters and high contrast.
+Add keyless weather as an independent G2 dashboard page.
+For users without ORS keys, hide navigation-disabled and key-setup instructions.
+Use large text and high contrast to make current weather readable at a glance.
 
 ## Page composition
 
@@ -17,18 +19,17 @@ Uses a dynamic page list that only applies to Fast Canvas HUD.
 - ORS disabled: `Overview → News → TODO → Weather`
 - ORS active: `Overview → News → TODO → Weather → Navigation`
 
-Weather always comes fourth. Navigation only works when `route.status !== "disabled"`
-It appears as the last page. The denominator of the page number also matches the current list length.
-Displayed as `04 / 04` or `05 / 05`.
+Weather is always fourth.
+Show Navigation last only when `route.status !== "disabled"`.
+Match the page-number denominator to the current list length, such as `04 / 04` or `05 / 05`.
 
-The fixed page type and order of the general Canvas and existing Hybrid experiment paths are not changed.
-No. Fast Canvas has a dedicated page type and list calculation function to limit the scope of change.
-Isolate.
+Keep the fixed page types and order of general Canvas and existing Hybrid experiment routes unchanged.
+Use dedicated Fast Canvas page types and a page-list function to limit the change.
 
 ## Weather Dashboard Page
 
-The left map and common clock header maintain the existing Fast Canvas structure. fourth
-The area on the right side of the page is used only for weather information.
+Keep the existing Fast Canvas left map and common clock header.
+On the fourth page, reserve the right area for weather information.
 
 - Status label: `WEATHER // NOW` or `WEATHER // LAST` for old cache.
 - Biggest information: current temperature and weather conditions
@@ -40,50 +41,47 @@ Battery, news, TODO, and navigation text are not mixed into the weather page.
 
 ## Weather details page
 
-One tap on the weather dashboard page for 576×288 full screen weather details.
-Enter. The detailed screen focuses on the currently available Open-Meteo observations.
+On a single tap of the weather dashboard, open 576×288 full-screen weather details.
+Show the currently available Open-Meteo observations.
 
-- Top: `WEATHER // LIVE`, `WEATHER // LAST`, `WEATHER // LOADING`,
-  `WEATHER // UNAVAILABLE`
-- Center: The current temperature is the largest, next to it is the weather condition.
-- Bottom information block: perceived temperature, humidity, probability of precipitation, wind
-- Only when the cache is old, a short `LAST DATA` is displayed instead of the update time.
-- Scroll and single tab only consume and do not move to another page
-- A quick double tap returns to the original dashboard weather page
+- Show the status at the top: `WEATHER // LIVE`, `WEATHER // LAST`, `WEATHER // LOADING`, or `WEATHER // UNAVAILABLE`.
+- In the center, show temperature largest, with the weather condition beside it.
+- In the bottom block, show perceived temperature, humidity, precipitation probability, and wind.
+- Only for an old cache, show `LAST DATA` instead of the update time.
+- Consume scroll and single-tap input without changing pages.
+- On a quick double tap, return to the dashboard weather page.
 
-At this stage, no new hourly or daily forecasts are requested. existing
-Open-Meteo uses only current weather data to change network and cache models and to use glasses
-Avoid information overload.
+Do not request new hourly or daily forecasts.
+Use only existing Open-Meteo current-weather data.
+This avoids changes to network and cache models and limits information on the glasses.
 
 ## ORS Disabled Handling
 
-If `route.status === "disabled"`, the navigation page is removed from the circular list.
-Exclude. Therefore, the text below is not displayed on both the dashboard and detail screen.
+If `route.status === "disabled"`, exclude Navigation from the circular page list.
+Do not display the following text on the dashboard or detail screen:
 
 - `path key required`
 - `Use after connecting ORS`
 - `Key setting required`
 - `NAV // DISABLED`
 
-If the page list changes during runtime and the current page no longer exists,
-Normalize to the weather page. When ORS is activated, navigation follows weather.
-It is added automatically, but does not force the user's current page to change.
+If the page list changes and the current page disappears, switch to Weather.
+When ORS becomes active, add Navigation after Weather without changing the user's current page.
 
 ## Input and status
 
-Add weather detail mode to `FastHudViewMode`. The dashboard weather page tab is
-This mode is entered and no additional state such as selection index is created.
+Add weather detail mode to `FastHudViewMode`.
+A tap on the dashboard weather page enters this mode.
+Do not add a selection index or other new state.
 
-The latest separation rules for normal page orientation and map zoom orientation are maintained. weather details
-`consume` all scrolling, so scrolling becomes a dashboard page transition
-It doesn't spread.
+Keep the existing separate directions for dashboard paging and map zoom.
+In weather details, return `consume` for all scrolling so input cannot change dashboard pages.
 
 ## Real-time update
 
-When a weather detail is open, the weather state, current observation, or `fetchedAt` is
-If something changes, all four tiles are updated once. If the values ​​are the same, they are not updated.
-Existing “discard busy request, no queue, on failure leave to next independent event” rule.
-Just follow it.
+While weather details are open, update all four tiles once if weather state, current observations, or `fetchedAt` changes.
+If the values are unchanged, send nothing.
+Keep the existing rules: drop busy requests, queue nothing, and leave failures for the next independent event.
 
 The dashboard weather page uses the existing right area update path.
 
@@ -114,6 +112,8 @@ Automated verification runs all tests serially. In fact, in G2, four tiles on bo
 Check font size, page order, entering and returning to details, and long-term input response.
 
 ## Completion conditions
+
+> Unresolved count: The criterion below says five items. The detailed layout lists six: temperature, condition, perceived temperature, humidity, precipitation probability, and wind. This record does not resolve that difference.
 
 - In the default keyless environment, the fourth thing is the weather and there is no navigation guidance at all.
 - Navigation appears fifth only in keyed environments

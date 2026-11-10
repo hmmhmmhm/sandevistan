@@ -1,38 +1,38 @@
 # G2 hybrid z-order backport experimental design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Background and practical evidence
 
-`/hud-hybrid` first creates four canvas backgrounds without text in SDK `0.0.10`.
-Transmit, and update the full screen Text container ID 1 at the end. In actual G2
-Only the Canvas layout was visible and the text was not visible as usual. Close system
-Text appears when you open the panel, and disappears again as soon as you cancel the panel.
+With SDK `0.0.10`, `/hud-hybrid` first sends four Canvas background tiles without text.
+It then updates full-screen Text container ID 1.
+On the actual G2, only the Canvas layout was visible.
+Text appeared when the system close panel opened and disappeared when the panel was cancelled.
 
-This result does not mean that the Text transfer or glyph rendering failed, but rather that the Text is
-It shows that it is synthesized after the container. At the end, `textContainerUpgrade()`
-The calling order does not change the container's screen layer order.
+This observation points to a Text layer-order problem rather than failed text transfer or glyph rendering.
+Calling `textContainerUpgrade()` last does not change the container's display layer.
 
-Official SDK `0.0.12` added `zOrderIndex` to List, Text and Image. same
-If even one container on the page uses this value, all containers will have a different value.
-It must have, and the larger the value, the sooner it is displayed. However, image LZ4 in `0.0.12`
-Sending is currently confirmed as ‘SENDFAILED’ on the Even app and G2.
+Official SDK `0.0.12` added `zOrderIndex` to List, Text, and Image containers.
+If any container uses this property, every container on the page must have a unique value.
+Larger values appear in front.
+However, image LZ4 transmission in `0.0.12` currently returns "SENDFAILED" on the Even app and G2.
 
-The TypeScript type in SDK `0.0.10` does not have `zOrderIndex`, but it does have a model constructor and
-`toJson()` does not remove unknown fields. In local serialization check
-Text, Image and `zOrderIndex` injected into the start page JSON have all been preserved.
+SDK `0.0.10` does not declare `zOrderIndex` in its TypeScript type.
+However, the model constructor and `toJson()` preserve unknown fields.
+Local serialization checks preserved the injected `zOrderIndex` values in Text, Image, and startup-page JSON.
 
 ## Target
 
-Successful SDK `0.0.10` to container JSON while maintaining image transfer protocol
-Specify only `zOrderIndex` to ensure that native text is visible on the Canvas image.
-Judge.
+Keep the successful SDK `0.0.10` image-transfer protocol.
+Add only `zOrderIndex` to the container JSON and test whether native text becomes visible over the Canvas images.
 
-Do not change `/hud-hybrid`, which preserves the existing `/hud-canvas` and the failure cause.
-No. The new A/B path is `/hud-hybrid-z`.
+Keep `/hud-canvas` unchanged.
+Preserve `/hud-hybrid` to reproduce the failure.
+Use `/hud-hybrid-z` as the new A/B route.
 
 ## Layer contract
 
-The new route's start page and reconfiguration page are unique to all five containers.
-Specify the layer number.
+In both the new startup page and rebuild page, assign each of the five containers a unique layer number.
 
 | container | ID | layer |
 |---|---:|---:|
@@ -42,13 +42,12 @@ Specify the layer number.
 | Bottom right Canvas image | 5 | 4 |
 | Full screen event Text | 1 | 5 |
 
-Text is placed before the four images using the largest value of 5. The number is on the page
-They are all unique, and image tiles do not overlap, so the relative order of 1–4 is
-Does not affect shape.
+Place Text in front of the four images with the largest layer value, 5.
+All layer numbers must be unique within the page.
+The image tiles do not overlap, so their relative order at layers 1–4 does not affect appearance.
 
-`zOrderIndex` is explicitly set to the `0.0.10` model instance without increasing the SDK version.
-Inject. If all five values ​​are not left in the result of `toJson()` on the start page,
-The automatic test must fail before transfer to the actual device.
+Inject `zOrderIndex` into the `0.0.10` model instance without upgrading the SDK.
+Before hardware transfer, fail the automated test unless startup-page `toJson()` preserves all five values.
 
 ## Path and data flow
 
@@ -60,18 +59,18 @@ The automatic test must fail before transfer to the actual device.
 4. Down and up scrolling only updates the text once in the existing Promise queue.
 5. Double-clicking exits the page as before.
 
-The browser Canvas preview continues to show only a static background. Layer judgment is real
-Available only with Even app and G2.
+The browser Canvas preview shows only the static background.
+Evaluate layer order only in the Even app on the actual G2.
 
 ## Code isolation
 
-The contract for creating existing pages without layers is left as is. The new page generator is
-Expose it as a separate entry point like `createLayeredGlassesPage()`, and use it as a common internal
-Only the creation logic is reused.
+Keep existing page creation without layers unchanged.
+Expose the new page generator through a separate entry point such as `createLayeredGlassesPage()`.
+Reuse only the common internal creation logic.
 
-Hybrid transmission's image serialization, text conversion queue, and event processing are shared, but
-Select New Path Only Layer Page Generator. `/hud-hybrid` accidentally
-Fix it with a regression test to see if `zOrderIndex` is not received.
+Share hybrid image serialization, the text-transition queue, and event handling.
+Select the layered page generator only for the new route.
+Add a regression test that `/hud-hybrid` receives no `zOrderIndex`.
 
 ## Error handling
 
@@ -82,8 +81,8 @@ Fix it with a regression test to see if `zOrderIndex` is not received.
 - Only `/hud-hybrid-z` will fail if the host does not understand `zOrderIndex`,
   `/hud-canvas` and `/hud-hybrid` remain as comparison and recovery paths.
 
-It does not add automatic retries or SDK replacement. The variable in this experiment is the container
-There must be only one layer number.
+Do not add automatic retries or replace the SDK.
+Container layer numbers must remain the only experimental variable.
 
 ## Automatic testing
 
@@ -114,7 +113,6 @@ The following items are judged in actual G2.
 - [ ] All four images are sent without `SENDFAILED`.
 - [ ] The same layout and text are visible on both sides.
 
-When text is displayed normally, explicit layer contract is used as the default method for hybrid HUD.
-You can get promoted. If the page is `invalid` or the image is `SENDFAILED` again
-The backport logs the existing Canvas HUD as not supported on the current host.
-Remain as default candidate.
+If text displays correctly, the explicit layer configuration can become the hybrid HUD default.
+If the page returns `invalid` or an image returns `SENDFAILED`, record the backport as unsupported on the current host.
+Keep the existing Canvas HUD as the default candidate.

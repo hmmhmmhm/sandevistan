@@ -1,5 +1,8 @@
 # G2 Pipelined Image Transport Hardware Gate
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-30
 
 Status: Pipeline four partial physical pass
@@ -30,13 +33,9 @@ Four-call transport coverage commit: `4414d7d`
 
 ## Purpose
 
-Measure whether allowing two, three, or four G2 image updates to remain in
-flight inside one accepted refresh reduces page and detail transition
-wall-clock time without reducing display integrity or WebView stability.
+Measure transition duration with two, three, or four G2 image updates in flight during one accepted refresh. Check display integrity and WebView stability for each limit.
 
-This branch does not change the stable SDK, tile geometry, refresh busy gate,
-12-second tile timeout, unchanged-tile skip, success-only cache, page rollback,
-or the rule that busy refresh requests are dropped rather than deferred.
+This branch preserves the stable SDK, tile geometry, refresh busy gate, and 12-second tile timeout. It also preserves unchanged-tile skipping, success-only caching, and page rollback. Busy refresh requests remain dropped rather than deferred.
 
 ## Test URLs
 
@@ -75,7 +74,7 @@ Rollback URL:
 - Independent input, clock, battery, location, and content refreshes never
   queue, merge, retry, replay, or retain a pending latest value.
 - The first observed tile failure prevents new tile starts.
-- Calls already in flight are allowed to settle before the refresh fails.
+- The runner waits for calls already in flight to settle before reporting refresh failure.
 - Only successful tile payloads update the unchanged-tile cache.
 
 ## Expected diagnostics
@@ -210,10 +209,7 @@ Result: `PARTIAL PASS — DISPLAY ACCEPTABLE, NO SENDFAILED`
 
 ## Decision rule
 
-Pipeline two passes only when it is faster than the same-session serial
-baseline and every visual, binocular, control, failure, and responsiveness
-gate passes. Pipeline four passes only when it also satisfies every gate and
-is faster than pipeline two.
+Pipeline two must be faster than the same-session serial baseline. It must also pass every visual, binocular, control, failure, and responsiveness check. Pipeline four must pass the same checks and be faster than pipeline two.
 
 If pipeline four fails, return to `pipeline=2` or `pipeline=1`, keep `main`
 serial, record the failure on this branch, and do not promote the failed mode.

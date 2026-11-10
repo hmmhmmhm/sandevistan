@@ -1,13 +1,14 @@
 # Unified Locale, Map Labels, and RSS Defaults
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 **Date:** 2026-07-29
 
 ## Goal
 
-Make the selected phone language the single source of truth for Sandevistan's
-phone companion, live `/hud-canvas-fast` glasses HUD, weather copy, and OSM map
-labels. Seed three verified RSS sources for Korean and three for English while
-preserving user-added feeds and the existing no-queue image transport contract.
+Use the selected phone language for Sandevistan's phone companion, live `/hud-canvas-fast` glasses HUD, weather text, and OSM labels.
+Seed three verified RSS sources for Korean and three for English.
+Preserve user-added feeds and the existing no-queue image transport behavior.
 
 ## Approved behavior
 

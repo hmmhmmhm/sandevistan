@@ -1,5 +1,7 @@
 # G2 manual image-send diagnostic design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
 Determine whether `updateImageRawData()` fails because it runs automatically
@@ -39,10 +41,12 @@ manual-click status with no three-second wait on this path.
 
 ## Interpreting the hardware result
 
+> Unresolved interpretation: These outcome rules assert a definite timing cause. This record does not establish whether one result excludes other causes.
+
 - If click-triggered transmission succeeds, startup-time automatic sending is
-  the cause. Sandevistan should gate its initial raster behind user input or a later
-  lifecycle event.
+  the cause. Sandevistan should require user input or a later lifecycle event
+  before sending its initial raster.
 - If it returns `SENDFAILED`, startup timing is ruled out. The next isolated
   experiment will preload and decode a PNG in the WebView before a manual click.
-- If the click is not detected, the image path remains untested; event-envelope
-  logging becomes the next diagnostic.
+- If the click is not detected, the image path remains untested. Record event
+  envelopes in the next diagnostic.

@@ -1,13 +1,15 @@
 # G2 Ask AI Realtime HUD Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
-Add an optional Ask AI page to the proven SDK 0.0.13 fast HUD. A user can see
-recent conversation excerpts and this app's estimated Realtime spend on the
-dashboard, then deliberately tap the page to start a new continuous voice
-conversation. The G2 microphone supplies audio and the glasses show streaming
-user transcription and assistant text. No speaker or model audio output is
-used.
+Add an optional Ask AI page to the proven SDK 0.0.13 fast HUD.
+On the dashboard, show recent conversation excerpts and the app's estimated Realtime spend.
+Start a new continuous voice conversation only when the user taps the page.
+Use the G2 microphone for audio input.
+Show streaming user transcription and assistant text on the glasses.
+Do not use speaker or model audio output.
 
 ## Product behavior
 
@@ -47,9 +49,8 @@ Use a short-lived token and a direct Realtime WebSocket:
 6. Leaving the deck first closes microphone input, unsubscribes from audio
    events, and closes the WebSocket.
 
-This keeps audio off the Sandevistan Worker, removes a continuously relayed
-connection, and ensures the standard key never enters the shipped bundle or a
-Realtime WebSocket.
+This keeps audio off the Sandevistan Worker and removes a continuously relayed connection.
+The standard key never enters the shipped bundle or a Realtime WebSocket.
 
 ## Realtime session
 
@@ -91,10 +92,10 @@ Persist only:
   audio input, cached audio input, and text output tokens;
 - the model and pricing version used for each aggregate.
 
-Do not persist raw audio or a full transcript. Weekly totals start on Monday in
-the device timezone; monthly totals start on the first day of the local month.
-Cost is explicitly labeled as estimated and computed from a single model-price
-registry so price updates do not alter storage or UI code.
+Do not persist raw audio or a full transcript.
+In the device timezone, weekly totals start on Monday and monthly totals start on the first day of the month.
+Label cost as estimated.
+Compute it from one model-price registry so price updates do not require storage or UI code changes.
 
 The phone AI screen provides the masked BYOK field, save/delete controls,
 weekly and monthly estimates, token details, recent excerpts, and a local

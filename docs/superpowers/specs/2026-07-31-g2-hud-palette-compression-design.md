@@ -1,5 +1,7 @@
 # G2 HUD Palette Compression Experiment Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Implemented; awaiting physical comparison
@@ -8,10 +10,8 @@ Branch: `experiment/g2-pipelined-transport`
 
 ## Goal
 
-Reduce G2 image-transfer latency after the successful `pipeline=4` hardware
-trial by decreasing the encoded PNG byte count without changing the phone
-preview, HUD layout, SDK version, tile geometry, or refresh scheduling
-contract.
+After the successful `pipeline=4` hardware trial, test whether fewer encoded PNG bytes reduce G2 image-transfer latency.
+Keep the phone preview, HUD layout, SDK version, tile geometry, and refresh scheduling unchanged.
 
 The experiment is opt-in. The existing unquantized encoder remains the
 default, and `main` remains unchanged until physical G2 evidence shows a
@@ -121,10 +121,9 @@ acceptable on the physical G2.
 
 ### Indexed-color PNG encoder
 
-A true indexed PNG could reduce structural overhead beyond Canvas
-`toBlob`, but it requires a custom encoder or dependency and creates a new SDK
-compatibility surface. It is deferred until ordinary four-level Canvas PNGs
-have measured physical evidence.
+A true indexed PNG may reduce structural overhead beyond Canvas `toBlob`.
+However, it requires a custom encoder or dependency and another SDK compatibility check.
+Defer it until ordinary four-level Canvas PNGs have measured physical evidence.
 
 ### Layered static background and small foreground image
 

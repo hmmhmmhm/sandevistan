@@ -1,24 +1,25 @@
 # SDK 0.0.10 Image transmission A/B diagnostic design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Background
 
-On the actual G2, the first `288×144` PNG tile of the current root and the `/diagnostic-v10`
-Click trigger `200×100` 1-bit BMP all returned `SENDFAILED`. two
-The experiments were conducted to transfer images from the SDK to the glasses, although the image format, size and transfer timing were different.
-The sending steps are the same.
+On the actual G2, the root route's first `288×144` PNG tile returned `SENDFAILED`.
+The click-triggered `200×100` 1-bit BMP in `/diagnostic-v10` also failed.
+The two experiments differ in format, size, and timing, but use the same SDK-to-glasses transmission steps.
 
-The current app uses `@evenrealities/even_hub_sdk` `0.0.12`. official image
-The template uses `0.0.10`, and when serializing the same `ImageRawDataUpdate`
-Only `0.0.12` adds `compressMode: 2`. `0.0.12` change history image
-It explains that LZ4 compression has been added to the transmission.
+The current app uses `@evenrealities/even_hub_sdk` `0.0.12`.
+The official image template uses `0.0.10`.
+When serializing the same `ImageRawDataUpdate`, only `0.0.12` adds `compressMode: 2`.
+The `0.0.12` changelog says image transmission added LZ4 compression.
 
 ## Target
 
-Currently, only the SDK version is lowered to `0.0.10` without changing the Even app and G2 firmware.
-Determine whether `SENDFAILED` is related to the compressed transmission mode of `0.0.12`.
+Lower only the SDK version to `0.0.10`. Keep the Even app and G2 firmware unchanged.
+Test whether `SENDFAILED` is related to the compressed transmission mode in `0.0.12`.
 
-This experiment does not adopt SDK downgrade as a product direction. separation of causes
-This is a one-time A/B diagnosis for
+This is a one-time A/B diagnostic to isolate the cause.
+It does not select an SDK downgrade as the product direction.
 
 ## Selected access
 
@@ -35,13 +36,15 @@ Pin the SDK to exactly `0.0.10` in the local diagnostics branch.
 
 ### Remove only `compressMode` from `0.0.12` request
 
-It requires bypassing SDK internal serialization and falls outside the official API contract. SDK even if it fails
-It is difficult to tell whether it is a version issue or a bypass code issue, so do not select it.
+Removing the property requires bypassing SDK internal serialization, outside the official API contract.
+If transmission fails, the result cannot distinguish an SDK version problem from a bypass-code problem.
+Reject this approach.
 
 ### Update Even app and G2 firmware first
 
-This is desirable for a production environment, but apps, firmware, and connection sessions change simultaneously. this time
-In A/B experiments, there are too many causal variables, so it is placed in a separate step after confirming the results.
+Updating is desirable for production, but it changes the app, firmware, and connection sessions together.
+Those changes add too many variables to this A/B experiment.
+Update them in a separate step after recording the SDK comparison.
 
 ## Data flow
 
@@ -60,18 +63,15 @@ In A/B experiments, there are too many causal variables, so it is placed in a se
 | `SENDFAILED` | SDK compression mode is not the main cause | Restore to `0.0.12` and diagnose app/firmware/BLE connection status |
 | Other image errors | Differences in image conversion behavior by SDK version | Re-verify the same version with the official `sample.png` |
 
-It records only one result and does not add automatic retries. Retry is intermittent BLE
-Hiding failures can obscure A/B interpretation.
+Record one result without automatic retries.
+Retries can hide intermittent BLE failures and obscure the A/B comparison.
 
 ## Test
 
-- Version contract test matches SDK `0.0.10` in `package.json` and `app.json`
-  Confirm.
-- It passes the existing click trigger and BMP transmission order tests as is.
-- Full Vitest, TypeScript inspection, production build and Sites packaging inspection
-  Run.
-- Tailscale diagnostic URL returns HTTP `200` and `4173` listener is one
-  Confirm.
+- Check that version-contract tests require SDK `0.0.10` in `package.json` and `app.json`.
+- Pass the existing click-trigger and BMP transmission-order tests unchanged.
+- Run the full Vitest suite, TypeScript checks, production build, and Sites package inspection.
+- Check that the Tailscale diagnostic URL returns HTTP `200` and port `4173` has one listener.
 
 ## Success Criteria
 

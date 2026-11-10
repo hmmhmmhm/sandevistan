@@ -1,12 +1,14 @@
 # G2 Map Empty States, News Pagination, and TODO Redraw Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 **Date:** 2026-07-28
 
 ## Goal
 
-Make missing map information honest and visually quiet, let the wearer read
-every available RSS summary page before changing articles, and reflect both
-TODO checking and unchecking immediately on the glasses.
+Show missing map information with a clear, visually quiet status.
+Let the wearer read every available RSS summary page before changing articles.
+Immediately show both TODO checking and unchecking on the glasses.
 
 ## Constraints
 
@@ -31,10 +33,10 @@ The map drawing area uses the following mutually exclusive states:
 4. Otherwise draw real roads, labels, an active route when available, and the
    position marker.
 
-`NO GPS DATA` and `NO DATA` are centered in the available embedded or
-fullscreen map viewport. The surrounding HUD frame, header, zoom footer, and
-controls remain, but the map drawing area contains only the status text. It
-does not contain a position marker, route, label, road, or placeholder line.
+Center `NO GPS DATA` or `NO DATA` in the available embedded or fullscreen map viewport.
+Keep the surrounding HUD frame, header, zoom footer, and controls.
+The map drawing area contains only status text.
+Do not draw a position marker, route, label, road, or placeholder line there.
 
 The schematic sample grid is deleted. No fallback geometry replaces it.
 
@@ -95,10 +97,10 @@ selected article and summary page unless the refreshed data requires clamping.
 
 ## TODO Immediate Toggle
 
-The existing `toggleTodo()` already inverts `completed`, so a checked item
-becomes unchecked and an unchecked item becomes checked. The defect is in the
-display path: the synchronous state emission requests an external refresh
-while the input operation is busy, so that request is correctly dropped.
+The existing `toggleTodo()` inverts `completed`: checked items become unchecked, and unchecked items become checked.
+The defect is in the display path.
+The synchronous state emission requests an external refresh while the input operation is busy.
+The busy-state rule correctly drops that request.
 
 The input handler therefore treats a successful TODO toggle as part of the
 current input operation:

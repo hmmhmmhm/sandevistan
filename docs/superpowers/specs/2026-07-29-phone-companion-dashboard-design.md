@@ -1,16 +1,16 @@
 # Sandevistan Phone Companion Dashboard Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-29
 
 Status: implemented; automated and same-viewport visual verification complete
 
 ## Goal
 
-Replace the current dark diagnostic-oriented phone WebView with a focused
-Sandevistan companion app that visually matches the owner-supplied Even app
-references. The phone app must make the existing glasses experience easier to
-configure and manage without changing the hardware-proven G2 Canvas, page
-rendering, input semantics, or image transport.
+Replace the dark diagnostic-oriented phone WebView with a Sandevistan companion app that matches the owner-supplied Even app references.
+Make the existing glasses experience easier to configure and manage.
+Preserve the hardware-proven G2 Canvas, page rendering, input semantics, and image transport.
 
 The phone companion will provide:
 
@@ -226,10 +226,9 @@ Initial tokens:
 | Card radius | `8px` at the reference phone width |
 | Card icon | `30px`, black Pixelarticons |
 
-The layout uses two equal columns with an eight-pixel visual gap at the
-reference width. Card spacing and typography scale slightly for narrower
-WebViews, but the two-column structure remains until the minimum supported
-320-pixel width cannot preserve a usable tap target.
+Use two equal columns with an eight-pixel gap at the reference width.
+For narrower WebViews, reduce card spacing and typography slightly.
+Retain two columns until usable tap targets no longer fit at the minimum supported 320-pixel width.
 
 Use semantic buttons and links. Minimum interactive target size is 44 CSS
 pixels. The grayscale palette must still meet readable contrast for phone text;
@@ -330,10 +329,9 @@ retain bounded public caching. Unsupported methods, invalid URLs, unsafe hosts,
 oversized responses, timeouts, redirects, and non-feed content return stable
 errors.
 
-The client parses both RSS 2.0 and Atom, sanitizes fields, records the source
-label, and merges at most 100 articles. One refresh operation may fetch enabled
-feeds concurrently, but a second refresh request received while it runs is
-dropped and never queued.
+The client parses RSS 2.0 and Atom, sanitizes fields, records source labels, and merges at most 100 articles.
+One refresh may fetch enabled feeds concurrently.
+If another refresh arrives while it runs, drop the new request without queuing it.
 
 ## Error handling
 

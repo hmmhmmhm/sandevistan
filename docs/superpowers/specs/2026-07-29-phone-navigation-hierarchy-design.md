@@ -1,5 +1,7 @@
 # Phone Navigation Hierarchy Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Status: implemented; same-viewport visual verification complete
 
 > [!NOTE]
@@ -9,11 +11,10 @@ Status: implemented; same-viewport visual verification complete
 
 ## Context
 
-The Even app already supplies a native top bar with a back control, document
-title, and display action. The phone companion currently adds a second project
-label on Home and a second arrow-shaped Back control on detail screens. On the
-owner-supplied device screenshots, those controls read as duplicated navigation
-levels instead of one native shell containing one WebView.
+The Even app supplies a native top bar with a back control, document title, and display action.
+The phone companion adds a second project label on Home and another arrow-shaped Back control on detail screens.
+On the owner-supplied screenshots, these controls appear to duplicate navigation levels.
+The intended hierarchy is one native shell containing one WebView.
 
 ## Goal
 

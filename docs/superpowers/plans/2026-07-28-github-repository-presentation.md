@@ -1,5 +1,10 @@
 # GitHub Repository Presentation Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Publish the approved development warning, accurate HUD page list, repository description, and discovery topics for Sandevistan.
@@ -71,9 +76,7 @@ if (!readme.includes('| `NAVIGATION` *(active route only)* |')) process.exit(1);
 NODE
 ```
 
-Expected: exit status 0, proving one alert appears before the badge row, the
-four keyless pages are documented in implementation order, and navigation is
-marked as conditional.
+Expected: exit status 0. One alert appears before the badge row. The four keyless pages appear in implementation order. Navigation is marked as conditional.
 
 ### Task 2: Verify and publish the tracked documentation
 

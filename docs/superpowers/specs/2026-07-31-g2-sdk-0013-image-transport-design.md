@@ -1,5 +1,7 @@
 # G2 SDK 0.0.13 Image Transport Experiment Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 **Date:** 2026-07-31
 
 **Branch:** `experiment/g2-sdk-0013`
@@ -13,12 +15,11 @@ first image update sent by SDK `0.0.12` returned `sendFailed` on the physical
 G2. Even Realities has now reported that the faulty compressed-image path was
 fixed, and the owner has updated both the Even App and the glasses firmware.
 
-The npm registry identifies `0.0.13` as the current SDK release. Its package
-metadata requires Even App `2.2.6` or later. The public API surface remains
-compatible with `0.0.12`, including the internal LZ4 image update path. This
-experiment upgrades only the SDK and compatibility metadata while preserving
-the hardware-proven Sandevistan renderer, transport scheduling, and input
-admission behavior.
+The npm registry identifies `0.0.13` as the current SDK release for this experiment.
+Its package metadata requires Even App `2.2.6` or later.
+Its public API remains compatible with `0.0.12`, including the internal LZ4 image-update path.
+Upgrade only the SDK and compatibility metadata.
+Preserve the hardware-proven renderer, transport scheduling, and input acceptance rules.
 
 ## Goals
 
@@ -105,10 +106,11 @@ Tests must prove that:
 
 ## Failure Handling
 
-Sandevistan does not compensate for SDK or device failures. If any tile returns
-`sendFailed`, times out, or throws, the active refresh fails. It is not retried
-or queued. A later independent user or live-data event may request a new
-refresh. Inputs received while a refresh is active remain dropped immediately.
+If a tile returns `sendFailed`, times out, or throws, fail the active refresh.
+Do not retry or queue it.
+A later independent user or live-data event may request another refresh.
+Immediately drop inputs received while a refresh is active.
+Do not compensate for SDK or device failures.
 
 The test server and WebView trace must report enough information to identify:
 

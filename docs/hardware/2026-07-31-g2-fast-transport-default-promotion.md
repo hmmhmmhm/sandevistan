@@ -1,5 +1,8 @@
 # G2 Fast Transport Default Promotion
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: PASS — integrated into `main`
@@ -28,8 +31,7 @@ calls and the `hud-4` transmitted palette.
 http://100.127.255.11:4177/hud-canvas-fast?sdk=0.0.11&pipeline=1&levels=original&build=rollback-serial-original-040
 ```
 
-This route preserves a complete serial/original comparison without changing
-source or SDK version.
+This route selects serial transport and the original palette without changing source or SDK version.
 
 ## Prior physical evidence
 
@@ -40,10 +42,7 @@ The preceding palette comparison on the same four-call pipeline recorded:
 | Full HUD PNG bytes | 50,031 | 22,821 median | 54.4% lower |
 | Complete restore | 2,468 ms median, n=4 | 1,855 ms median, n=8 | 24.8% faster |
 
-No `sendFailed` or timeout appeared in the supplied comparison trace. The
-generated black frame remained 4,704 bytes in both modes, so this revision
-routes that frame through the original encoder and avoids the redundant
-palette pass.
+No `sendFailed` or timeout appeared in the supplied comparison trace. The generated black frame remained 4,704 bytes in both modes. This revision sends that frame through the original encoder without the redundant palette pass.
 
 ## Required physical evidence
 
@@ -60,16 +59,12 @@ Run only one route at a time. On the default route:
 9. Leave the WebView idle, then confirm double-tap and scroll remain responsive.
 10. Confirm input received while busy is dropped and is not replayed later.
 
-The default route passes only if binocular output and content remain correct,
-hide and restore remain reliable, no queue accumulates, and post-idle input
-stays responsive.
+The default route must preserve binocular output, correct content, and reliable hide and restore. No queue may accumulate. Input must remain responsive after idle.
 
 ## Physical result
 
 The owner completed the default-route G2 check on 2026-07-31 and confirmed the
-requested interaction sequence. The supplied trace excerpt records four hides
-and three restores before ending during the fourth hidden state; the owner's
-completion confirmation covers the full physical run.
+requested interaction sequence. The supplied trace excerpt records four hides and three restores. It ends during the fourth hidden state. The owner's completion confirmation covers the full physical run.
 
 ### Default selection and startup
 

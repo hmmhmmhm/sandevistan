@@ -1,14 +1,15 @@
 # G2 Hidden Input Diagnostic Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-27  
 Branch: `feature/g2-ors-routing`  
 Status: APPROVED
 
 ## Goal
 
-Identify why ring and glasses controls stop responding after the fast Canvas HUD
-reports `HUD display completed`, without adding another glasses image transfer or
-changing the approved black-frame hide interaction.
+Identify why ring and glasses controls stop responding after fast Canvas HUD reports `HUD display completed`.
+Do not add another image transfer or change the approved black-frame hide interaction.
 
 ## Evidence and boundary
 
@@ -23,9 +24,9 @@ changing the approved black-frame hide interaction.
 
 ## Diagnostic behavior
 
-The fast Canvas transport will expose an optional raw-event diagnostic callback.
-It will run synchronously at the start of the existing `onEvenHubEvent`
-listener, before hidden-state filtering or input normalization.
+Add an optional raw-event diagnostic callback to the fast Canvas transport.
+Run it synchronously at the start of the existing `onEvenHubEvent` listener.
+Run it before hidden-state filtering or input normalization.
 
 The callback receives a compact, immutable snapshot containing:
 
@@ -64,9 +65,9 @@ Automated tests will prove that:
 - diagnostic reporting causes no additional image encoding or transmission;
 - cleanup prevents later diagnostic callbacks.
 
-Type checking and the focused transport test must pass before serving the
-diagnostic through the existing single Tailscale development server. The final
-gate is one physical hidden-state double-tap from the ring or glasses.
+Before serving the diagnostic, pass type checking and the focused transport test.
+Use the existing single Tailscale development server.
+For the final hardware check, double-tap once from the ring or glasses while hidden.
 
 ## Scope
 

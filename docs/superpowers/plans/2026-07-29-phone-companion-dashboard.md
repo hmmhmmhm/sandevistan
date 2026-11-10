@@ -1,10 +1,15 @@
 # Sandevistan Phone Companion Dashboard Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the diagnostic-first `/hud-canvas-fast` phone WebView with the approved Even-native companion dashboard while preserving the proven G2 Canvas, input, and image-transport behavior.
 
-**Architecture:** Keep the 576×288 Canvas mounted in a `FastHudController`, and place a phone-only `PhoneCompanion` shell around it. Persist phone preferences, RSS sources, TODO items, and the user-owned ORS key through the existing Even storage adapter; pass secrets only through fixed same-origin API endpoints. Split the UI into focused screens and keep all rendering/transport refreshes on the existing drop-when-busy, never-queue coordinator.
+**Architecture:** Keep the 576×288 Canvas mounted in a `FastHudController`, and place a phone-only `PhoneCompanion` shell around it. Persist phone preferences, RSS sources, TODO items, and the user-owned ORS key through the existing Even storage adapter. Pass secrets only through fixed same-origin API endpoints. Split the UI into focused screens and keep all rendering/transport refreshes on the existing drop-when-busy, never-queue coordinator.
 
 **Tech Stack:** React 19, TypeScript 5.9, Vite 6, Vitest/Testing Library, Even Hub SDK 0.0.11, Pixelarticons through local Iconify packages, Cloudflare-style Fetch API handlers.
 
@@ -216,7 +221,7 @@ export const PHONE_STRINGS = {
 };
 ```
 
-Localize phone chrome only; do not pass phone strings into G2 Canvas renderers.
+Localize phone chrome only. Do not pass phone strings into G2 Canvas renderers.
 
 - [ ] **Step 5: Run tests**
 
@@ -315,7 +320,7 @@ const HOME_CARDS: readonly HomeCard[] = [
 ```
 
 Import all icons from `@iconify-icons/pixelarticons/*` inside
-`phone-icons.tsx`; do not use remote icon URLs or custom SVG markup.
+`phone-icons.tsx`. Do not use remote icon URLs or custom SVG markup.
 
 - [ ] **Step 5: Match approved reference measurements**
 
@@ -861,9 +866,7 @@ git commit -m "fix: preserve no-queue live refresh policy"
 
 - [ ] **Step 1: Add failing packaging assertions**
 
-Assert that the production bundle contains every server module used by
-`server/api-router.js`, that the bundle references no real ORS key, and that
-the app remains SDK 0.0.11:
+Assert that the production bundle contains every server module used by `server/api-router.js`. Verify that the bundle references no real ORS key. Confirm that the app remains on SDK 0.0.11:
 
 ```js
 assert.equal(app.min_sdk_version, "0.0.11");
@@ -916,7 +919,7 @@ git commit -m "docs: document phone companion configuration"
 npm run dev -- --host 0.0.0.0 --port 4176
 ```
 
-Expected: one Vite process serves `/hud-canvas-fast?sdk=0.0.11`; do not start a
+Expected: one Vite process serves `/hud-canvas-fast?sdk=0.0.11`. Do not start a
 second test server.
 
 - [ ] **Step 2: Capture required phone states serially**

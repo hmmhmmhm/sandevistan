@@ -1,5 +1,10 @@
 # Thirty-Language Catalog Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans
 > to implement this plan task-by-task. Run every test serially.
 
@@ -128,7 +133,7 @@ ja, "zh-Hans", "zh-Hant", es, fr, de, it, pt, nl
 
 - [ ] **Step 3: Run typecheck and the registry test**
 
-Expected: TypeScript proves full pack shape; the registry test still fails with
+Expected: TypeScript proves full pack shape. The registry test still fails with
 nineteen locales missing.
 
 - [ ] **Step 4: Commit**
@@ -288,7 +293,7 @@ Generate unique final URLs:
 const GOOGLE_TOPICS = ["top", "WORLD", "TECHNOLOGY"];
 ```
 
-Top uses `/rss`; the other two use
+Top uses `/rss`. The other two use
 `/rss/headlines/section/topic/<TOPIC>`. Append the same encoded locale query to
 all three.
 

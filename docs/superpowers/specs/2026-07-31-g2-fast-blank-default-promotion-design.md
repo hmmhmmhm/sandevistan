@@ -1,5 +1,7 @@
 # G2 Fast Blank Default Promotion Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Approved
@@ -22,11 +24,11 @@ an explicit diagnostic control.
 
 ## Runtime behavior
 
-The promoted path does not change the validated lifecycle. Hiding rebuilds the
-page as one blank full-screen event-capture container without encoding or
-sending an image. Restoring rebuilds the normal event layer and four image
-containers, clears successful-payload state, and sends all four current tiles.
-There is no queue, retry, or same-event fallback.
+Keep the validated lifecycle during promotion.
+To hide, rebuild the page with one blank full-screen event-capture container. Do not encode or send images.
+To restore, rebuild the normal event layer and four image containers.
+Clear successful-payload state and send all four current tiles.
+Do not queue, retry, or add a fallback within the same event.
 
 ## Community measurement assessment
 
@@ -34,12 +36,11 @@ The reported device timing model attributes most image latency to a fixed cost
 per `updateImageRawData` call. It reinforces the blank-page rebuild decision and
 explains why payload-format changes produced only modest gains.
 
-It does not support merging Sandevistan's current four tiles without a display
-size loss. Each tile already occupies the SDK maximum image-container size of
-288 by 144 pixels. The full 576 by 288 coordinate area therefore requires four
-maximum-size image containers. SDK 0.0.13 exposes no independent image scaling,
-fit, or source-dimension property that could stretch one 288 by 144 container
-over the full display.
+The timing model does not justify merging Sandevistan's four tiles without losing display size.
+Each tile already uses the SDK maximum image-container size of 288 by 144 pixels.
+The full 576 by 288 area therefore needs four maximum-size image containers.
+SDK 0.0.13 has no independent image-scaling, fit, or source-dimension property.
+It cannot stretch one 288 by 144 container across the full display.
 
 Consequently:
 

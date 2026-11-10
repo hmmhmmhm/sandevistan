@@ -1,18 +1,17 @@
 # README Showcase Composite Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
-Replace the single conceptual HUD image near the top of the README with one
-project-owned showcase image assembled from five supplied screenshots. The
-composite must communicate the main dashboard, physical G2 validation, map
-detail, news dashboard, and full news reader in one glance.
+Replace the conceptual HUD image near the README top with one project-owned composite of five supplied screenshots.
+Show the main dashboard, physical G2 validation, map detail, news dashboard, and full news reader together.
 
 ## Approved direction
 
-The approved direction is the original **B — Overview-led product sheet**
-layout. A later variant that preserved the full aspect ratio of the bottom-right
-news image was reviewed and rejected. The final returns to the original B
-layout, including its edge crop on the bottom-right panel.
+The approved direction is the original **B — Overview-led product sheet** layout.
+A later variant preserved the full aspect ratio of the bottom-right news image. It was reviewed and rejected.
+Use the original B layout, including the edge crop on the bottom-right panel.
 
 ## Source roles
 

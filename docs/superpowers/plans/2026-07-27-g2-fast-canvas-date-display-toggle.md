@@ -1,10 +1,15 @@
 # G2 Fast Canvas Date and Display Toggle Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a Korean full-date header, WebView-only green flat preview, and reversible double-tap black-screen toggle to the fast Canvas HUD.
 
-**Architecture:** Keep the transmitted Canvas palette and fast page contract unchanged. Format the date inside the fast renderer; tint only the browser composition with CSS. Extend the shared image transport with an optional hidden Canvas and before-restore callback so only `transmitFastCanvas()` toggles four black tiles, while legacy routes retain shutdown behavior.
+**Architecture:** Keep the transmitted Canvas palette and fast page contract unchanged. Format the date inside the fast renderer; tint only the browser composition with CSS. Extend the shared image transport with an optional hidden Canvas and before-restore callback. Only `transmitFastCanvas()` toggles four black tiles. Legacy routes retain shutdown behavior.
 
 **Tech Stack:** React 19, TypeScript, Canvas 2D, CSS compositing, `@evenrealities/even_hub_sdk` `0.0.10`, Vitest
 
@@ -307,9 +312,7 @@ git commit -m "feat: toggle fast Canvas display on double tap"
 
 - [x] **Step 1: Document build `fast-sleep-010`**
 
-Record the date format, WebView-only green flat preview, black four-tile hide and
-restore contract, ignored hidden scroll, lack of official SDK sleep, and preserved
-legacy shutdown behavior. Add:
+Record the date format and the WebView-only green flat preview. Document the black four-tile hide and restore contract and ignored hidden scroll. Record that official SDK sleep is unavailable and legacy shutdown behavior is preserved. Add:
 
 ```text
 http://100.96.68.73:4176/hud-canvas-fast?sdk=0.0.10&build=fast-sleep-010

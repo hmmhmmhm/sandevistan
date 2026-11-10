@@ -1,25 +1,25 @@
 # G2 full screen raster experiment design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
 
 ## Target
 
-Selected Sandevistan HUD cyan as static image across G2's 576×288 display area
-Display. The purpose of this experiment is only to check information density and actual readability.
-Dynamic functions such as sensors, maps, and STT are not connected.
+Display the selected Sandevistan HUD concept as a static image across the G2's 576×288 display.
+This experiment checks only information density and actual readability.
+Dynamic sensor, map, and STT functions are not connected.
 
 ## Confirmed premise
 
 - The G2 display area is 576×288.
-- The allowable size of one image container is 20~288×20~144.
-- Up to four image containers can be placed on one page.
-- The official 16-bit RGB PNG returned an `imageException` on the actual device.
-- If you change the same image to 8-bit RGB PNG, both the original size and 200×100 size are displayed.
-  Returned `success`.
-- The selected Sandevistan HUD original is 1774×887, 8-bit RGB PNG and is identical to the screen.
-  It is a 2:1 ratio.
+- One image container can be 20~288×20~144.
+- One page can contain up to four image containers.
+- The official 16-bit RGB PNG returned `imageException` on the actual device.
+- After conversion to 8-bit RGB PNG, both the original size and 200×100 returned `success`.
+- The selected original Sandevistan HUD is a 1774×887, 8-bit RGB PNG. Its 2:1 ratio matches the display.
 
 ## Screen composition
 
@@ -32,30 +32,29 @@ The original HUD is first reduced to 576×288 and then cut into the following fo
 | `relicBL` | 0, 144 | 288×144 | 0, 144 |
 | `relicBR` | 288, 144 | 288×144 | 288, 144 |
 
-All four files are created in advance as 8-bit RGB PNG. Blank text covering the entire screen
-Place one container behind the image to receive only tap events. Total containers on the page
-The number is 5.
+Create all four files in advance as 8-bit RGB PNGs.
+Behind the images, place one blank full-screen Text container that receives tap events.
+The page has 5 containers in total.
 
 ## Transmission flow
 
 1. Create a page with an empty event layer and four image containers.
-2. Display ‘READY - TAP TO SEND’ on the mobile phone screen.
-3. The user taps the Glasses Touch Bar or R1 once.
-4. Transmit one page at a time in the following order: `relicTL → relicTR → relicBL → relicBR`.
-5. Do not send two pages at the same time.
-6. Display the normalized result and progress of each tile on the phone screen.
-7. If all four shots are successful, `FULLSCREEN RESULT: success` is displayed.
+2. Display "READY - TAP TO SEND" on the phone screen.
+3. Wait for one tap on the glasses touchbar or R1.
+4. Send tiles serially in this order: `relicTL → relicTR → relicBL → relicBR`.
+5. Do not send two tiles concurrently.
+6. Display each tile's normalized result and progress on the phone screen.
+7. If all four sends succeed, display `FULLSCREEN RESULT: success`.
 
-Since it uses up all four image slots on the glasses, the glasses text for progress will be
-do not add Check the failure information on the mobile phone screen.
+The page uses all four image slots, so do not add progress text on the glasses.
+Read failure information on the phone screen.
 
 ## Error handling
 
-- If page creation is `invalid`, reconfigure once with the same container configuration.
-- If one tile is not `success`, the next tile is not sent and the tile name and result are sent.
-  Leave it on your phone screen.
-- The omitted 0 value of a single tap event is restored using the previously verified method.
-- Double tap closes the app without starting image transfer.
+- If page creation returns `invalid`, rebuild once with the same container configuration.
+- If a tile result is not `success`, stop before the next tile. Display the failed tile name and result on the phone.
+- Restore an omitted single-tap event value of 0 with the previously verified method.
+- On double tap, close the app without starting image transfer.
 
 ## Verification
 
@@ -67,5 +66,5 @@ Automated testing checks:
 - Transfer starts only once with a single tap.
 - No follow-up tiles are sent after the first failure.
 
-After building, run it with a new port and QR to separate it from the previous WebView cache. In practical equipment
-The boundaries, omissions, distortions, brightness, and text readability of the four tiles are visually evaluated.
+After building, use a new port and QR to avoid the previous WebView cache.
+On the actual device, inspect tile boundaries, missing areas, distortion, brightness, and text readability.

@@ -1,5 +1,7 @@
 # G2 full screen detailed deck design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -14,10 +16,8 @@ Status: APPROVED
 
 ## Target
 
-Four dashboard tabs can be physically navigated and manipulated from a simple summary screen.
-Expand with detailed functions. In the same way as the full screen map in `OVERVIEW`
-Tap once on `NEWS`, `TODO`, and `NAVIGATION` to full screen in 576×288
-Open.
+Expand the four dashboard summary tabs into full-screen detail decks with physical navigation and controls.
+As with the `OVERVIEW` map, one tap on `NEWS`, `TODO`, or `NAVIGATION` opens a 576×288 full-screen deck.
 
 Contracts that have already been confirmed by G2 will not be changed.
 
@@ -37,10 +37,9 @@ Use a dedicated full-screen deck for each page.
 - TODO creates a selectable full-screen checklist.
 - Navigation is made with a deck that checks the route operation step by step.
 
-The existing method of enlarging only the right column is simple to implement, but it is difficult to consume actual content and
-It is difficult to operate. The method of displaying the original article webpage directly on the glasses is delayed,
-Do not use because readability, external HTML safety, and copyright scope are unclear.
-The news details screen currently uses only the titles and summaries provided by allowlist RSS.
+Enlarging only the right column is simple to implement but makes content difficult to read and operate.
+Do not display original article webpages on the glasses. Loading time, readability, external HTML safety, and copyright scope remain unclear.
+Use only titles and summaries from allowlisted RSS feeds in news details.
 
 ## Common screen states
 
@@ -64,13 +63,14 @@ type FastHudViewState = {
 };
 ```
 
-The selection state is maintained throughout the app session. Go to the dashboard page or
-Even if you close the screen, the map zoom and the last selected location of each detailed deck remain. app
-When restarting, the map is 650m away, and each deck moves to either the first item or the current path action.
-Initialize.
+Retain selections throughout the app session.
+Returning to the dashboard or hiding the display preserves map zoom and each detail deck's last selection.
+On app restart, initialize the map to 650m and each deck to its first item or the current route action.
 
-The input transition function returns the current state, dashboard page, number of items, and current path behavior.
-Receives and returns the next status and one of the following results:
+> Unresolved behavior: The description below says an unhandled result overrides dashboard toggling. Whether it instead delegates to existing handling remains unclear.
+
+The input-transition function accepts the current state, dashboard page, item counts, and current route action.
+It returns the next state and one of these results:
 
 - `unhandled`: Overrides existing dashboard toggle or black screen toggle.
 - `consume`: Consumes only input without changing the screen or transmission.
@@ -131,10 +131,10 @@ type NewsItem = {
 };
 ```
 
-RSS `<description>`'s HTML is converted to text with `DOMParser` and spaces are normalized.
-Control characters are removed and only up to 360 code points are stored. Original article
-URLs preserve only verified HTTP or HTTPS addresses as before, but directly from G2.
-It doesn't open. Cache verification and replication also include `summary`.
+Convert RSS `<description>` HTML to text with `DOMParser` and normalize whitespace.
+Remove control characters and store at most 360 code points.
+As before, retain only verified HTTP or HTTPS article URLs. Do not open them directly on the G2.
+Include `summary` in cache validation and copying.
 
 Full screen news displays the following information:
 
@@ -145,8 +145,8 @@ Full screen news displays the following information:
 - Date and time of publication
 - `SCROLL // ARTICLES`, `DOUBLE TAP // BACK` information
 
-When new RSS results arrive, the existing selection index is limited to the valid range. the result
-If empty, only status information is displayed and scrolling is consumed.
+When new RSS results arrive, clamp the selection index to the valid range.
+If the result is empty, show only status information and consume scroll input.
 
 ## TODO data and persistence
 
@@ -171,19 +171,18 @@ The initial items remain at the three currently approved.
 2. Bring an umbrella
 3. Check the route
 
-Even stores up to six items in `relic:todos:v1` in local storage. Each title is
-Must be 1 to 40 code points with spaces normalized. If the cache is missing or corrupted, the initial
-Use the item. This scope includes a phone UI for adding, deleting, and name editing items.
-Does not include
+Store up to six items in Even local storage under `relic:todos:v1`.
+Normalize title whitespace and require each title to contain 1 to 40 code points.
+If the cache is missing or corrupted, use the initial items.
+A phone UI for adding, deleting, or renaming items is outside this scope.
 
-A single tap first changes the memory state, puts the transfer request into the serial queue, and then
-Try saving. Four tiles since the save ends or fails and then ends the input operation.
-Transfer and storage operations do not overlap. A save failure will result in changes to the current session.
-It doesn't revert, but restarting the app may restore the last saved state.
-there is.
+On a single tap, first update memory state and queue the transfer request.
+Then attempt to save.
+After saving succeeds or fails, finish the input operation and send four tiles.
+Storage and image transfers must not overlap.
+A save failure does not revert the current session, but app restart may restore the last saved state.
 
-Full screen TODO displays all items, current selection, checkboxes, completed count and next
-Display guidance.
+Full-screen TODO shows all items, the current selection, checkboxes, completed count, and these controls:
 
 ```text
 SCROLL // SELECT · TAP // TOGGLE · DOUBLE TAP // BACK
@@ -200,13 +199,12 @@ If there is an active route, it displays:
 - Show currently active actions
 - Guide to scrolling and returning to current action
 
-Before the user directly navigates to a path action, selectivity also changes when the active action changes.
-Follow. Scroll even once to retain the selection, and tap once to return to the current selection.
-Follow the movements.
+Until the user browses route actions, keep the selection on the active action as it changes.
+After one scroll, retain the user's selection.
+On a single tap, resume following the active action.
 
-If the path state is `disabled`, `loading`, `stale`, or `fresh` but there is no value,
-Each state and the required actions on the phone are displayed in large letters. Search for destinations in glasses,
-Path start or end is not included in this scope.
+If the route state is `disabled`, `loading`, `stale`, or `fresh` without a value, show its state and required phone actions in large text.
+Destination search and route start or end from the glasses are outside this scope.
 
 ## Rendering
 
@@ -221,9 +219,9 @@ Separate by responsibility. All implementation files are kept to 450 lines or le
 - Header and footer are black opaque bands
 - The text uses open corner frames and ample white space.
 
-Long Korean strings are code point based, not dependent on Canvas measures
-Cut it with a line break and add an ellipsis to the last line. This method uses a test canvas and
-Create the same line configuration in the actual WebView.
+Wrap long Korean strings by code point instead of Canvas measurement.
+Add an ellipsis to the final line.
+Use the same line layout in the test Canvas and actual WebView.
 
 ## Live updates and transfers
 
@@ -235,13 +233,12 @@ In the detailed deck, the four tiles are updated only when the visible content a
 - TODO: Change of item or completion status
 - Navigation: route status, current motion or distance changes
 
-Clock, battery, weather or data from other pages not visible on the details screen
-Changes only preserve the state and do not send images. Enter the details screen, move items,
-TODO changes and returns are sent in the entire order of `3 → 5 → 2 → 4` in the existing serial queue.
+When invisible clock, battery, weather, or other-page data changes, update only state. Do not send images.
+For detail entry, item movement, TODO changes, and return, send all tiles in the existing serial queue order `3 → 5 → 2 → 4`.
 
-TODO changes do not overlap storage and image transfer during input processing. session state
-The change queues the transfer request and retrieves the most recent four tiles after the current input operation has finished.
-Send.
+During TODO input processing, do not overlap storage and image transfer.
+The session-state change queues a transfer request.
+After the input operation finishes, send the latest four tiles.
 
 ## Failure and boundary handling
 
@@ -268,20 +265,13 @@ Send.
 
 All tests are run serially.
 
-1. Pure state transition testing for all entry, return, selection moves, boundary exhaustion, TODO
-   Check the effect and navigation rearrangement.
-2. RSS tests for summary cleansing, length limits, cache validation, and retention of old data.
-   Confirm.
-3. TODO test to check default value, healthy cache, corrupted cache, toggle and save failure.
-   Confirm.
-4. Renderer test shows 576×288 output of four detailed screens, line breaks, status text,
-   Check the check mark and gesture instructions.
-5. App test, live update filter by detailed mode, transfer all, TODO toggle,
-   Make sure to return to the latest status.
-6. As a transfer test, all detailed inputs use the same serial queue and at the boundary
-   Make sure images are not being transmitted.
-7. Full Vitest, type checking, production build, Sites, server API and
-   Passes `git diff --check`.
+1. Test entry, return, selection movement, boundaries, TODO effects, and navigation following with pure state transitions.
+2. Test RSS summary sanitization, length limits, cache validation, and old-data retention.
+3. Test TODO defaults, valid and corrupted caches, toggles, and save failures.
+4. Test renderer output at 576×288 for all four detail screens, including wrapping, statuses, check marks, and gesture instructions.
+5. Test app filtering by detail mode, full-frame transfers, TODO toggles, and restoration of the latest state.
+6. Test that all detail inputs share the serial queue and that boundary input sends no images.
+7. Pass full Vitest, type checking, production build, Sites, server API checks, and `git diff --check`.
 
 ## Actual G2 checkpoint
 

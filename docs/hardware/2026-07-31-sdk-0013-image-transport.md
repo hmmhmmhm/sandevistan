@@ -1,5 +1,8 @@
 # SDK 0.0.13 G2 Image Transport Gate
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 ## Status
 
 - Date: 2026-07-31
@@ -19,10 +22,7 @@ On the previously tested Even App and G2 firmware, the first image tile returned
 `sendFailed` in approximately 7 ms and no image appeared. The isolated failure
 remains preserved on the `0.0.12-reproduce` branch.
 
-Even Realities has reported that the compressed-image problem was repaired. The
-owner has installed the current Even App and glasses firmware. The npm registry
-now identifies SDK `0.0.13` as latest and its package metadata requires Even App
-`2.2.6` or later.
+At this checkpoint, Even Realities reported a repair for the compressed-image problem. The owner installed the updated Even App and glasses firmware. The npm registry identified SDK `0.0.13` as latest. Its package metadata required Even App `2.2.6` or later.
 
 ## Isolated Change
 
@@ -103,7 +103,7 @@ http://100.127.255.11:4177/hud-canvas-fast?sdk=0.0.13&build=sdk-0013-main-043
 
 1. Close any active Sandevistan Mini App session.
 2. Open the SDK `0.0.13` candidate URL.
-3. Stop immediately and copy the trace if the first tile returns `sendFailed`.
+3. If the first tile returns `sendFailed`, stop immediately. Copy the trace.
 4. If startup succeeds, confirm that all four quadrants appear in both eyes.
 5. Scroll once through Overview, News, TODO, Weather, and Navigation.
 6. Open and close the map, news, TODO, Weather, and Navigation details.
@@ -146,10 +146,7 @@ exception, corrupt quadrant, missing eye, or WebView stall. Live news updates
 that arrived while transport was busy were dropped, preserving the fail-fast
 transport contract.
 
-The previous SDK `0.0.11` restore sample had a 1,972 ms median. The current
-2,098 ms result is within 126 ms, or 6.4 percent, across different app,
-firmware, and content states. This is recorded as a compatibility result, not a
-controlled performance comparison.
+The previous SDK `0.0.11` restore sample had a 1,972 ms median. The 2,098 ms result differs by 126 ms, or 6.4 percent. The samples used different app, firmware, and content states. This comparison supports compatibility, not a controlled performance claim.
 
 ## Failure Rule
 

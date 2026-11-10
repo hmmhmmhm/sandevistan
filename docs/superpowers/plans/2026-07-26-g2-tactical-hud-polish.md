@@ -1,8 +1,13 @@
 # G2 Tactical HUD Polish Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Preserve the proven full-size Canvas HUD while replacing the ACC block and repetitive dashboard boxes with a large readable mission card and a layered tactical-game visual language.
+**Goal:** Preserve the proven full-size Canvas HUD. Replace the ACC block and repetitive dashboard boxes with a large readable mission card and layered tactical-game styling.
 
 **Architecture:** Keep `drawDenseCanvasHud()` and the existing `/hud-canvas` transport route stable. Refactor only the deterministic Canvas renderer into reusable tactical-frame and layered-path primitives, then update its rendering-contract test and the hardware-test documentation.
 

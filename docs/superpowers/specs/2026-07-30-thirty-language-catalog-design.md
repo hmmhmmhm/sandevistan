@@ -1,5 +1,7 @@
 # Thirty-Language Catalog Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-30
 
 Status: approved for implementation
@@ -67,11 +69,10 @@ copy, weather conditions, the three built-in TODO labels, and seven weekdays.
 Every non-English pack must continue to use `satisfies LocalePack`, so one
 missing, extra, or misspelled field fails TypeScript.
 
-`LocalePack` gains a required `direction: "ltr" | "rtl"` field. The phone
-companion applies the resolved direction to its root. The nested tactical HUD
-preview remains geometrically LTR so RTL does not mirror map and tile layout;
-Unicode bidi shaping still renders Arabic and Hebrew strings in their natural
-reading order inside fixed Canvas regions.
+Add a required `direction: "ltr" | "rtl"` field to `LocalePack`.
+Apply the resolved direction to the phone companion root.
+Keep the nested tactical HUD preview geometrically LTR so RTL cannot mirror the map or tile layout.
+Unicode bidi shaping still renders Arabic and Hebrew strings in their natural reading order within fixed Canvas regions.
 
 The registry remains the only supported-language declaration. Preference
 validation, browser-language matching, the language screen, map localized-name

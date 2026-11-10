@@ -1,5 +1,10 @@
 # G2 WebView Operation Console Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -8,7 +13,7 @@
 
 **Goal:** Add a bounded, timestamped phone-WebView console that reveals the last input, location, storage, refresh, encoding, tile, timer, or error boundary before the WebView freezes.
 
-**Architecture:** A dependency-free global diagnostic logger retains only 300 formatted entries. A separate React component polls its version every 250ms and renders one text node, while existing app, transport, location, cache, and live-refresh boundaries append payload-free structured entries.
+**Architecture:** A dependency-free global diagnostic logger retains only 300 formatted entries. A separate React component polls the logger version every 250ms and renders one text node. Existing app, transport, location, cache, and live-refresh boundaries append payload-free structured entries.
 
 **Tech Stack:** TypeScript, React 19, Even Hub SDK 0.0.11, Vitest, Testing Library, Vite
 
@@ -406,8 +411,7 @@ git commit -m "feat: show bounded WebView operation console"
 
 - [ ] **Step 1: Write the failing transport trace test**
 
-Import and clear the global logger, perform one redraw and one hide, then assert
-that the log contains raw input, queue, encode, tile, and hide boundaries:
+Import the global logger. Clear the logger. Perform one redraw and one hide. Assert that the log contains raw input, queue, encode, tile, and hide boundaries:
 
 ```ts
 it("traces raster work without sending a diagnostic frame", async () => {

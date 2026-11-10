@@ -1,5 +1,8 @@
 # G2 Unchanged-Tile Transport Skip Experiment
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-28
 
 SDK: `0.0.11`
@@ -19,9 +22,7 @@ URL:
 
 ## Purpose
 
-Keep the SDK and serial PNG transport path already validated on physical G2
-hardware, but skip the slow `updateImageRawData` call when a new tile's PNG
-bytes exactly match the most recent payload successfully sent to that tile.
+Keep the SDK and serial PNG transport path already validated on physical G2 hardware. If a tile's PNG bytes match its last successful payload exactly, skip `updateImageRawData`.
 
 ## Transport rules
 
@@ -49,8 +50,7 @@ bytes exactly match the most recent payload successfully sent to that tile.
 - `npm run typecheck`: passed.
 - `npm run build`: 67 modules transformed; production build passed.
 
-Every test and build command ran serially in one process rather than
-concurrently.
+All test and build commands ran sequentially in one process.
 
 ## Physical G2 checklist
 
@@ -82,8 +82,6 @@ queue buildup, or WebView freeze. A minute refresh also ended as
 shown the current minute.
 
 Every physical render in this log reported `sent 2 or 4 · skipped 0`, which is
-expected because each page and detail view had different content. The observed
-speed improvement therefore cannot be attributed specifically to unchanged-tile
-skipping. Automated tests lock down identical-frame skipping, one-tile changes,
+expected because each page and detail view had different content. The observed speed improvement therefore does not establish a benefit from unchanged-tile skipping. Automated tests lock down identical-frame skipping, one-tile changes,
 and a new request after partial failure. The physical G2 acceptance criterion
 was no regression in existing behavior.

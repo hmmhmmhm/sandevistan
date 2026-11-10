@@ -1,5 +1,7 @@
 # Native Ask AI Text Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
 Replace image-tile retransmission inside the Ask AI detail deck with one
@@ -35,11 +37,11 @@ update so an unexpectedly long response cannot overflow the container payload.
 
 ## Streaming and refresh policy
 
-The AI runtime samples changing transcript state at most once every 100 ms.
-The scheduler does not enqueue individual deltas. If a native update is still
-in flight, that attempt is dropped and a later Realtime delta observes the
-newest full snapshot. A terminal protocol event performs one final update so
-the completed answer cannot remain truncated.
+Sample changing transcript state at most once every 100 ms.
+Do not queue individual deltas.
+If a native update is in flight, drop the new attempt.
+A later Realtime delta reads the newest full snapshot.
+On a terminal protocol event, send one final update so the completed answer does not remain truncated.
 
 While native AI mode is active, normal live-data refresh requests continue to
 update application state but do not encode or send image tiles. The latest
@@ -57,11 +59,10 @@ state is drawn and transmitted when the user returns to the dashboard.
 - Display hide/restore remains owned by the existing dashboard transport and
   is not invoked while the AI detail page handles double tap as Back.
 
-If entering the native page fails, the transition remains on the dashboard and
-does not start the microphone. If a text update fails, it is reported and left
-failed; a later state change may try again. If Canvas restoration fails, the
-transport remains in native mode so image refreshes are not sent to mismatched
-container IDs.
+If native-page entry fails, remain on the dashboard and do not start the microphone.
+If a text update fails, report the failure. A later state change may attempt another update.
+If Canvas restoration fails, keep the transport in native mode.
+This prevents image refreshes from using mismatched container IDs.
 
 ## Verification
 

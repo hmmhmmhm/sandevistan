@@ -1,5 +1,10 @@
 # Default Serial Image Transport Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED AND INTEGRATED`
 
 Implementation commit: `ad23ccc` (`fix: default image transport to serial`)
@@ -11,7 +16,7 @@ The current `main` verification baseline is recorded in the
 
 **Goal:** Make the query-free fast HUD send image tiles one at a time while retaining explicit pipeline values `2`, `3`, and `4` for controlled experiments.
 
-**Architecture:** Keep the existing bounded transport and tile ordering unchanged. Change only the query resolver's missing/invalid fallback from concurrency `4` to `1`, prove that behavior at resolver and App integration boundaries, and align durable documentation with the production default.
+**Architecture:** Keep the existing bounded transport and tile ordering unchanged. Change only the query resolver's fallback for missing or invalid values from concurrency `4` to `1`. Verify the behavior at resolver and App integration boundaries. Align durable documentation with the production default.
 
 **Tech Stack:** TypeScript, React 19, Vitest, Testing Library, Even Hub SDK 0.0.13
 
@@ -78,7 +83,7 @@ Expected: PASS, proving concurrency `1` remains serial without changing send ord
 
 - [x] **Step 1: Update the repository guardrail**
 
-State that the query-free route defaults to one in-flight SDK image call with the `hud-4` palette, explicit `pipeline=2`, `3`, and `4` remain diagnostic experiments, and `levels=original` remains the palette rollback.
+State that the query-free route defaults to one in-flight SDK image call with the `hud-4` palette. Explicit `pipeline=2`, `3`, and `4` remain diagnostic experiments. `levels=original` remains the palette rollback.
 
 - [x] **Step 2: Update the README transport description**
 
@@ -102,7 +107,7 @@ npm run pack
 git diff --check
 ```
 
-Expected: every command exits `0`; the existing Vite chunk-size warning is informational.
+Expected: every command exits `0`. The existing Vite chunk-size warning is informational.
 
 - [x] **Step 2: Commit the implementation**
 

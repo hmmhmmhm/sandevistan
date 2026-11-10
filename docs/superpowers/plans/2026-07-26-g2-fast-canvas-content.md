@@ -1,10 +1,15 @@
 # G2 Fast Canvas Content Refresh Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reorder the fast Canvas pages, replace ambiguous samples with useful overview/news/TODO content, and render the single device battery snapshot exposed by SDK `0.0.10`.
 
-**Architecture:** Keep the proven `/hud-canvas` page order and four-tile transport unchanged. Define a fast-route-only page order in `fast-canvas-hud.ts`; let `transmitFastCanvas()` fetch one `DeviceInfo` before its first image encoding and hand a normalized battery snapshot to `App`, which redraws the Canvas before transmission. Battery failures degrade to `BATTERY --` and never block the HUD.
+**Architecture:** Keep the proven `/hud-canvas` page order and four-tile transport unchanged. Define the fast-route page order in `fast-canvas-hud.ts`. Before the first image encoding, let `transmitFastCanvas()` fetch one `DeviceInfo`. Pass the normalized battery snapshot to `App`. The app redraws the Canvas before transmission. Battery failures degrade to `BATTERY --` and never block the HUD.
 
 **Tech Stack:** React 19, TypeScript, Canvas 2D, `@evenrealities/even_hub_sdk` `0.0.10`, Vitest, Testing Library
 
@@ -111,10 +116,10 @@ export function getAdjacentFastHudPage(
 }
 ```
 
-Change the clock formatter to `HH:MM`, use `FAST_HUD_PAGES` for the page number,
-replace the overview with battery/weather/TODO summary, render six general-news
-headlines split four in the upper panel and two in the lower panel, and replace
-the TODO connection footer with `Complete 1 / 3`.
+Change the clock formatter to `HH:MM`. Use `FAST_HUD_PAGES` for the page number.
+Replace the overview with a battery, weather, and TODO summary.
+Render six general-news headlines, four in the upper panel and two in the lower panel.
+Replace the TODO connection footer with `Complete 1 / 3`.
 
 In `src/App.tsx`, route fast navigation through `getAdjacentFastHudPage()` and
 legacy Canvas/hybrid navigation through the existing `getAdjacentHudPage()`:

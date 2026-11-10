@@ -1,5 +1,8 @@
 # Sandevistan Project Readiness Audit
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-08-02
 
 Target branch: `main`
@@ -13,9 +16,7 @@ Minimum Even App: `2.2.6`
 Overall status:
 `SOFTWARE PASS — CORE HARDWARE PASS — CURRENT VISUAL AND EXIT REGRESSION CHECKS PENDING — RELEASE DEFERRED`
 
-This is the current project-readiness source of truth. It supersedes the
-2026-07-29 readiness audit without rewriting that historical SDK `0.0.11`
-record.
+At this checkpoint, this audit governed project readiness. It superseded the 2026-07-29 readiness audit while preserving that historical SDK `0.0.11` record.
 
 ## Scope decision
 
@@ -86,10 +87,7 @@ The package is private and is not published to npm or Even Hub.
 - A dashboard double tap rebuilds one blank event page and sends no image.
   Restore rebuilds the image page, invalidates the successful-tile cache, and
   sends all current quadrants again.
-- Ask AI uses the official full-screen native Text container. Exiting first
-  neutralizes native Text, waits 1 s for bilateral neutral-page propagation,
-  rebuilds the image page, waits another 200 ms for bilateral container
-  installation, and then restores all four image quadrants.
+- Ask AI uses the official full-screen native Text container. On exit, the app first neutralizes native Text. It waits 1 s for bilateral neutral-page propagation, then rebuilds the image page. It waits another 200 ms for bilateral container installation, then restores all four image quadrants.
 
 ## Physical evidence carried forward
 
@@ -108,7 +106,11 @@ The owner has confirmed the following on updated G2 hardware and Even App:
 
 The paired Ask AI page-installation barriers and the restored query-free
 four-call default have complete automated coverage but still require a fresh
-physical spot check. They remain narrow hardware candidates, not a confirmed
+physical spot check.
+
+> Evidence ambiguity: This carried-forward statement says four-call default.
+> The transport contract and capability table above say one call at a time.
+> This audit does not resolve the conflicting statements. They remain narrow hardware candidates, not a confirmed
 final fix.
 
 ## Visual comparison status
@@ -120,9 +122,7 @@ subsequent localized states after those images were recorded.
 A controllable in-app browser was unavailable during this audit, so no new
 screenshots could be captured without violating the project's visual-audit
 workflow. Current semantic routes, minimum target sizes, locale coverage, and
-card styling pass automated checks. Pixel fidelity, current contrast, focus
-appearance, and screen-reader behavior remain explicitly unverified for the
-post-Ask-AI build.
+card styling pass automated checks. This audit does not verify pixel fidelity, current contrast, focus appearance, or screen-reader behavior for the post-Ask-AI build.
 
 ## Deferred release work
 

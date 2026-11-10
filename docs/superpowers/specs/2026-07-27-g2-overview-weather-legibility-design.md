@@ -1,5 +1,7 @@
 # G2 Overview weather auxiliary information readability design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-27
 
 Target path: `/hud-canvas-fast`
@@ -10,29 +12,27 @@ Status: APPROVED
 
 ## Target
 
-In the actual G2, add the following two lines at the bottom right of the first `OVERVIEW` dashboard.
-Enlarge to make it easier to read.
+Enlarge the following two lines at the bottom right of the first `OVERVIEW` dashboard to improve actual G2 readability:
 
 - `Feeling 31° Humidity 67%`
 - `Precipitation 20%, wind 8km/h`
 
 ## Selected design
 
-Change the font size of the two lines from 11px to 14px. text position, phrase,
-The rounding method for thickness, color, and weather values ​​is maintained.
+Increase both lines from 11px to 14px.
+Keep their position, wording, font weight, color, and weather-value rounding unchanged.
 
-13px is a small change and 15px can get a bit crowded in the current information frame, so
-Choose 14px, which improves readability while maintaining existing margins.
+Choose 14px to improve readability while preserving existing margins.
+The 13px option makes a small change, while 15px may crowd the current frame.
 
 ## Implementation and verification
 
-Apply 14px only to the two weather supplements in `src/fast-canvas-hud.ts`.
-`src/fast-canvas-hud.test.ts` has a regression where both text is drawn at 14px
-Add inspection.
+Apply 14px only to the two weather supplement lines in `src/fast-canvas-hud.ts`.
+In `src/fast-canvas-hud.test.ts`, add a regression check that both lines use 14px.
 
-After making changes, run the corresponding HUD test, type check, and build in series. Currently 4176
-Maintain only one development server, hot reloaded from the same `detail-decks-019` URL.
-Wait for actual G2 confirmation.
+After editing, run the relevant HUD test, type check, and build in sequence.
+Keep only one development server on port 4176.
+Use hot reload at the same `detail-decks-019` URL and wait for actual G2 confirmation.
 
 ## Exclude range
 

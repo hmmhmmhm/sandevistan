@@ -1,5 +1,8 @@
 # G2 Optional ORS Routing Checkpoint
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-27
 
 Branch: `feature/g2-ors-routing`
@@ -23,8 +26,7 @@ All existing location, weather, RSS, OSM, paging, fullscreen-map, zoom,
 bilateral image, and black-frame behaviors remain keyless. Only destination
 search and route calculation depend on OpenRouteService.
 
-The key is read only as the server process secret `ORS_API_KEY`. It is not a
-Vite variable and must not appear in `src/`, `app.json`, `package.json`, an
+The server reads the key only from its process secret `ORS_API_KEY`. Do not store the key in a Vite variable. Do not expose it in `src/`, `app.json`, `package.json`, an
 EHPK, a query string returned to the client, logs, screenshots, or this
 document.
 
@@ -103,9 +105,7 @@ Vite server. Runtime HTTP observations:
 - `/api/geocode?q=Seoul Station`: `503`, `ROUTING_DISABLED`;
 - `/api/route`: `503`, `ROUTING_DISABLED`.
 
-The temporary server was stopped after this serial check. The in-app browser
-surface was not available in this session, so visual browser inspection was
-not claimed.
+The temporary server stopped after this serial check. The in-app browser was unavailable, so no visual browser inspection was completed.
 
 ## Current physical gate
 
@@ -137,7 +137,7 @@ the value in the command history copied into documentation.
 
 - [ ] phone status exposes destination search;
 - [ ] Korean results appear and one can be selected;
-- [ ] chosen walking/cycling/driving route appears over the map;
+- [ ] the selected walking, cycling, or driving route appears over the map;
 - [ ] navigation tab shows live distance and maneuver;
 - [ ] navigation switches to `2 s / 5 m`;
 - [ ] ordinary fixes do not produce redundant image sends;

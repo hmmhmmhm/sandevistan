@@ -1,11 +1,12 @@
 # GitHub Repository Presentation Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
-Make the GitHub repository page accurately communicate what Sandevistan is,
-what hardware it targets, and its current release status. The repository must
-remain discoverable without implying endorsement by Even Realities or
-availability through Even Hub.
+Make the GitHub repository page describe Sandevistan, its target hardware, and its release status accurately.
+Keep the repository discoverable.
+Do not imply Even Realities endorsement or Even Hub availability.
 
 ## GitHub description
 

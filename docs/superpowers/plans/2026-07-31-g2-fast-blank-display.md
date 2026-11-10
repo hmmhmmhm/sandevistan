@@ -1,10 +1,15 @@
 # G2 Fast Blank Display Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add an opt-in `hide=blank` G2 display toggle that replaces the four-tile HUD page with one blank event-capture container, then rebuilds and fully restores the normal image page on the next double tap.
 
-**Architecture:** Resolve the strategy once at the App boundary and pass it through the existing controller, session, and transport options. Keep blank-page construction in a focused module, preserve the query-free black-tile path byte-for-byte, and clear the successful-image cache whenever the candidate rebuilds image containers so restoration always resends all four tiles. The experiment remains fail-fast with no queue, retry, or same-event fallback.
+**Architecture:** Resolve the strategy once at the App boundary and pass it through the existing controller, session, and transport options. Keep blank-page construction in a focused module. Preserve the query-free black-tile path byte-for-byte. Whenever the candidate rebuilds image containers, clear the successful-image cache. Restoration must resend all four tiles. The experiment remains fail-fast with no queue, retry, or same-event fallback.
 
 **Tech Stack:** TypeScript 5.9, React 19, Vitest 4 with jsdom, Even Hub SDK 0.0.13, Vite 6
 
@@ -225,9 +230,7 @@ it("blank rebuild hides without images and restores all four tiles", async () =>
 });
 ```
 
-Add independent tests proving a false hide rebuild does not encode, retry, or
-change to hidden input behavior, and a failed restore remains hidden until a
-new double tap starts a fresh restore.
+Add independent tests for failed hide and restore operations. A false hide rebuild must not encode, retry, or switch to hidden input behavior. A failed restore remains hidden until a new double tap starts a fresh restore.
 
 - [ ] **Step 2: Run transport tests and confirm the RED state**
 
@@ -334,9 +337,7 @@ The query-free `qr` script remains the production control.
 
 - [ ] **Step 2: Write the hardware gate record**
 
-Record the control and candidate URLs, exact ten-cycle serial procedure,
-required diagnostics, 25% hide-median threshold, restore integrity rules,
-zero-failure rule, and a result table marked `Awaiting physical evidence`. State
+Record the control and candidate URLs, exact ten-cycle serial procedure, and required diagnostics. Include the 25% hide-median threshold, restore integrity rules, and zero-failure rule. Mark the result table `Awaiting physical evidence`. State
 that the candidate is not promoted by automated success alone.
 
 - [ ] **Step 3: Add concise README instructions**
@@ -408,5 +409,5 @@ git push origin main
 
 Expected: `origin/main` advances through the design, plan, implementation, and
 hardware-gate commits. Report the control and candidate URLs for a serial
-physical comparison; do not claim physical success before the owner supplies
+physical comparison. Do not claim physical success before the owner supplies
 the trace.

@@ -1,5 +1,8 @@
 # G2 Balanced OSM Labels Checkpoints
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-27
 Branch: `feature/g2-fast-content`
 SDK: `0.0.11`
@@ -15,9 +18,7 @@ approximately 1.5 times larger text for comfortable reading:
 
 > The label is visible, and you may need to increase the text size by about 1.5 times to see it well.
 
-This establishes successful OSM label collection, projection, collision
-layout, and physical display. It does not approve the original 9px/8px font
-sizes as the final readable size.
+The checkpoint confirms OSM label collection, projection, collision layout, and physical display. The original 9px/8px font sizes still required a readability revision.
 
 Before this checkpoint:
 
@@ -41,8 +42,4 @@ satisfactory:
 
 > I am now satisfied with the label size.
 
-This is direct physical evidence that the enlarged labels remained visible
-and reached the desired readability. Bilateral output, page speed, and
-double-tap restoration were not re-observed in this exact response; their
-previously verified transport behavior was unchanged by this font-only
-revision.
+The response directly confirms the enlarged labels' visibility and readability on hardware. It does not separately reconfirm bilateral output, page speed, or double-tap restoration. This font-only revision left the previously verified transport code unchanged.

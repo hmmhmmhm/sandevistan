@@ -1,5 +1,10 @@
 # G2 Balanced OSM Labels Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -9,10 +14,7 @@
 **Goal:** Add a collision-limited set of Korean OSM place, station, landmark, and road names to the proven G2 tactical map.
 
 **Architecture:** The bounded same-origin map endpoint extends its fixed
-Overpass query and normalized response with at most 24 label candidates. The
-client validates and caches the labelled contract under a new key, while a
-pure Canvas layout module projects, truncates, and collision-filters at most 10
-labels before the route and position layers are painted.
+Overpass query and normalized response with at most 24 label candidates. The client validates and caches the labelled contract under a new key. A pure Canvas layout module projects, truncates, and collision-filters at most 10 labels. The renderer then draws the route and position layers.
 
 **Tech Stack:** OpenStreetMap, Overpass QL, Sites Worker, TypeScript, Canvas 2D, Vitest, Node test runner
 
@@ -514,9 +516,7 @@ const PRIORITY = {
 } as const;
 ```
 
-Project with `projectCoordinate()`. Center each label at its anchor, clamp the
-visible rectangle to the viewport, and reject it when its four-pixel-expanded
-collision box intersects an accepted box or:
+Project with `projectCoordinate()`. Center each label at its anchor. Clamp the visible rectangle to the viewport. Reject the label if its four-pixel-expanded collision box intersects an accepted box or the following region:
 
 ```ts
 const ARROW_EXCLUSION = {
@@ -568,9 +568,7 @@ expect(lastLabelOrder).toBeLessThan(routeStrokeOrder);
 expect(routeStrokeOrder).toBeLessThan(positionFillOrder);
 ```
 
-Assert transit/place text uses `#ffffff` with 9px bold font, road/landmark text
-uses `#d0d0d0` with 8px bold font, and every label has a black patch drawn
-immediately before its text.
+Assert that transit/place text uses `#ffffff` with 9px bold font. Assert that road/landmark text uses `#d0d0d0` with 8px bold font. Verify that each label has a black patch immediately before its text.
 
 Retain the existing four-page identical-left-snapshot assertion.
 
@@ -710,8 +708,7 @@ curl -sS --max-time 20 \
   | jq '{cell, roadCount:(.roads|length), labels}'
 ```
 
-Expected: the response contains a valid cell, roads, no more than 24 labels,
-and at least one named candidate when OSM supplies one for the test cell.
+Expected: the response contains a valid cell, roads, and no more than 24 labels. If OSM supplies a named candidate for the test cell, the response includes at least one.
 
 - [x] **Step 5: Commit the physical build identity**
 
@@ -794,10 +791,9 @@ const fontSize = prominent ? 14 : 12;
 ```
 
 Keep the same display-unit limits, `height = fontSize + 2`, viewport clamp,
-four-pixel collision expansion, arrow exclusion, and 10-label maximum. Scale
-the ASCII width estimate from 5px at the original 8px font to 8px at the new
-12px font so Latin fallback names participate in collision detection at their
-new rendered size. The existing full-width estimate automatically responds to
+four-pixel collision expansion, arrow exclusion, and 10-label maximum.
+Scale the ASCII width estimate from 5px at the original 8px font to 8px at the new 12px font.
+The collision calculation must use the new rendered size for Latin fallback names. The existing full-width estimate automatically responds to
 the larger font dimensions.
 
 - [x] **Step 4: Verify the scaled Canvas**

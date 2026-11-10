@@ -1,5 +1,10 @@
 # G2 Keyless RSS News Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -8,7 +13,7 @@
 
 **Goal:** Replace all six sample headlines with current SBS latest-news RSS while keeping the feed keyless, same-origin, allowlisted, cached, and independent of other live features.
 
-**Architecture:** A shared server API router handles `/api/*` before static assets in both the Sites Worker and Vite development server. The server proxies only the fixed SBS feed as XML; the client parses, sanitizes, deduplicates, persists, and renders six normalized headlines.
+**Architecture:** A shared server API router handles `/api/*` before static assets in both the Sites Worker and Vite development server. The server proxies only the fixed SBS feed as XML. The client parses, sanitizes, deduplicates, persists, and renders six normalized headlines.
 
 **Tech Stack:** Sites Worker, Vite Connect middleware, Fetch API, RSS XML, DOMParser, TypeScript, Node test runner, Vitest
 
@@ -299,7 +304,7 @@ export async function handleNewsRequest(
 ```
 
 Import `jsonResponse`, `readLimitedBytes`, and `createTimeout` from
-`./http.js`; do not import from `api-router.js`.
+`./http.js`. Do not import from `api-router.js`.
 
 Read the response stream incrementally and cancel it once accumulated bytes
 exceed `MAX_BYTES` by calling `readLimitedBytes()` from `server/http.js`. Use
@@ -417,7 +422,7 @@ export async function resolveNews(
 /api/news?feed=sbs-latest
 ```
 
-with an eight-second abort timeout. Persist `{ value, fetchedAt }`; preserve a
+with an eight-second abort timeout. Persist `{ value, fetchedAt }`. Preserve a
 valid stale cache on any error. Call `onCached` before a stale refresh so the
 six cached titles render immediately.
 
@@ -549,9 +554,7 @@ http://100.96.68.73:4176/hud-canvas-fast?sdk=0.0.11&build=live-news-013
 
 - [x] **Step 2: Verify**
 
-Confirm six current general-news titles are readable, one news refresh sends
-only `3/5`, repeated page scrolling causes no extra HTTP request, and airplane
-mode retains cached titles with `STALE`.
+Confirm that six current general-news titles are readable. Verify that one news refresh sends only `3/5`. Repeated page scrolling must not cause extra HTTP requests. In airplane mode, verify that cached titles remain visible with `STALE`.
 
 - [x] **Step 3: Record and commit**
 

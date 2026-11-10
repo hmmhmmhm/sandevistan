@@ -1,18 +1,23 @@
 # G2 Live Refresh Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Advance the G2 clock every minute, follow meaningful movement on the map, and refresh a changed device battery without disturbing the proven serialized Canvas transport.
+**Goal:** Advance the G2 clock every minute. Follow meaningful movement on the map and refresh a changed device battery. Preserve the proven serialized Canvas transport.
 
-**Architecture:** Add a drift-free minute scheduler and one new `right-top` transport target for image ID 3. Subscribe to official device-status and continuous-location SDK events, normalize and deduplicate them before requesting the existing serialized image queue, and reduce the OSM cache cell to the approved walking refresh distance while preserving the last valid map on failure.
+**Architecture:** Add a drift-free minute scheduler and one new `right-top` transport target for image ID 3. Subscribe to official device-status and continuous-location SDK events. Normalize and deduplicate events before requesting the existing serialized image queue. Reduce the OSM cache cell to the approved walking refresh distance. On failure, preserve the last valid map.
 
 **Tech Stack:** React 19, TypeScript 5.9, Vitest 4, Even Hub SDK 0.0.11, Canvas, Vite, Node test runner
 
-**Execution:** Inline in the current session; the user explicitly requested no subagents.
+**Execution:** Inline in the current session. The user explicitly requested no subagents.
 
 ---
 
@@ -206,8 +211,8 @@ targetTiles: {
 },
 ```
 
-Keep the current coalescing rule: equal pending targets deduplicate; differing
-targets promote to `all`.
+Keep the current coalescing rule. Deduplicate equal pending targets.
+Promote differing targets to `all`.
 
 - [x] **Step 7: Start and stop the minute trigger in App**
 
@@ -222,7 +227,7 @@ stopMinuteRefresh ??= startMinuteRefresh(
 ```
 
 Call `stopMinuteRefresh?.()` during React effect cleanup before transport
-cleanup. Do not redraw in the timer; the existing
+cleanup. Do not redraw in the timer. The existing
 `beforeExternalRefresh: drawCurrentPage` callback redraws immediately before
 encoding.
 
@@ -286,9 +291,7 @@ Assert transport cleanup unsubscribes device status exactly once. In
 expect(requestRefresh).toHaveBeenCalledWith("right-top");
 ```
 
-Navigate to `news`, emit another battery callback, and assert no immediate
-refresh; navigate back to `overview` and assert the newest battery is passed
-to the renderer.
+Navigate to `news`. Emit another battery callback and assert no immediate refresh. Navigate back to `overview`. Assert that the renderer receives the newest battery.
 
 - [x] **Step 2: Run the focused tests and verify RED**
 
@@ -407,9 +410,7 @@ stopAppLocationUpdates();
 ```
 
 After startup, emit an invalid fix and a valid fix below 15 meters; assert no
-new update and no location write. Emit a fix at least 15 meters away in the
-same map cell; assert the state and persisted cache change, one `"left"`
-update appears, and `/api/map` is not requested again.
+new update and no location write. Emit a fix at least 15 meters away in the same map cell. Assert that the state and persisted cache change. Verify one `"left"` update and no new request to `/api/map`.
 
 Dispose twice and assert the location subscription and SDK stop method are
 each called once. Add a failed-start test proving a `false` or thrown
@@ -526,10 +527,7 @@ expect(mapCell(37.5563, 126.922)).toBe("37.5552,126.9216");
 ```
 
 Change the different-cell failure test to expect the prior valid map as
-`stale`, and assert `onCached` receives it before the failed request. Add a
-dashboard test: an accepted fix in a new cell issues one new map request;
-when that request fails, `state.map.value` still equals the previous geometry
-and its status is `stale`.
+`stale`, and assert `onCached` receives it before the failed request. Add a dashboard test for an accepted fix in a new cell. Assert one new map request. If the request fails, `state.map.value` must retain the previous geometry with status `stale`.
 
 - [x] **Step 2: Run client and server map tests and verify RED**
 
@@ -711,5 +709,5 @@ http://100.96.68.73:4176/hud-canvas-fast?sdk=0.0.11&build=live-refresh-017
 - [x] **Step 7: Record physical observations and push**
 
 After the user reports the actual G2 result, replace `PENDING` with only those
-observations, commit the record, rerun `git status --short`, and push
-`feature/g2-fast-content`.
+observations. Commit the record. Rerun `git status --short`.
+Push `feature/g2-fast-content`.

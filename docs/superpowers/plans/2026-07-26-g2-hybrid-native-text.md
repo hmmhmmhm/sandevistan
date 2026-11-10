@@ -1,5 +1,10 @@
 # G2 Hybrid Native Text HUD Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -8,7 +13,7 @@
 
 **Goal:** Add an isolated `/hud-hybrid` experiment that sends a text-free four-tile Canvas background once and switches pages with one native Text update per scroll.
 
-**Architecture:** A focused `hybrid-hud.ts` module owns the static background and native page strings. `transmitHybridCanvas` reuses the proven SDK `0.0.10` page and image transport for startup, then queues only `textContainerUpgrade` calls on scroll; the existing `/hud-canvas` transport remains unchanged.
+**Architecture:** A focused `hybrid-hud.ts` module owns the static background and native page strings. `transmitHybridCanvas` reuses the proven SDK `0.0.10` page and image transport for startup, then queues only `textContainerUpgrade` calls on scroll. The existing `/hud-canvas` transport remains unchanged.
 
 **Tech Stack:** TypeScript, React 19, HTML Canvas 2D, Vitest, Vite, Even Hub SDK `0.0.10`
 

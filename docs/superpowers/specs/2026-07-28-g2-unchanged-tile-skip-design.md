@@ -1,52 +1,52 @@
 # G2 design to skip tile transmission without change
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-28
 
 Status: Approved for custom implementation
 
 ## Target
 
-Finally on glasses, while maintaining the proven PNG four-tile serial transfer in SDK `0.0.11`
-Success If the transmitted tile and the new encoding result are exactly the same
-Omit the `updateImageRawData` call.
+Preserve the PNG four-tile serial transfer verified on the glasses with SDK `0.0.11`.
+If a new encoded tile exactly matches its last successfully transmitted payload, omit the `updateImageRawData` call.
 
 ## Selected method
 
-Keep the last successful `Uint8Array` by tile ID and store the new encoding bytes and length and
-Each byte is compared accurately.
+Keep the last successful `Uint8Array` for each tile ID.
+Compare its length and every byte with the new encoded payload.
 
 - The dirty flag is excluded because all update callers must know exactly the changed area.
 - Hashes reduce memory slightly, but are excluded because they require collision handling and separate calculations.
 - Accurate comparison is the simplest, with only a maximum of four tiles and a small PNG size.
   no conflict
 
-Canvas encoding is currently at the 20–55ms level, so perform it as is. can be from hundreds of ms
-Focus on reducing only SDK image calls, which take seconds.
+Keep Canvas encoding, which currently takes 20–55ms.
+Focus on reducing SDK image calls, which take hundreds of ms to seconds.
 
 ## Transport Rules
 
-1. In the first display, the cache is empty, so all target tiles are transmitted.
-2. After encoding, each tile is accurately compared with the last success byte.
-3. If they are the same, do not call the SDK and leave `[TILE] <name> skipped · unchanged`.
-4. If different, transmit serially one by one in the existing order.
-5. Immediately after the SDK returns success, only the corresponding tile cache is replaced with new bytes.
-6. Failure, exception, and timeout tiles do not change the cache.
-7. The success tile cache is maintained even if other tiles fail after the first successful tile.
-   In the next input, only the tiles that are not reflected in the actual glasses are sent back.
-8. Even if one refresh is omitted, it is already the same screen, so it is normal completion and
-   Handle with display commit.
+1. On initial display, send every target tile because the cache is empty.
+2. After encoding, compare each tile exactly with its last successful bytes.
+3. If the bytes match, skip the SDK call and log `[TILE] <name> skipped · unchanged`.
+4. If the bytes differ, send the tile serially in the existing order.
+5. Immediately after SDK success, replace only that tile's cached bytes.
+6. On failure, exception, or timeout, keep its cache unchanged.
+7. If a later tile fails, retain earlier successful tiles in the cache.
+   On the next input, send only tiles that do not match the glasses' last successful payloads.
+8. If all requested tiles are skipped, complete the refresh normally and commit the display state.
 
 ## Hide and restore
 
-Since the black tiles have different bytes than the current HUD, all four are transmitted. After success
-The cache becomes a black tile, and the restoration HUD is also different from the black tile, so four more cards are needed.
-Send. The existing policy of discarding external updates while hidden is maintained.
+Black tiles differ from the current HUD, so hiding sends all four tiles.
+After success, the cache contains black tiles. Restoring then sends all four HUD tiles because those bytes differ.
+Continue dropping external updates while hidden.
 
 ## Life cycle and memory
 
-The cache is placed only inside the `transmitCanvas` instance. App effects are cleaned up or new
-Creating a page instance also discards the cache, so you don't accidentally omit a new container.
-No. Only store a maximum of four PNGs.
+Keep the cache inside each `transmitCanvas` instance.
+Discard it during app-effect cleanup or page-instance replacement to avoid skipping updates for newly created containers.
+Store at most four PNGs.
 
 ## Maintaining stability contract
 
@@ -60,15 +60,14 @@ No. Only store a maximum of four PNGs.
 
 ## Diagnostic log
 
-When each refresh is completed, the actual number of SDK calls and number of omissions are left.
+After each refresh, log the actual SDK-call count and skipped-tile count.
 
 ```text
 [REFRESH] image refresh complete · sent 1 · skipped 1
 ```
 
-In practice, repeated clock, battery, and location updates and same screen redraws
-`skipped · unchanged` appears, and only the tiles whose screen has changed show the existing success log.
-Make sure you leave it behind.
+During repeated clock, battery, location, and same-screen updates, check for `skipped · unchanged`.
+Only tiles whose pixels changed should produce the existing success log.
 
 ## Automatic testing
 

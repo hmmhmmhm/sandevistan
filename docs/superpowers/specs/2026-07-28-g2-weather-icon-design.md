@@ -1,21 +1,23 @@
 # G2 representative weather icon design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-28
 
 Status: Approved for custom implementation
 
 ## Target
 
-You can recognize the current weather before the text in the Weather dashboard and full screen details.
-Display a large 1-bit representative icon so that
+Display a large 1-bit weather icon on the Weather dashboard and full-screen details.
+The icon should identify current weather before the user reads the text.
 
 ## Visual rules
 
-- Drawing directly with Canvas path without using external images and font icons
-- Retains G2's black, white, gray palette and angular tactical HUD style
-- Do not use blur, shadow, glow, or anti-aliasing-dependent effects.
-- Dashboard icon approximately 72px, full screen detailed icon approximately 104px
-- Icons do not overlap with temperature, condition, feeling, humidity, precipitation, and wind text.
+- Draw icons directly with Canvas paths. Do not use external images or font icons.
+- Retain the G2 black, white, and gray palette and angular tactical HUD style.
+- Do not use blur, shadows, glow, or effects that depend on anti-aliasing.
+- Use approximately 72px icons on the dashboard and 104px icons in full-screen details.
+- Keep icons clear of temperature, condition, perceived-temperature, humidity, precipitation, and wind text.
 
 ## Weather Code Mapping
 
@@ -32,9 +34,9 @@ Use geometric shapes with distinct outlines even at low resolution, such as poly
 
 ## Status handling
 
-For fresh and stale data, an icon corresponding to the weather code is displayed. loading and
-unavailable does not display an icon to avoid implying incorrect weather, and
-Keep only the status text.
+For fresh or stale data, display the icon for the weather code.
+While loading or unavailable, show only status text.
+Do not show an icon that could imply unsupported weather conditions.
 
 ## Test
 

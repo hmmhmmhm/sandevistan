@@ -1,10 +1,15 @@
 # Extensible I18n Registry Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make a new Sandevistan language require one complete locale pack, one registry entry, and three shared RSS feed definitions without changing current Korean, English, map, or G2 transport behavior.
+**Goal:** Require one complete locale pack, one registry entry, and three shared RSS feed definitions for each new Sandevistan language. Preserve current Korean, English, map, and G2 transport behavior.
 
-**Architecture:** Use the English locale pack as a compile-time structural schema, derive supported locale types and runtime options from one registry, and keep existing phone/HUD translation functions as compatibility adapters. Make map language tags generic and move browser/server built-in RSS metadata into one shared server catalog.
+**Architecture:** Use the English locale pack as a compile-time structural schema. Derive supported locale types and runtime options from one registry. Keep existing phone/HUD translation functions as compatibility adapters. Make map language tags generic and move browser/server built-in RSS metadata into one shared server catalog.
 
 **Tech Stack:** TypeScript 5.9, React 19, Vite 6, Vitest, Testing Library, Node test runner, Cloudflare-style Worker modules, Even Hub SDK 0.0.11
 
@@ -36,9 +41,7 @@ expect(resolveLocale("system", "ja-JP")).toBe("en");
 expect(resolveLocale("ko", "en-US")).toBe("ko");
 ```
 
-Iterate the registry and assert every key equals `pack.code`, each pack has
-seven weekdays, and every recursive message path present in English exists in
-the other packs.
+Iterate the registry. Assert that every key equals `pack.code` and each pack has seven weekdays. Every recursive message path in English must exist in the other packs.
 
 - [ ] **Step 2: Run the registry test and verify RED**
 

@@ -1,5 +1,8 @@
 # G2 Keyless RSS News Success
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-27
 Branch: `feature/g2-fast-content`
 Tested commit: `80767be8f0685b0baf44a129b75b11a2cd652271`
@@ -25,10 +28,7 @@ Recorded results:
 - Bilateral display: PASS
 - Double-tap black-frame hide and restore: PASS
 
-The exact six strings visible on the glasses were not transcribed. The live
-endpoint did return six current general-news titles during the checkpoint, but
-this record does not assume that a particular network response remained
-unchanged between the endpoint inspection and the physical frame.
+The exact six strings visible on the glasses were not transcribed. The endpoint returned six current general-news titles during the checkpoint. That response may have changed before the physical display was observed.
 
 ## Scope and uninstrumented conditions
 
@@ -59,6 +59,5 @@ refresh targeting, and hidden-frame restore behavior.
 
 ## Active QR identity
 
-`npm run qr` points to the exact approved Tailscale URL and build tag shown
-above. SDK `0.0.11` and the already approved full-send order `3/5/2/4` remain
+At this checkpoint, `npm run qr` pointed to the approved Tailscale URL and build tag shown above. SDK `0.0.11` and the already approved full-send order `3/5/2/4` remain
 unchanged.

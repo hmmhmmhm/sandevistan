@@ -1,14 +1,15 @@
 # G2 LZ4-Friendly BMP Experiment Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Physical comparison complete; rejected as a speed default
 
 ## Goal
 
-Measure whether SDK `0.0.13` transfers the existing four-tile HUD faster when
-the content payload is a simple 1-bit BMP instead of the current four-level
-Canvas PNG.
+With SDK `0.0.13`, compare four-tile HUD transmission using a simple 1-bit BMP and the current four-level Canvas PNG.
+Measure whether BMP is faster.
 
 ## Controlled comparison
 
@@ -35,10 +36,9 @@ restore comparison.
 
 ## Encoding
 
-The experimental encoder converts the temporary tile's RGBA pixels to a
-monochrome mask using deterministic grayscale luminance. Values at or above
-128 become white and lower values become black. It then uses the already
-hardware-proven bottom-up 1-bit BMP encoder.
+Convert the temporary tile's RGBA pixels to a monochrome mask with deterministic grayscale luminance.
+Set values at or above 128 to white and lower values to black.
+Then use the bottom-up 1-bit BMP encoder already verified on hardware.
 
 The source Canvas is never modified. The phone preview therefore remains
 unchanged.
@@ -63,10 +63,11 @@ After one warm-up per URL, record at least five iterations of:
 2. two-tile page transition;
 3. four-tile detail entry or exit.
 
-The BMP mode passes only when both eyes and all quadrants remain complete, HUD
-text and map labels remain usable, no `sendFailed` or timeout occurs, and the
-median content refresh improves enough to outweigh its reduced grayscale
-fidelity.
+Pass BMP mode only if every condition holds.
+Both eyes and all quadrants must remain complete.
+HUD text and map labels must remain usable.
+No `sendFailed` or timeout may occur.
+Median content refresh must improve enough to justify the reduced grayscale fidelity.
 
 ## Rollback
 

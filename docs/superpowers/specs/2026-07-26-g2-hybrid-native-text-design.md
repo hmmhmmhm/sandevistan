@@ -1,11 +1,12 @@
 # G2 Hybrid Native Text HUD Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Target
 
-Fixed an issue where page transitions in the existing 4-tile Canvas HUD were slow and appeared in four pieces.
-Reduce it to a separate, verifiable path. The background graphic is an image only once.
-Transfer, and subsequent page transitions are performed using only one full-screen native text container.
-Update.
+Test a separate path to reduce the slow, four-part page transitions of the existing 4-tile Canvas HUD.
+Send the background images once.
+For later page transitions, update only one full-screen native Text container.
 
 The verified 4-tile path of the existing `/hud-canvas` and SDK `0.0.10` will not be changed.
 The new experimental path is `/hud-hybrid`.
@@ -17,10 +18,9 @@ On the start page, create the same five containers as before.
 - ID 1 `eventLayer`: 576×288 Text, transparent background, event capture, dynamic page text
 - ID 2–5: Four 288×144 images, common tactical background without text
 
-The Text container is created with a single space character at startup. All four images were sent.
-Upload the first `OVERVIEW` phrase to ID 1 with `textContainerUpgrade()`. this
-The order is the last text update in SDK `0.0.10` without explicit z-order.
-It is an actual device A/B to check whether it is visible on the image.
+At startup, create the Text container with a single space.
+After all four images finish sending, send the first `OVERVIEW` text to ID 1 with `textContainerUpgrade()`.
+SDK `0.0.10` has no explicit z-order. This hardware A/B test checks whether the final text update appears over the images.
 
 ## Common Canvas background
 
@@ -31,48 +31,47 @@ It is an actual device A/B to check whether it is visible on the image.
 - Left area map roads and routes
 - Common divider and corner decoration in right information area
 
-Not a single letter is drawn on Canvas. News, time, weather, navigation,
-All information that changes, such as to-dos and page numbers, is native text content.
+Do not draw text on Canvas.
+Keep all changing information in native text, including news, time, weather, TODOs, and page numbers.
 
 ## Native page text
 
-`formatHybridHudText(page, now)` returns a single string including spaces and line breaks.
-make it The page order is the same as before.
+`formatHybridHudText(page, now)` returns one string with spaces and line breaks.
+Keep the existing page order.
 
 1. `OVERVIEW`: Current time, Hongdae weather, local news and brief status
 2. `NAVIGATION`: Destination, distance, right turn and next intersection
 3. `NEWS`: Big local headlines and weather briefings
 4. `TODO`: To-do check status and G2/R1 connection status
 
-Each content includes page numbers from `01/04` to `04/04`. korean,
-Verify that the arrows and check marks actually appear in the G2 built-in font. Canvas and
-The size, font, and pixel coordinates for each letter are not required.
+Each page includes its page number, from `01/04` to `04/04`.
+On the actual G2, check Korean text, arrows, and check marks in the built-in font.
+Do not require the native text to match each Canvas letter's size, font, or pixel coordinates.
 
 ## Transmission and Input
 
-Initial entry serially transmits image IDs 2, 3, 4, and 5 as before. since
-Scrolling does not encode images or call `updateImageRawData()`.
+On initial entry, send image IDs 2, 3, 4, and 5 serially as before.
+On later scrolls, do not encode images or call `updateImageRawData()`.
 
 - `SCROLL_BOTTOM_EVENT`: Update next page text once
 - `SCROLL_TOP_EVENT`: Update previous page text once
 - `DOUBLE_CLICK_EVENT`: Existing shutdown behavior
 
-Fast consecutive inputs are processed in order in a single Promise queue.
-If `textContainerUpgrade()` returns `false`, mark an error as progress and
-Absorbs queue errors so that the next input can continue to be received.
+Process rapid inputs in order through one Promise queue.
+If `textContainerUpgrade()` returns `false`, display an error in the progress status.
+Catch queue errors so the next input can run.
 
 ## Judgment criteria
 
 Automated testing fixes:
 
-- The common background Canvas is 576×288 and does not call `fillText()`.
-- Four page copy includes page number and unique content.
-- Image IDs 2–5 are transmitted once only on initial entry.
-- The initial text update is called once after four images.
-- Down and up scrolling only updates the text once each without additional image transfer.
-- Even in continuous scrolling, the maximum number of simultaneous executions of text updates is 1.
-- Only `/hud-hybrid` selects the hybrid renderer, while the existing `/hud-canvas` selects the hybrid renderer.
-  don't change
+- Check that the common background Canvas is 576×288 and never calls `fillText()`.
+- Check that all four pages contain unique content and a page number.
+- Send image IDs 2–5 only once, on initial entry.
+- After four image sends, perform one initial text update.
+- On each down or up scroll, update text once without sending images.
+- During continuous scrolling, permit at most 1 text update at a time.
+- Select the hybrid renderer only for `/hud-hybrid`. Keep the existing `/hud-canvas` renderer unchanged.
 
 In actual G2, check the following.
 

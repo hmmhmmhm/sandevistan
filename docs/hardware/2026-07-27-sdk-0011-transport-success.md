@@ -1,5 +1,8 @@
 # SDK 0.0.11 G2 Transport Success
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-27
 SDK: `0.0.11`
 Build: `fast-right-first-011`
@@ -9,8 +12,7 @@ Result: PASS
 
 ## As-run test stages
 
-This final PASS covers the combined SDK/send-order build, not an SDK-only
-artifact. The preceding `fast-live-011` stage isolated SDK `0.0.11` and
+The final PASS applies to the combined SDK and send-order build. It does not isolate the SDK change. The preceding `fast-live-011` stage isolated SDK `0.0.11` and
 established bilateral display, row-major `2/3/4/5` full rendering, normal
 scrolling, and no `SENDFAILED`. The user then requested right-column-first
 loading. Commit
@@ -48,5 +50,4 @@ also passed:
 - Fast scroll transfer: `3/5`
 - Legacy full transfer: `2/3/4/5`
 
-SDK `0.0.11` is the live-data baseline. SDK `0.0.12` remains blocked until
-separately proven on the physical G2.
+At this checkpoint, SDK `0.0.11` was the live-data baseline. SDK `0.0.12` required a separate physical G2 pass before adoption.

@@ -1,5 +1,10 @@
 # G2 Fast Split Canvas HUD Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -8,7 +13,7 @@
 
 **Goal:** Add an isolated `/hud-canvas-fast` experiment with fully styled Canvas text and a two-tile scroll update while preserving `/hud-canvas`.
 
-**Architecture:** Render a page-invariant map in the left `288px` and all dynamic page content in the right `288px`. Extend the proven Canvas transport with an optional navigation-tile set, then expose a fast wrapper that sends all four tiles initially and only right-side IDs `3` and `5` after navigation.
+**Architecture:** Render a page-invariant map in the left `288px` and all dynamic page content in the right `288px`. Extend the proven Canvas transport with an optional navigation-tile set. Expose a fast wrapper that sends all four tiles initially. After navigation, the wrapper sends only right-side IDs `3` and `5`.
 
 **Tech Stack:** React 19, TypeScript, Vitest, Canvas 2D, Even Hub SDK `0.0.10`, Vite
 
@@ -442,6 +447,4 @@ git commit -m "docs: prepare fast Canvas HUD hardware test"
 
 - [x] **Step 5: Stop before integration**
 
-Report both A/B links. Do not merge or push until the user confirms that the
-new route is faster enough and the two right tiles do not show a distracting
-top-to-bottom seam.
+Report both A/B links. Do not merge or push until the user confirms both conditions. The route must be fast enough. The two right tiles must not show a distracting top-to-bottom seam.

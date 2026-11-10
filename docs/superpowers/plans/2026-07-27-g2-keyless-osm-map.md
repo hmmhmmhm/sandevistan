@@ -1,5 +1,10 @@
 # G2 Keyless OSM Map Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -8,7 +13,7 @@
 
 **Goal:** Replace the schematic road grid with bounded OpenStreetMap road geometry rendered by Sandevistan’s own Canvas code, without a map API key or WebView screenshot.
 
-**Architecture:** The existing same-origin API router submits one fixed-radius Overpass query for a rounded location cell and returns compact normalized lines. The client caches geometry for 24 hours, projects it into the fixed left `288 x 288` region, and requests only tile IDs `2/4`.
+**Architecture:** The existing same-origin API router submits one fixed-radius Overpass query for a rounded location cell and returns compact normalized lines. The client caches geometry for 24 hours. It projects the geometry into the fixed left `288 x 288` region. It requests only tile IDs `2/4`.
 
 **Tech Stack:** OpenStreetMap data, Overpass API, Sites Worker, TypeScript, Canvas 2D, Node test runner, Vitest
 
@@ -149,7 +154,7 @@ export async function handleMapRequest(
 ```
 
 Import `jsonResponse`, `readLimitedBytes`, and `createTimeout` from
-`./http.js`; do not import from `api-router.js`, which imports this handler.
+`./http.js`. Do not import from `api-router.js`, which imports this handler.
 
 Send the query as:
 
@@ -366,7 +371,7 @@ Draw in this order:
 6. black lower strip, source/status, and attribution.
 
 Do not draw OSM street labels. If map data are unavailable, draw the existing
-schematic roads and label them `SCHEMATIC`; do not show them as live.
+schematic roads and label them `SCHEMATIC`. Do not show them as live.
 
 - [x] **Step 4: Full verification and commit**
 
@@ -392,9 +397,7 @@ http://100.96.68.73:4176/hud-canvas-fast?sdk=0.0.11&build=live-map-014
 
 - [x] **Step 2: Verify**
 
-Confirm recognizable nearby road structure, readable position arrow and
-attribution, only IDs `2/4` on map refresh, no map request while remaining in
-one cache cell, and unchanged right-page scroll speed.
+Confirm that nearby roads are recognizable and the position arrow and attribution are readable. Verify that map refresh sends only IDs `2/4`. Within one cache cell, verify that no map request occurs. Confirm unchanged right-page scroll speed.
 
 - [x] **Step 3: Record and commit**
 

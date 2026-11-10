@@ -1,5 +1,10 @@
 # Sandevistan Rebrand and English Documentation Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task by task.
 
 **Goal:** Rebrand the main branch from `even-relic` / `RELIC` to Sandevistan, make the npm project private, publish a polished English repository surface, and translate every tracked Markdown document without altering the `0.0.12-reproduce` branch.
@@ -12,7 +17,7 @@
 
 ## Constraints
 
-- Work only on `main`; do not check out, amend, merge into, or rewrite `0.0.12-reproduce`.
+- Work only on `main`. Do not check out, amend, merge into, or rewrite `0.0.12-reproduce`.
 - Keep Korean product data and user-facing live content where it is part of the Korean HUD experience; translate every tracked Markdown file to English.
 - Preserve historical evidence exactly where old identifiers are materially part of a log, command, URL, filename, or measured result.
 - Do not publish to npm or Even Hub.

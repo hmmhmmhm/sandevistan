@@ -1,10 +1,15 @@
 # G2 Weather Detail and Dynamic Navigation Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a weather-focused fourth Fast Canvas page and full-screen weather detail while showing Navigation only when ORS is enabled.
 
-**Architecture:** Keep legacy Canvas and Hybrid page models unchanged. Add a Fast Canvas-only page model that derives a four- or five-page circular list from route status, then thread that model through the raster dashboard, detail-state reducer, detail renderer, refresh selector, and App session. Reuse the existing keyless Open-Meteo `WeatherValue`; do not expand the network response or cache schema.
+**Architecture:** Keep legacy Canvas and Hybrid page models unchanged. Add a Fast Canvas-only page model that derives a four- or five-page circular list from route status. Pass the model through the raster dashboard, detail-state reducer, detail renderer, refresh selector, and App session. Reuse the existing keyless Open-Meteo `WeatherValue`. Do not expand the network response or cache schema.
 
 **Tech Stack:** TypeScript, React, Canvas 2D, Vitest with jsdom, Vite, Even Realities G2 raster transport.
 
@@ -502,9 +507,7 @@ function weatherLabel(
 }
 ```
 
-The renderer must use the full 576×288 surface, place the current temperature
-at 44px or larger, place the condition beside it, and arrange the four metrics
-in a two-by-two grid with labels at 13–15px and values at 22–26px. For loading
+Use the full 576×288 rendering area. Place the current temperature at 44px or larger. Place the condition beside it. Arrange four metrics in a two-by-two grid. Use labels at 13–15px and values at 22–26px. For loading
 and unavailable, call `drawEmptyState` with weather-only copy. Dispatch
 `options.mode === "weather"` before the TODO and Navigation branches.
 

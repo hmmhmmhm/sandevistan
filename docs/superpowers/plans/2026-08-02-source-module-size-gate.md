@@ -1,5 +1,10 @@
 # Source Module Size Gate Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Restore and permanently enforce Sandevistan's 450-line maximum for custom implementation files without changing runtime behavior.
@@ -19,7 +24,7 @@
 - [x] **Step 1: Write a policy test that supplies a 451-line implementation entry and expects one `Implementation file exceeds 450 lines` violation while ignoring test files.**
 - [x] **Step 2: Run `node --test tests/repository-copy.test.mjs` and verify it fails because `findOversizedImplementationFiles` does not exist.**
 - [x] **Step 3: Implement `findOversizedImplementationFiles(entries, maximumLines = 450)`, collect tracked `src/**/*.ts`, `src/**/*.tsx`, and `src/**/*.css` files, exclude test files, and include its results in `checkRepository`.**
-- [x] **Step 4: Run `node --test tests/repository-copy.test.mjs` and verify the unit test passes; then run `node scripts/check-repository-copy.mjs` and verify it fails only for the three currently oversized modules.**
+- [x] **Step 4: Run `node --test tests/repository-copy.test.mjs` and verify the unit test passes. Then run `node scripts/check-repository-copy.mjs` and verify it fails only for the three currently oversized modules.**
 
 ### Task 2: Split Realtime protocol encoding, configuration, and usage parsing
 

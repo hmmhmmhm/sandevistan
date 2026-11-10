@@ -1,5 +1,10 @@
 # G2 Ask AI Realtime Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED AND INTEGRATED`
 
 Initial implementation commit: `4d3ccaa` (`feat: add realtime Ask AI HUD`)

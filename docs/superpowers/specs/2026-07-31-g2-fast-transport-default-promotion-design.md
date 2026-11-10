@@ -1,5 +1,7 @@
 # G2 Fast Transport Default Promotion Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Implemented; physical gate passed and integrated into `main`
@@ -192,7 +194,6 @@ retaining every rollback and evidence path.
 
 ## Follow-up experiment
 
-The next isolated speed experiment is a true two-bit indexed PNG encoder for
-the four-color HUD payload. It must use a separate query and hardware gate,
-retain the current Canvas PNG as rollback, and must not begin until this
-promotion is physically accepted.
+After physical acceptance of this promotion, test a true two-bit indexed PNG encoder for the four-color HUD payload.
+Use a separate query and hardware test.
+Retain the current Canvas PNG for rollback.

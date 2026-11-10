@@ -1,10 +1,15 @@
 # G2 Live Data Roadmap Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Deliver a hardware-verified Sandevistan HUD whose location, weather, news, and local map work without API keys, while OpenRouteService navigation activates only when a server secret exists.
+**Goal:** Deliver a hardware-verified Sandevistan HUD with keyless location, weather, news, and a local map. Activate OpenRouteService navigation only when a server secret exists.
 
-**Architecture:** Preserve `/hud-canvas-fast`, its `576 x 288` Canvas, and its hardware-required full-frame `3/5/2/4` and page `3/5` image contracts. Execute five independently testable plans in strict order; every phase leaves the keyless app usable and ends with automated verification plus a physical-G2 checkpoint where transport behavior changes.
+**Architecture:** Preserve `/hud-canvas-fast`, its `576 x 288` Canvas, and its hardware-required full-frame `3/5/2/4` and page `3/5` image contracts. Execute five independently testable plans in strict order. Each phase leaves the keyless app usable and ends with automated verification. If transport behavior changes, include a physical-G2 checkpoint.
 
 **Tech Stack:** React 19, TypeScript 5.9, Canvas 2D, Even Hub SDK `0.0.11`, Open-Meteo, SBS RSS, OpenStreetMap/Overpass, OpenRouteService, Vite 6, Sites Worker, Vitest, Node test runner
 
@@ -37,7 +42,7 @@
 - Never install SDK `0.0.12` or add its LZ4 transport flag.
 - Never send two G2 image updates concurrently.
 - Page scroll redraws and sends only IDs `3` and `5`.
-- User-forward scroll keeps page order `1→2→3→4`; the tile-send order does not
+- User-forward scroll keeps page order `1→2→3→4`. The tile-send order does not
   require SDK event-direction inversion.
 - Map-only refresh redraws and sends only IDs `2` and `4`.
 - Weather/news-only refresh redraws and sends only IDs `3` and `5`.

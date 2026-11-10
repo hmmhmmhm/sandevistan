@@ -1,5 +1,10 @@
 # Ask AI Line Stream Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED, THEN EVOLVED`
 
 Initial implementation commit: `f75dd1a`
@@ -13,9 +18,7 @@ replaced by acknowledgement-paced, user-configurable response presentation.
 line transcript and a one-grapheme-per-20-ms assistant reveal.
 
 **Architecture:** Keep OpenAI Realtime authoritative state unchanged. Derive a
-presentation snapshot through a local smooth-stream-style grapheme pacer, turn
-the transcript into wrapped lines, and render a rolling line viewport through
-the existing native Text container. Keep native bridge refresh latest-wins.
+presentation snapshot through a local grapheme pacer. Wrap the transcript into lines. Render a rolling line viewport through the existing native Text container. Keep native bridge refresh latest-wins.
 
 **Tech Stack:** TypeScript, Vitest fake timers, Even Hub SDK 0.0.13, Canvas
 fallback, Vite.

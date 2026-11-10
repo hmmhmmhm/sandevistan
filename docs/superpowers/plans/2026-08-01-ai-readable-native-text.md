@@ -1,5 +1,10 @@
 # Readable Native Ask AI Text Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED AND INTEGRATED`
 
 Implementation commit: `db5961f`
@@ -9,9 +14,9 @@ user-configurable presentation interval.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Remove unreliable tap-to-pause behavior, pace fast Realtime answers at a readable rate, and localize the complete native Ask AI detail interface for all thirty supported languages.
+**Goal:** Remove unreliable tap-to-pause behavior. Pace fast Realtime answers at a readable rate. Localize the complete native Ask AI detail interface for all thirty supported languages.
 
-**Architecture:** Keep Realtime protocol state authoritative and introduce a small presentation pacer that derives a slower `AiHudSnapshot` for rendering only. Keep the one-container native transport, make double tap the sole teardown path, and place complete native-detail copy in a compile-time exhaustive locale map shared by native Text and Canvas fallback formatters.
+**Architecture:** Keep Realtime protocol state authoritative and introduce a small presentation pacer that derives a slower `AiHudSnapshot` for rendering only. Keep the one-container native transport. Make double tap the sole teardown path. Place complete native-detail copy in a compile-time exhaustive locale map. Share the map between native Text and Canvas fallback formatters.
 
 **Tech Stack:** TypeScript, React controller hooks, Even Hub SDK 0.0.13, OpenAI Realtime WebSocket events, Vitest.
 
@@ -29,9 +34,7 @@ user-configurable presentation interval.
 
 - [x] **Step 1: Write the failing locale coverage and Korean formatter tests**
 
-Add tests that iterate `SUPPORTED_LOCALES`, require one complete native Ask AI
-dictionary per locale, and assert Korean native output contains localized
-listening, transcript-history, and double-tap-back labels instead of English.
+Add tests that iterate `SUPPORTED_LOCALES`. Require one complete native Ask AI dictionary per locale. Verify localized Korean listening, transcript-history, and double-tap-back labels instead of English labels.
 
 - [x] **Step 2: Run the focused tests and verify RED**
 
@@ -125,9 +128,10 @@ export function createAiPresentationPacer(options: {
 };
 ```
 
-Each tick reveals at most six `Array.from()` graphemes, rebuilds pages from the
-authoritative turns plus partial current text, and uses the `displaying` phase
-until caught up. It stores one newest target snapshot rather than delta events.
+Each tick reveals at most six `Array.from()` graphemes.
+The pacer rebuilds pages from the authoritative turns plus partial current text.
+It uses the `displaying` phase until it catches up.
+The pacer stores one newest target snapshot rather than delta events.
 
 - [x] **Step 4: Route runtime presentation through the pacer**
 
@@ -153,9 +157,7 @@ Run the Step 2 command and expect every test to pass.
 
 - [x] **Step 1: Write failing input and teardown tests**
 
-Assert a single tap in AI detail returns `consume` with no effect, double tap
-stops once and restores Canvas once, and session stop resolves after closing
-the socket/subscription even when both microphone-close confirmations fail.
+Assert that a single tap in AI detail returns `consume` with no effect. Double tap must stop once and restore Canvas once. Session stop must resolve after socket/subscription cleanup, even if both microphone-close confirmations fail.
 
 - [x] **Step 2: Run focused tests and verify RED**
 
@@ -186,9 +188,7 @@ Run the Step 2 command and expect every test to pass.
 
 - [x] **Step 1: Write the failing integration assertion**
 
-Extend the transport/controller test to prove paced native updates contain
-localized listening copy, tap sends no SDK text or microphone command, and
-double tap restores the image page despite a false microphone-close result.
+Extend the transport/controller test to verify localized listening copy in paced native updates. Tap must send no SDK text or microphone command. Double tap must restore the image page despite a false microphone-close result.
 
 - [x] **Step 2: Run integration tests and verify RED**
 
@@ -198,9 +198,7 @@ Expected: FAIL before the controller uses paced/localized snapshots.
 
 - [x] **Step 3: Wire the approved behavior and keep files under 450 lines**
 
-Use the paced snapshot for native Text and Canvas AI rendering, keep the phone
-companion's authoritative cost/history data intact, and preserve external image
-suppression while native mode is active.
+Use the paced snapshot for native Text and Canvas AI rendering. Preserve the phone companion's authoritative cost/history data. While native mode is active, preserve external image suppression.
 
 - [x] **Step 4: Run all verification gates**
 
@@ -220,6 +218,4 @@ changed implementation files remain at or below 450 lines.
 
 - [x] **Step 5: Commit, fast-forward main, push, and restart the test server**
 
-Commit the tested implementation, fast-forward `main`, rerun the full test
-suite on merged `main`, push `origin/main`, restart port 4179 from `main`, and
-verify both localhost and Tailscale `/hud-canvas-fast` return HTTP 200.
+Commit the tested implementation. Fast-forward `main`. Rerun the full test suite on merged `main`. Push `origin/main`. Restart port 4179 from `main`. Verify that localhost and Tailscale `/hud-canvas-fast` both return HTTP 200.

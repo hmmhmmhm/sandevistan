@@ -1,14 +1,19 @@
 # G2 Fullscreen Raster Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan.
 
-**Goal:** Using a proven 8-bit RGB PNG transmission path, the Sandevistan HUD is displayed as 2×2 static tiles across the entire 576×288 display area of ​​the G2.
+**Goal:** Display the Sandevistan HUD as 2×2 static tiles across the entire 576×288 G2 display. Use the proven 8-bit RGB PNG transmission path.
 
-**Architecture:** Maintain diagnostic replicas of existing official image examples as dedicated hardware verification apps. The original 576×288 HUD is created as four 288×144 PNGs before building, and the app creates one empty event capture layer and four image containers. When the user taps once, tiles are serially transmitted in the order TL → TR → BL → BR, and progress and errors are displayed only in the iPhone WebView.
+**Architecture:** Maintain diagnostic replicas of existing official image examples as dedicated hardware verification apps. Before the build, create four 288×144 PNGs from the original 576×288 HUD. The app creates one empty event capture layer and four image containers. After one user tap, the app sends the tiles serially in the order TL → TR → BL → BR. The app shows progress and errors only in the iPhone WebView.
 
 **Tech Stack:** TypeScript, Vite 5, Vitest, `@evenrealities/even_hub_sdk` 0.0.10, EvenHub CLI, ffmpeg
 
@@ -583,11 +588,11 @@ If it fails, the initial failure tile displayed on the iPhone and the results (`
 - [ ] Each PNG is 288×144, 8-bit RGB.
 - [ ] The SDK upper limit of image containers is exactly four.
 - [ ] The total number of containers is five, including the empty event capture text layer.
-- You must tap [ ] once to start the transfer.
-- [ ] The second single tap is not sent again.
+- [ ] Tap once to start the transfer.
+- [ ] A second single tap does not send the tiles again.
 - [ ] The order of TL→TR→BL→BR is maintained in series.
 - [ ] Transmission stops after the first failure.
-- Tap [ ] twice to end.
+- [ ] Tap twice to end.
 - [ ] Test, tile inspection, and production build all pass.
-- [ ] 5178 Only one server listens.
+- [ ] Only one server listens on port 5178.
 - [ ] In the actual G2, you can see the HUD that fills the entire screen.

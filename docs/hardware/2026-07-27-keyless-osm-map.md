@@ -1,5 +1,8 @@
 # G2 Keyless OSM Map Success
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-27
 Branch: `feature/g2-fast-content`
 Tested commit: `72ebbce825e1df3d52612215ddd269b59bc38013`
@@ -19,13 +22,9 @@ confirmed that the map was clearly visible:
 
 The user also observed that nearby names were absent. That is the expected
 scope of `live-map-014`; its approved implementation plan explicitly excluded
-OSM street labels. Labels move to the separately approved
-`map-labels-015` balanced-label design.
+OSM street labels. The separately approved `map-labels-015` design addresses labels.
 
-This short confirmation establishes visible live road geometry on the G2. It
-does not independently establish an exact position heading, a physical
-`2/4` transfer trace, absence of an HTTP request within one cache cell, or a
-measured page-transition time.
+The confirmation establishes visible live road geometry on G2. It does not establish an exact heading or a physical `2/4` transfer trace. It also does not establish cache-cell request suppression or measured page-transition time.
 
 ## Automated and endpoint evidence
 

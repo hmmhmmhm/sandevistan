@@ -1,5 +1,10 @@
 # Native Ask AI Text Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED AND INTEGRATED`
 
 Implementation commit: `bbe792e` (`feat: stream Ask AI with native text`)
@@ -8,10 +13,7 @@ Implementation commit: `bbe792e` (`feat: stream Ask AI with native text`)
 container instead of retransmitting four Canvas tiles.
 
 **Architecture:** Add a small native-AI page formatter and a mode controller
-inside the fast transport. The controller rebuilds between the existing image
-page and a one-container text page, suppresses image refreshes while native
-mode is active, and exposes a direct latest-snapshot update request to the HUD
-controller. Keep transcript/history state renderer-independent.
+inside the fast transport. The controller rebuilds between the existing image page and a one-container text page. While native mode is active, it suppresses image refreshes. The controller exposes a direct latest-snapshot update request to the HUD controller. Keep transcript/history state renderer-independent.
 
 **Tech stack:** TypeScript, Vitest, React, Even Hub SDK 0.0.13.
 

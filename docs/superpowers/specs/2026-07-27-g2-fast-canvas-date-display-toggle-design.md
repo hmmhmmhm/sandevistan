@@ -1,70 +1,67 @@
 # G2 Fast Canvas date and display toggle design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Target
 
-Approved split layout, content order, 2-tile scrolling in `/hud-canvas-fast`
-While maintaining transmission, we add the following two functions:
+Preserve the approved split layout, content order, and 2-tile scroll transmission in `/hud-canvas-fast`.
+Add the following changes:
 
-1. Display the year, month, day, and day of the week in the clock header.
-2. Double tap G2 or R1 to hide and restore only the display pixel without exiting the app.
-3. Only the WebView preview is displayed in green like the surrounding text and a luminous effect is applied.
-   Remove.
+1. Display the year, month, day, and weekday in the clock header.
+2. On G2 or R1 double tap, hide or restore only display pixels without exiting the app.
+3. Color only the WebView preview green to match surrounding text. Remove the glow effect.
 
 ## Date and time
 
-The time maintains the existing `HH:MM` format. underneath it
-Displays the date in the format `YYYY.MM.DD day of the week`.
+Keep the existing `HH:MM` time format.
+Below the time, display the date as `YYYY.MM.DD day of the week`.
 
 ```text
 14:37
 2026.07.27 Monday
 ```
 
-The date and time are updated when the Canvas is redrawn by starting the app or scrolling the page.
-Does not automatically retransmit images every minute or second. The existing weather and page number are
-Keep it on the right so that it does not overlap with the date within the same header.
+Update the date and time when startup or page scrolling redraws the Canvas.
+Do not retransmit images automatically every minute or second.
+Keep the weather and page number on the right side of the header, clear of the date.
 
 ## SDK Constraints
 
-SDK `0.0.10` includes a release that only suspends the display while leaving the app running.
-There is no API. `shutDownPageContainer()` provides only two shutdown operations:
+SDK `0.0.10` has no API that suspends only the display while keeping the app running.
+`shutDownPageContainer()` provides only two exit operations:
 
 - `exitMode 0`: Immediate exit
 - `exitMode 1`: Front panel display asking whether to exit
 
-Therefore, the method of restoring with a double tap event of the same app after calling the exit API is
-cannot be used
+After calling the exit API, the same app cannot receive a double tap to restore the HUD.
 
 ## Reviewed display-hiding methods
 
 ### 1. Shutdown API
 
-As with the current implementation, call `shutDownPageContainer(1)` on double tap. Close app
-A confirmation panel will appear and you will not be able to restore the HUD with the same double tap, so
-It doesn't fit.
+The current implementation calls `shutDownPageContainer(1)` on double tap.
+This opens an exit confirmation panel and cannot restore the HUD with the same gesture.
+Reject this approach for the display toggle.
 
 ### 2. Reorganized with blank event page
 
-Remove the image container with `rebuildPageContainer()` and only the event layer
-After leaving, the image container is recreated during restoration and the four tiles are retransmitted.
-You can hide the display, but it adds container reconfiguration and risks restore failure and flickering.
-Do not use it because it is large.
+Remove the image containers with `rebuildPageContainer()` and keep only the event layer.
+On restore, recreate the image containers and retransmit four tiles.
+This hides the display but adds page rebuilds and a greater risk of restore failure or flicker.
+Reject this approach.
 
 ### 3. Transfer of black image tiles
 
-Maintain the existing image container and transparent event capture Text layer. first
-In the double tap, the black canvas is encoded into four tiles and serially assigned to IDs `2, 3, 4, 5`.
-Send. The second double tap re-encodes the current HUD Canvas into four tiles.
-Serially transmit to the same ID.
+Keep the existing image containers and transparent event-capture Text layer.
+On the first double tap, encode a black Canvas into four tiles and send them serially to IDs `2, 3, 4, 5`.
+On the second double tap, encode the current HUD Canvas into four tiles and send them serially to the same IDs.
 
-You can continue receiving events without reconfiguring the container, and display pixels.
-This method is adopted because everything can be turned off. This is the display
-This is a pixel hiding and is not an official low power mode for the device or app.
+Adopt this approach because it hides all display pixels while retaining input events without rebuilding containers.
+This is pixel hiding, not an official device or app low-power mode.
 
 ## Input and status
 
-Whether the `eventSource` of the double tap is the right temple, the left temple, or R1, and
-Executes the same toggle regardless.
+Apply the same toggle for every double-tap `eventSource`: right temple, left temple, or R1.
 
 ### Showing
 
@@ -78,13 +75,13 @@ Executes the same toggle regardless.
 - Double tap adds a restore operation to the display toggle queue.
 - After sending the four HUD tiles of the current page, change the status to ‘visible’.
 
-The target for restoration is the page you were viewing just before hiding. While hiding, the page index
-don't change
+Restore the page that was visible immediately before hiding.
+Do not change the page index while hidden.
 
 ## Serialization and error handling
 
-Scroll and display toggles share a single serial task queue. Transferring images to other
-Even if input comes, the two transmissions do not overlap.
+Use one serial task queue for scrolling and display toggles.
+If input arrives during an image transfer, the new transfer must not overlap the current transfer.
 
 - If hidden transmission fails, the state remains `visible`.
 - If restoration transmission fails, the state remains `hidden`.
@@ -102,41 +99,35 @@ Even if input comes, the two transmissions do not overlap.
 
 ## WebView Preview
 
-Canvas palette for sending glasses `#ffffff`, `#d0d0d0`, `#808080`,
-`#000000` does not change. If you change the Canvas pixel itself to green, the PNG
-Since the encoding result also changes, preview colors are handled only by CSS.
+Keep the glasses Canvas palette unchanged: `#ffffff`, `#d0d0d0`, `#808080`, and `#000000`.
+Changing Canvas pixels to green would also change the encoded PNG.
+Apply preview colors only through CSS.
 
 The methods reviewed are as follows.
 
-1. The method of redrawing the Canvas pixels to green even includes the glasses transmission data.
-   Do not use it because it will change.
-2. CSS `filter` combinations can approximate the green color you want with white, but it may vary depending on the brightness.
-   Do not use it as colors and browser differences may occur.
-3. Place the `#91ff73` layer on the WebView Canvas and mix it with `multiply`.
-   White is `#91ff73`, the same as the surrounding basic text, gray is a low brightness of the same color,
-   Black looks black. Only DOM/CSS composition changes, so transfer PNGs are not affected.
-   do not give
+1. Reject redrawing Canvas pixels in green because that also changes the glasses payload.
+2. Reject CSS `filter` combinations because brightness and browser differences can change the resulting color.
+3. Place a `#91ff73` layer over WebView Canvas and blend with `multiply`.
+   White becomes `#91ff73`, gray becomes a dimmer shade of the same green, and black stays black.
+   This changes only DOM and CSS composition, leaving transmitted PNGs unchanged.
 
-Adopt the third method. `box-shadow` in `.hud-frame` and page background
-This removes the radial gradient, which also eliminates the glowing effect around the preview. border and
-Keep the green text.
+Adopt the third method.
+Remove `box-shadow` from `.hud-frame` and remove the page-background radial gradient.
+This removes the preview glow. Keep the border and green text.
 
 ## Test
 
-- Check whether the date is drawn in the format ‘YYYY.MM.DD day of the week’.
-- Check that the date, weather, and page number do not exceed the header boundary.
+- Check that the date uses "YYYY.MM.DD day of the week".
+- Check that date, weather, and page number stay inside the header.
 - Check that fast Canvas double tap does not call the exit API.
-- Make sure the first double tap transfers the four black tiles in order.
-- Check that scrolling while hiding does not execute page callbacks or image transfers.
-- Verify that the second double tap restores the current HUD four tiles in order.
-- Check that image transmission is performed one at a time even with continuous input.
-- If hiding/restoration fails, check whether the state is not switched incorrectly and can be retried.
-- Double tap exit action of existing `/hud-canvas` and scroll ID `3, 5` of fast Canvas
-  Verify that the contract is maintained.
-- The WebView preview composite color is `#91ff73` and the shadow and radial gradient are
-  Check if there are any.
-- The image encoding result for Canvas internal palette and glasses transmission is based on the existing brightness value.
-  Make sure it is maintained.
+- Check that the first double tap sends four black tiles in order.
+- While hidden, check that scrolling triggers neither page callbacks nor image transfers.
+- Check that the second double tap restores all four current HUD tiles in order.
+- During continuous input, check that only one image transfer runs at a time.
+- If hiding or restoration fails, retain the previous state and allow another attempt.
+- Preserve existing `/hud-canvas` double-tap exit and fast Canvas scroll IDs `3, 5`.
+- Check that the WebView composite color is `#91ff73`, without shadow or radial gradient.
+- Check that internal Canvas colors and transmitted image encoding preserve the existing brightness values.
 
 ## Check hardware
 

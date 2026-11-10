@@ -1,10 +1,15 @@
 # G2 Hidden Input Diagnostic Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Show raw hidden-state Even Hub input on the phone so one physical double tap identifies whether the event channel or the input normalizer fails.
 
-**Architecture:** Add a read-only diagnostic snapshot at the fast Canvas transport boundary before hidden-state filtering. Pass it through the existing fast Canvas options and render it only as the React companion status; do not draw, encode, or send another glasses frame.
+**Architecture:** Add a read-only diagnostic snapshot at the fast Canvas transport boundary before hidden-state filtering. Pass it through the existing fast Canvas options and render it only as the React companion status. Do not draw, encode, or send another glasses frame.
 
 **Tech Stack:** TypeScript, React 19, Even Hub SDK 0.0.11, Vitest, Testing Library, Vite
 

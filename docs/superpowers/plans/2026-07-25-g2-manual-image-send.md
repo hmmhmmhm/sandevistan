@@ -1,11 +1,16 @@
 # G2 Manual Image Send Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a v10 hardware diagnostic that sends the existing checkerboard BMP only after one glasses click.
 
 **Architecture:** Put glasses-event normalization in a small `image-trigger.ts`
-unit, then inject it into the existing BMP transport. Keep the v9 container,
+module. Inject the module into the existing BMP transport. Keep the v9 container,
 BMP encoder, payload type, and bridge method unchanged so the trigger is the
 only hardware variable.
 
@@ -211,7 +216,7 @@ dependencies: HardwareBmpDependencies = {
 },
 ```
 
-After rebuilding the page, announce and wait:
+After rebuilding the page, show the ready message. Then wait for the click:
 
 ```ts
 const announced = await bridge.textContainerUpgrade(new TextContainerUpgrade({
@@ -348,8 +353,8 @@ npm run qr
 ```
 
 The command prints a QR code and exits by design. Keep the existing Vite
-terminal running. On the glasses, wait for `TEXT READY - CLICK TO SEND`, then
-single-click the R1 ring or touchbar exactly once.
+terminal running. On the glasses, wait for `TEXT READY - CLICK TO SEND`.
+Single-click the R1 ring or touchbar exactly once.
 
 - [ ] **Step 4: Classify the hardware result**
 

@@ -1,14 +1,14 @@
 # Extensible I18n Registry
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 **Date:** 2026-07-30
 
 ## Goal
 
-Make a new Sandevistan language an isolated addition instead of a cross-cutting
-refactor. Adding a locale must require one complete locale pack, one registry
-entry, and three built-in RSS definitions while preserving the existing Korean
-and English phone, G2 HUD, map, weather, TODO, routing, storage, and transport
-behavior.
+Make each new Sandevistan language an isolated addition.
+Require one complete locale pack, one registry entry, and three built-in RSS definitions.
+Preserve existing Korean and English behavior for the phone, G2 HUD, map, weather, TODO, routing, storage, and transport.
 
 ## Approved scope
 
@@ -126,9 +126,8 @@ Adding Japanese, for example, consists of:
 3. Add three `locale: "ja"` entries to `server/news-feeds.js`.
 4. Add translation-quality assertions for the new copy.
 
-The language picker, preference validation, system resolution, phone status,
-HUD rendering, weather, TODO, route controls, OSM label selection, RSS
-filtering, and feed-count validation update from those definitions.
+These definitions update the language picker, preference validation, system resolution, phone status, and HUD rendering.
+They also update weather, TODO, route controls, OSM label selection, RSS filtering, and feed-count validation.
 
 ## Failure handling and compatibility
 

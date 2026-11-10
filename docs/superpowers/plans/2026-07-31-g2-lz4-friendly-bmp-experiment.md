@@ -1,5 +1,10 @@
 # G2 LZ4-Friendly BMP Experiment Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For Codex:** Follow the repository's TDD and verification gates. Execute
 > each task serially because the hardware transport contract forbids concurrent
 > test activity.

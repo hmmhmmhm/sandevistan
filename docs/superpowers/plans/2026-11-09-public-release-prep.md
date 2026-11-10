@@ -1,18 +1,22 @@
 # Public release preparation
 
-Owner request: prepare all remaining release work, show glasses-side setup guidance
-when a required key is missing, especially X/Twitter; translate remaining messages;
-prepare icons and store screenshots for owner review. Do not deploy or submit.
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
+The owner requested preparation of all remaining release work.
+If a required key is missing, show setup guidance on the glasses, especially for X/Twitter.
+Translate remaining messages. Prepare icons and store screenshots for owner review.
+Do not deploy or submit.
 
 ## Acceptance and scope
 
-A reviewable release candidate must have a valid package, passing checks, visible
-setup guidance without a key, compatible root exit behavior, localized release
-copy, bundled privacy/help content, operational controls, store asset drafts and
-an explicit owner-review packet. Physical locked-phone acceptance and asset/text
-approval are separate pending gates, not silently passed. Preserve main-only work,
-existing user changes, and the four-tile glasses transport. No commits or external
-publication. No feature or account credentials are bundled or logged.
+Prepare a valid package with passing checks. Provide setup guidance that remains visible without a key and compatible root exit behavior.
+Include localized release copy, bundled privacy/help content, operational controls, store asset drafts, and an explicit owner-review packet.
+Physical locked-phone acceptance and asset/text approval remain separate pending gates.
+Preserve main-only work, existing user changes, and the four-tile glasses transport.
+Do not commit or publish externally. Do not bundle or log feature or account credentials.
 
 ## Sequential work list
 
@@ -32,11 +36,10 @@ publication. No feature or account credentials are bundled or logged.
 
 ## Review checkpoints
 
-The existing HUD is the visual reference. New setup states explain how to open
-the phone web app and find the provider's issuance/registration control. Root exit
-must lead to the system confirmation, preserving detail Back navigation and a
-separate display-hide action if approved. Icons must be original monochrome
-foreground/background assets; no existing game or manufacturer logo is copied.
+The existing HUD is the visual reference. Setup states explain how to open the phone web app.
+They identify the provider's issuance/registration control. Root exit must lead to the system confirmation.
+Preserve detail Back navigation. If approved, preserve a separate display-hide action.
+Create original monochrome foreground/background icons. Do not copy an existing game or manufacturer logo.
 
 Functional code changes remain local. Privacy/listing/changelog drafts require
 explicit approval before any external posting. The owner has not authorized

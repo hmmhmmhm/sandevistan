@@ -1,5 +1,10 @@
 # Ask AI Bottom Status and Binocular Restore Settle Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED AND INTEGRATED`
 
 Implementation commit: `d3d3663` (`fix: settle Ask AI binocular restore`)
@@ -8,7 +13,7 @@ Implementation commit: `d3d3663` (`fix: settle Ask AI binocular restore`)
 
 **Goal:** Move Thinking and tool activity below the native Ask AI transcript and add a bounded post-rebuild barrier before restoring all four HUD tiles.
 
-**Architecture:** Keep native transcript formatting pure in `native-ai-text.ts`. Extend the existing native-AI transport with one injected page-ready wait that defaults to 200 ms in production and is a no-op or controlled promise in tests. Preserve the established neutral-page transition, four-call image pipeline, busy-drop behavior, and fail-fast semantics.
+**Architecture:** Keep native transcript formatting pure in `native-ai-text.ts`. Extend the existing native-AI transport with one injected page-ready wait. Default to 200 ms in production. In tests, use a no-op or a controlled promise. Preserve the established neutral-page transition, four-call image pipeline, busy-drop behavior, and fail-fast semantics.
 
 **Tech Stack:** TypeScript, Vitest, Even Hub SDK 0.0.13, Vite.
 
@@ -50,9 +55,9 @@ Expected: failure because Web search and Thinking are currently the first row.
 - [ ] **Step 3: Implement one trailing activity slot**
 
 In `createNativeAiTextContent`, classify `activeTool`, `thinking`, and
-`listening` as trailing activity, reserve two rows, render transcript content,
-then append one blank row plus the localized status. Keep `displaying` hidden
-and keep the MCP approval branch unchanged.
+`listening` as trailing activity. Reserve two rows. Render the transcript content.
+Append one blank row plus the localized status. Keep `displaying` hidden.
+Keep the MCP approval branch unchanged.
 
 - [ ] **Step 4: Verify formatter behavior**
 
@@ -107,9 +112,9 @@ waitForPageReady?: (milliseconds: number) => Promise<void>;
 ```
 
 Expose `NATIVE_AI_IMAGE_PAGE_SETTLE_MS = 200`. After `mode.leave()` succeeds,
-await the injected callback or a `setTimeout`-backed default, log
-`native AI image page ready · 200ms`, then invalidate the image cache and call
-the unchanged four-tile restore. Keep `restoringImages` true across the wait.
+await the injected callback or a `setTimeout`-backed default.
+Log `native AI image page ready · 200ms`. Invalidate the image cache.
+Call the unchanged four-tile restore. Keep `restoringImages` true across the wait.
 
 - [ ] **Step 4: Verify transport and input behavior**
 
@@ -144,7 +149,7 @@ npm run pack
 git diff --check
 ```
 
-Expected: zero failures; the only acceptable build note is the existing Vite
+Expected: zero failures. The only acceptable build note is the existing Vite
 chunk-size warning.
 
 - [ ] **Step 3: Commit and deploy the hardware preview**

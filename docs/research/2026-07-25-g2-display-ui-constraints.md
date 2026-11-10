@@ -1,18 +1,21 @@
 # G2 screen freedom and basic components
 
-The survey base date is 2026-07-25, and the latest public SDK version is `@evenrealities/even_hub_sdk` 0.0.12.
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
+This survey records the public SDK available on 2026-07-25: `@evenrealities/even_hub_sdk` 0.0.12.
 
 ## Conclusion
 
-The Even Hub WebView on the phone and the glasses screen are separate. A phone screen can be created with plain HTML, CSS, and TypeScript, but its DOM is not mirrored on the glasses. Text, List, and Image containers are transmitted to G2 through the SDK bridge.
+The Even Hub WebView on the phone and the glasses screen are separate. You can create the phone screen with plain HTML, CSS, and TypeScript. The glasses do not mirror its DOM. Text, List, and Image containers are transmitted to G2 through the SDK bridge.
 
 ## Display constraints
 
-| Item | pharmaceutical |
+| Item | Constraint |
 | --- | --- |
 | canvas | 576 x 288, upper left origin |
 | color | 4-bit, 16 levels green |
-| background | Black pixels are turned off and reality is reflected |
+| background | Black pixels emit no light, so the real scene remains visible |
 | Placement | Absolute coordinates, no CSS or DOM |
 | full container | Up to 12 per page |
 | Text/List | Total up to 8 |
@@ -40,21 +43,21 @@ The Even Hub WebView on the phone and the glasses screen are separate. A phone s
 
 - Displays a 4-bit grayscale bitmap.
 - An image container has a width of 20 to 288 and a height of 20 to 144.
-- After creation, `updateImageRawData` must be called separately.
+- After you create the container, call `updateImageRawData` separately.
 - BLE transmission can take approximately 0.5 to 2 seconds, so it is not suitable for multi-FPS animation.
 - It is appropriate to update the minimap only when the travel distance or direction threshold is exceeded.
 
 ## Native widget not provided
 
-Maps, charts, gauges, compasses, 3D scenes, cards, tabs, grids, buttons and news tickers are not provided. It must be expressed using a combination of text symbols, borders, and bitmaps.
+Maps, charts, gauges, compasses, 3D scenes, cards, tabs, grids, buttons and news tickers are not provided. Build these elements with text symbols, borders, and bitmaps.
 
 ## Korean glyphs
 
-When counting the built-in font table of the official text measurement package `@evenrealities/pretext` 0.1.4, there is width information for 2,780 characters out of 11,172 complete Korean characters. All of the following HUD terms are included:
+The built-in font table in the official text-measurement package `@evenrealities/pretext` 0.1.4 contains widths for 2,780 of 11,172 complete Korean characters. The original survey lists these HUD terms as included. The protected list below is in English. It does not identify the Korean strings used to verify that claim:
 
 `Time`, `Minimap`, `Map`, `Place Name`, `Volume`, `Voice Recognition`, `Direction Angle`, `Acceleration`, `Quest`, `News`, `Current Location`, `Seoul Metropolitan City`, `South Korea`
 
-Since it does not support the entire Korean language, actual news and proper nouns must be verified in Glasses. Missing glyphs are considered an alternative path that creates a bitmap of only that string.
+The font table does not cover all Korean characters. Verify news and proper nouns on the glasses. For missing glyphs, consider a bitmap of the affected string.
 
 ## Apply to Sandevistan
 
@@ -68,8 +71,7 @@ Since it does not support the entire Korean language, actual news and proper nou
 | Current Quest | Text |
 | All TODO and News | List on separate page |
 
-The final dynamic HUD is likely to have the above hybrid configuration. However, the first actual device information density
-In verification, the entire screen is sent as a raster rather than using native text.
+The table proposes a hybrid configuration for the dynamic HUD. The first hardware density test instead sends the entire screen as a raster image.
 
 ### First practical raster test
 
@@ -81,14 +83,11 @@ Selected 1792 x 896 cyan
 ```
 
 - All visible information is in the image.
-- One blank Text container is the input to satisfy `isEventCapture: 1`
-  It is just a layer and is not displayed on the screen.
-- Your Image container uses all of the SDK image budget.
+- One blank Text container satisfies `isEventCapture: 1` and receives input. It has no visible content.
+- The four Image containers use the entire SDK image-container budget.
 - Image transmission must be serialized and may take several seconds to complete the entire screen.
-- The goal is not animation performance, but font size, contrast,
-  This is to check the peripheral placement and central visual field margin.
-- Time that changes frequently after seeing actual device results, only STT and sensor numbers are native
-  Decide whether to return to text.
+- Inspect font size, contrast, peripheral placement, and the central visual-field margin. This test does not measure animation performance.
+- After the hardware review, decide whether frequently changing time, STT, and sensor values should use native text.
 
 ## Source
 

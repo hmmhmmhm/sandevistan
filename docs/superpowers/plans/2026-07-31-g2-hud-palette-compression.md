@@ -1,10 +1,15 @@
 # G2 HUD Palette Compression Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add an opt-in four-level transmitted-tile palette that reduces G2 PNG payload entropy while preserving the source Canvas, phone preview, SDK `0.0.11`, and no-queue transport behavior.
+**Goal:** Add an opt-in four-level palette for transmitted tiles to reduce G2 PNG payload entropy. Preserve the source Canvas, phone preview, SDK `0.0.11`, and no-queue transport behavior.
 
-**Architecture:** A new pure palette module owns query resolution and RGBA quantization. The existing temporary-tile encoder applies the mode before `toBlob`, while the fast-HUD option path carries the resolved mode from `App` to the transport and reports actual encoded byte counts. The stable path remains unmodified when `levels=4` is absent.
+**Architecture:** A new pure palette module owns query resolution and RGBA quantization. The existing temporary-tile encoder applies the mode before `toBlob`. The fast-HUD option path carries the resolved mode from `App` to the transport. The transport reports actual encoded byte counts. The stable path remains unmodified when `levels=4` is absent.
 
 **Tech Stack:** TypeScript, React, Canvas 2D, Vitest/jsdom, Vite, Even Hub SDK `0.0.11`
 

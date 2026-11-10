@@ -1,14 +1,15 @@
 # Ask AI Bottom Status and Binocular Restore Settle Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-08-02
 
 Status: Approved
 
 ## Goal
 
-Keep transient Ask AI activity text at the bottom of the native transcript and
-prevent the lower-right HUD tile from appearing in only one lens after leaving
-Ask AI.
+Keep transient Ask AI activity text at the bottom of the native transcript.
+After Ask AI exit, prevent the lower-right HUD tile from appearing in only one lens.
 
 ## Native status placement
 
@@ -34,17 +35,16 @@ The accepted AI exit path remains:
 6. invalidate the successful-image cache and send IDs 3, 5, 2, and 4 through
    the existing four-call pipeline.
 
-The wait is scoped only to native Ask AI restoration. Startup, paging, normal
-external refresh, and blank display hide/restore keep their existing timing and
-concurrency. The SDK exposes no page-ready event. Physical testing showed that
-the inter-rebuild barrier improves restoration but does not eliminate the
-remaining intermittent partial display. A second bounded barrier therefore
-protects the now-isolated image-page-to-image-update boundary.
+Apply the wait only to native Ask AI restoration.
+Keep existing timing and concurrency for startup, paging, normal external refresh, and blank-display hide or restore.
+The SDK has no page-ready event.
+Physical testing showed that the inter-rebuild wait improves restoration but does not eliminate intermittent partial display.
+Add a second bounded wait between image-page rebuild and image update.
 
-Late native Text updates remain dropped for the complete neutralize, rebuild,
-settle, and image-send transition. A failed neutral or image-page rebuild sends
-no image data, performs no automatic retry, and leaves the controller active so
-a later independent exit input can try again.
+Drop late native Text updates throughout neutralization, rebuild, settling, and image sending.
+If either the neutral-page or image-page rebuild fails, send no image data.
+Do not retry automatically.
+Keep the controller active so a later independent exit input can try again.
 
 ## Diagnostics and verification
 
@@ -55,9 +55,7 @@ Add diagnostics after each page-installation boundary:
 [REFRESH] native AI image page ready · 200ms
 ```
 
-Formatter tests cover Thinking and Web search below the transcript. Transport
-tests prove settle callbacks occur between the two rebuilds and between the
-image-page rebuild and first image update, and that Text updates remain dropped
-while waiting.
-Run the complete test, type, repository, Sites, build, and package gates before
-deployment to the existing port 4179 hardware preview.
+Test Thinking and Web search formatting below the transcript.
+Test that settle callbacks occur between the two rebuilds and before the first image update after image-page rebuild.
+Test that waiting drops Text updates.
+Before deployment to the existing port 4179 hardware preview, run the complete test, type, repository, Sites, build, and package checks.

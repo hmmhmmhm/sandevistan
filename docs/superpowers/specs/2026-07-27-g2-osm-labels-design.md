@@ -1,15 +1,17 @@
 # G2 Balanced OSM Labels Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-27
 Status: Approved revision
 Target build: `map-labels-large-016`
 
 ## Goal
 
-Add readable nearby names to the proven `live-map-014` tactical map without
-turning the G2 display into a dense consumer-map view. The map must continue to
-render through Sandevistan's own Canvas code, keep the current fast page transport,
-and remain usable when label data are absent.
+Add readable nearby names to the proven `live-map-014` tactical map.
+Keep label density low on the G2 display.
+Continue rendering through Sandevistan's Canvas code with the current fast page transport.
+Keep the map usable when label data is absent.
 
 The physical `live-map-014` checkpoint established that the live road geometry
 is clearly visible. The user then identified the intentional lack of labels as
@@ -28,9 +30,9 @@ The server returns at most 24 normalized candidates. The Canvas collision
 layout displays at most 10. Cafes, ordinary shops, entrances, platforms, and
 other high-volume POIs are excluded.
 
-This is preferred over road-only labels, which do not explain nearby
-destinations, and over dense POI labels, which would reduce legibility on the
-fixed `288 x 288` left panel.
+Road-only labels do not identify nearby destinations.
+Dense POI labels would reduce legibility on the fixed `288 x 288` left panel.
+Prefer the selected label mix for these reasons.
 
 ## OSM naming and feature sources
 
@@ -187,9 +189,7 @@ but the user requested approximately 1.5 times larger type for comfortable
 reading. The approved revision rounds `9 x 1.5` to 14px for transit/place and
 uses exactly `8 x 1.5 = 12px` for road/landmark labels.
 
-The collision layout continues to use the measured label dimensions, so larger
-type naturally reduces the number of accepted lower-priority labels rather
-than allowing overlap. The maximum remains 10, not a minimum. The revised
-physical checkpoint is `map-labels-large-016`. ASCII fallback-name width also
-scales with the font size, preventing Latin road names from retaining their
-old 8px collision footprint.
+The collision layout uses measured label dimensions. Larger text therefore reduces the number of accepted lower-priority labels instead of allowing overlap.
+The limit remains a maximum of 10, with no minimum.
+The revised physical checkpoint is `map-labels-large-016`.
+Scale ASCII fallback-name widths with the font size so Latin road names do not retain the old 8px collision area.

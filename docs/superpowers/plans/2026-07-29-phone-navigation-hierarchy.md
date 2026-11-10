@@ -1,10 +1,15 @@
 # Phone Navigation Hierarchy Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Remove duplicated WebView navigation chrome while preserving a clear, functional path from each phone detail screen back to the dashboard.
 
-**Architecture:** Keep the existing `PhoneHome`, `PhoneHeader`, and `PhoneCompanion` boundaries. Change the HTML document title, remove the Home eyebrow, and turn the detail header into one localized breadcrumb button without changing the screen state or persistent Canvas lifecycle.
+**Architecture:** Keep the existing `PhoneHome`, `PhoneHeader`, and `PhoneCompanion` boundaries. Change the HTML document title. Remove the Home eyebrow. Turn the detail header into one localized breadcrumb button. Preserve the screen state and persistent Canvas lifecycle.
 
 **Tech Stack:** React 19, TypeScript, CSS, Vitest, Testing Library, Vite.
 
@@ -143,9 +148,7 @@ background fill.
 
 - [x] **Step 6: Record the durable design rule**
 
-Add to the phone companion section in `AGENTS.md` that the Even native bar owns
-the project title and arrow, Home starts at the preview, and internal detail
-navigation uses a text breadcrumb without an arrow.
+In the phone companion section of `AGENTS.md`, document that the Even native bar owns the project title and arrow. Home starts at the preview. Internal detail navigation uses a text breadcrumb without an arrow.
 
 - [x] **Step 7: Run focused tests and verify GREEN**
 
@@ -176,10 +179,7 @@ Expected: every command exits with status 0.
 
 - [x] **Step 2: Update design evidence**
 
-Document the owner-supplied screenshots as the source evidence, record the
-removed duplicate Home label and duplicate detail arrow, and leave the visual
-comparison result accurate if a same-viewport post-change screenshot is not
-available.
+Document the owner-supplied screenshots as the source evidence. Record the removed duplicate Home label and detail arrow. If no matching post-change screenshot exists, leave the visual comparison unverified.
 
 - [x] **Step 3: Mark this plan complete**
 

@@ -1,10 +1,15 @@
 # Unified Locale and RSS Defaults Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Apply one phone language setting to the shipped phone companion, live fast HUD, weather copy, and OSM labels, and provide three verified built-in RSS feeds per supported language.
+**Goal:** Apply one phone language setting to the shipped phone companion, live fast HUD, weather copy, and OSM labels. Provide three verified built-in RSS feeds per supported language.
 
-**Architecture:** Resolve locale at render time so cached domain data remains language-neutral. Keep multilingual OSM names in one map payload, keep built-in RSS metadata separate from six custom slots, and expose one best-effort HUD redraw callback that uses the existing busy-drop transport instead of a queue.
+**Architecture:** Resolve locale at render time so cached domain data remains language-neutral. Keep multilingual OSM names in one map payload. Keep built-in RSS metadata separate from six custom slots. Expose one best-effort HUD redraw callback through the existing busy-drop transport.
 
 **Tech Stack:** React 19, TypeScript, Canvas 2D, Even Hub SDK 0.0.11, Cloudflare-style Worker handlers, Vitest, Testing Library, Node test runner
 
@@ -105,9 +110,7 @@ Expected: PASS.
 
 - [ ] **Step 1: Write failing English HUD tests**
 
-Call the draw functions with locale `"en"` and assert recorded Canvas text
-contains `FEELS`, `HUMIDITY`, `WEATHER`, `COMPLETED`, and English empty-state
-copy while fixed Korean strings are absent.
+Call the draw functions with locale `"en"`. Assert that recorded Canvas text contains `FEELS`, `HUMIDITY`, `WEATHER`, `COMPLETED`, and English empty-state copy. Assert that fixed Korean strings are absent.
 
 - [ ] **Step 2: Run the focused HUD tests and verify failure**
 
@@ -317,10 +320,7 @@ for user feeds.
 
 - [ ] **Step 6: Make the phone source screen locale-aware**
 
-Pass locale to `NewsScreen`, group or label built-in and custom sources without
-adding a new management route, and update source-limit copy to say "six custom
-RSS sources." On locale change, resolve the active bundle and request the
-existing guarded refill; do not refill if the news reader is active.
+Pass locale to `NewsScreen`. Group or label built-in and custom sources without a new management route. Update source-limit copy to say "six custom RSS sources." On locale change, resolve the active bundle. Request the existing guarded refill. Do not refill if the news reader is active.
 
 - [ ] **Step 7: Run focused RSS tests**
 
@@ -341,9 +341,7 @@ Expected: PASS.
 
 - [ ] **Step 1: Record the new durable product direction**
 
-Replace the old phone-only localization constraint with the approved rule:
-the phone locale controls the shipped phone UI, `/hud-canvas-fast`, weather
-fixed copy, and multilingual map labels; legacy diagnostics remain unchanged.
+Replace the old phone-only localization constraint with the approved rule. The phone locale controls the shipped phone UI, `/hud-canvas-fast`, weather fixed copy, and multilingual map labels. Keep legacy diagnostics unchanged.
 Record the three-per-language built-in RSS bundle and six custom slots.
 
 - [ ] **Step 2: Run formatting and type checks serially**

@@ -1,5 +1,10 @@
 # Ask AI Live Transcript Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED, THEN SUPERSEDED AT THE PRESENTATION LAYER`
 
 Implementation commits: `3ca7218`, `707d918`, and `b04fe0c`
@@ -11,7 +16,7 @@ later replaced by the native Text line stream.
 
 **Goal:** Render the current user utterance and streaming AI answer in one automatically following chat viewport, while keeping manual scrolling pinned to older conversation pages.
 
-**Architecture:** Extend the Realtime protocol state with a bounded completed-turn timeline, then convert the full timeline into contiguous six-line transcript pages in a renderer-independent helper. Extend the HUD view state with an explicit follow-latest flag so incoming deltas move only the live viewport; the canvas renderer consumes the selected page and can later be replaced by an SDK text-container renderer without changing conversation state.
+**Architecture:** Extend the Realtime protocol state with a bounded completed-turn timeline. In a renderer-independent helper, convert the full timeline into contiguous six-line transcript pages. Extend the HUD view state with an explicit follow-latest flag so incoming deltas move only the live viewport. The canvas renderer consumes the selected page and can later be replaced by an SDK text-container renderer without changing conversation state.
 
 **Tech Stack:** TypeScript, Vitest, React canvas HUD, OpenAI Realtime protocol, Even Hub SDK 0.0.13
 
@@ -60,9 +65,7 @@ export type AiRealtimeProtocolState = {
 };
 ```
 
-Initialize `turns: []`. Before clearing current text on `speech_started`, append
-a non-empty current turn, retain the newest twelve turns, and trim oldest turns
-until the completed-turn payload is at most 8,000 characters. Usage fields must
+Initialize `turns: []`. Before clearing current text on `speech_started`, append a non-empty current turn. Retain the newest twelve turns. Trim the oldest turns until the completed-turn payload is at most 8,000 characters. Usage fields must
 remain cumulative.
 
 - [ ] **Step 4: Run protocol tests and verify GREEN**
@@ -113,9 +116,7 @@ export function createAiTranscriptPages(
 ): readonly string[];
 ```
 
-Wrap each role to the HUD line width, prefix only the first wrapped line with
-`YOU //` or `AI //`, pack chronological lines into six-line pages, and return
-newline-delimited page strings. Empty roles emit no lines.
+Wrap each role to the HUD line width. Prefix only the first wrapped line with `YOU //` or `AI //`. Pack chronological lines into six-line pages. Return newline-delimited page strings. Empty roles emit no lines.
 
 Update `updateAiHudProtocol` to build pages from `protocol.turns` plus the
 current fields. Update runtime persistence to select the current turn when

@@ -1,10 +1,15 @@
 # G2 No-Queue Refresh Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace every deferred G2 refresh and location queue with immediate accept-or-drop execution, prevent timer catch-up storms, and restore COPY on HTTP WebViews.
 
-**Architecture:** A wall-clock minute watcher uses one interval and a minute key, so repeated SDK callbacks cannot create more timers or more than one minute event. The raster transport and location session each expose one `busy` gate: a request either starts immediately or is discarded, with no pending target, merge, retry, or latest-value slot. Successful display transfers report their minute to `App`, allowing redundant clock-only refreshes to be skipped.
+**Architecture:** A wall-clock minute watcher uses one interval and a minute key. Repeated SDK callbacks cannot create more timers or more than one minute event. The raster transport and location session each expose one `busy` gate. Each request starts immediately or is discarded. Neither component retains a pending target, merge, retry, or latest-value slot. Successful display transfers report their minute to `App`, allowing redundant clock-only refreshes to be skipped.
 
 **Tech Stack:** TypeScript, React 19, Vite 6, Vitest 4, Testing Library, Even Hub SDK 0.0.11.
 
@@ -113,7 +118,7 @@ export function startMinuteRefresh(
 }
 ```
 
-Keep `millisecondsUntilNextMinute` only if another caller still uses it; otherwise remove it and its obsolete alignment test.
+Keep `millisecondsUntilNextMinute` only if another caller still uses it. Otherwise remove it and its obsolete alignment test.
 
 - [ ] **Step 4: Run the focused test and verify GREEN**
 
@@ -371,8 +376,7 @@ git commit -m "fix: skip redundant G2 clock refreshes"
 
 - [ ] **Step 1: Write a failing slow-map location-storm test**
 
-Add a test that starts one map refresh from a moved coordinate, emits two more
-locations while it is unresolved, and verifies they are not processed later:
+Add a test that starts one map refresh from a moved coordinate. While the refresh is unresolved, emit two more locations. Verify that the session does not process those locations later:
 
 ```ts
 it("drops locations received while a slow map refresh is active", async () => {

@@ -1,5 +1,8 @@
 # Sandevistan Phone Companion Completion Audit
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 > [!NOTE]
 > This audit remains the screenshot-backed baseline for the original phone
 > companion. Current SDK, Ask AI, and post-audit regression status are tracked
@@ -21,10 +24,7 @@ Runtime locale completeness follow-up commit:
 Overall status:
 `SOFTWARE PASS — PHYSICAL G2 BASELINE PRESERVED — VISUAL QA PASS — RELEASE DEFERRED`
 
-This audit covers the phone WebView companion added around the persistent
-576×288 G2 Canvas. It supplements, rather than replaces, the physical G2
-readiness audit. Release tagging and Even Hub submission remain deferred by
-the owner.
+This audit covers the phone WebView companion around the persistent 576×288 G2 Canvas. The physical G2 readiness audit remains separate evidence. The owner deferred release tagging and Even Hub submission.
 
 ## Completed phone capabilities
 
@@ -158,9 +158,7 @@ Status: `PASS`
 - The final report in `design-qa.md` is `passed`; no actionable P0, P1, or P2
   visual findings remain.
 
-The audit images remain local-only because the comparison composites include
-owner-supplied Even reference screenshots and are not republished in the
-repository.
+The comparison images include owner-supplied Even screenshots. These images remain local and are not republished in the repository.
 
 ## Runtime locale gate
 
@@ -175,7 +173,7 @@ Status: `PASS`
   TODO titles without a live G2 refresh.
 - Devices, HUD layout, News, TODO, Weather, Navigation, Language, and Developer
   were opened individually in English. No fixed Korean product copy remained.
-  The Korean native-language option is intentionally preserved in Korean.
+  The Korean language option intentionally retains its Korean name.
 - Browser inspection reported no page errors. Standalone missing-Flutter-handler
   warnings remain expected outside the Even WebView bridge.
 

@@ -1,5 +1,7 @@
 # G2 Base64 Image Bridge Experiment Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Approved design; awaiting written-spec review
@@ -131,17 +133,18 @@ least five of each:
 3. four-tile detail entry or exit;
 4. hide, confirming the candidate does not regress the minimal black frame.
 
-The Base64 candidate passes only if both eyes and all quadrants remain correct,
-no `sendFailed`, timeout, or WebView freeze appears, and median content refresh
-improves beyond ordinary run-to-run noise. A smaller bridge representation by
-itself is not a pass.
+Pass the Base64 candidate only if every condition holds.
+Both eyes and all quadrants must display correctly.
+No `sendFailed`, timeout, or WebView freeze may occur.
+Median content refresh must improve beyond ordinary run-to-run variation.
+A smaller bridge representation alone does not pass.
 
 ## Decision rule and rollback
 
-Keep `array` as the default until the physical gate passes. If Base64 is not
-meaningfully faster, retain it only as an explicit diagnostic or remove the
-adapter. If it is faster and stable, promote the adapter in a separate change
-while preserving `bridge=array` as the rollback route.
+Until the physical test passes, keep `array` as the default.
+If Base64 is not meaningfully faster, retain it only as an explicit diagnostic or remove the adapter.
+If Base64 is faster and stable, promote the adapter in a separate change.
+Preserve `bridge=array` for rollback.
 
 This experiment does not use native SDK text, add display layers, or change the
 accepted Canvas HUD design.

@@ -1,5 +1,7 @@
 # G2 Minute Clock, Moving Map, and Battery Refresh Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-27
 Status: Approved
 Target route: `/hud-canvas-fast`
@@ -40,10 +42,9 @@ The existing `576 x 288` source Canvas and four G2 image containers remain:
 | Page navigation | right IDs `3`, `5` |
 | Hide or restore | full right-first IDs `3`, `5`, `2`, `4` |
 
-`right-top` becomes a first-class external refresh target. If a clock/battery
-refresh and a left-map refresh are requested while another send is active, the
-existing latest-state queue may promote the combination to `all`. Every image
-update remains serialized; no timer or SDK callback sends directly.
+Add `right-top` as an external refresh target.
+If clock or battery refresh and left-map refresh arrive during another send, the existing latest-state queue may combine them as `all`.
+Keep every image update serial. Timers and SDK callbacks must not send images directly.
 
 ## Clock lifecycle
 
@@ -71,12 +72,10 @@ A status event is accepted only when:
 - the normalized battery percentage or charging state differs from the last
   accepted value.
 
-The new value is retained in App state. When `OVERVIEW` is visible, App
-requests `right-top`, which redraws the clock and battery together. On another
-page, no immediate image is useful, so the state is retained and the next
-navigation to `OVERVIEW` renders it. Missing initial device information,
-foreign serial numbers, duplicate values, and event failures do not blank the
-HUD or trigger transfers.
+Retain the new value in App state.
+When `OVERVIEW` is visible, App requests `right-top` to redraw the clock and battery together.
+On other pages, retain the state without sending images. Render it on the next navigation to `OVERVIEW`.
+Missing initial device information, foreign serial numbers, duplicate values, and event failures must neither blank the HUD nor trigger transfers.
 
 The device-status subscription is removed exactly once during transport
 cleanup.
@@ -111,10 +110,9 @@ fail to start, the one-shot startup location remains usable.
 
 ## Map refresh distance and failure behavior
 
-The map cell changes from `0.005` degrees to `0.0018` degrees. Around Seoul,
-this is approximately 159 meters east-west and 200 meters north-south, matching
-the approved 150–200-meter geometry refresh cadence while keeping a stable
-server cache key.
+Change the map cell from `0.005` degrees to `0.0018` degrees.
+Around Seoul, this spans approximately 159 meters east-west and 200 meters north-south.
+That matches the approved 150–200-meter geometry refresh interval while retaining a stable server cache key.
 
 The Overpass query radius remains 650 meters. Movement within a cell redraws
 only the left tiles against cached geometry; crossing a cell requests a new

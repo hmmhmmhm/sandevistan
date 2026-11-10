@@ -1,5 +1,8 @@
 # G2 Fast Blank Display Hardware Gate
 
+> Historical G2 record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Promoted by owner decision
@@ -8,10 +11,7 @@ Branch: `experiment/g2-fast-blank-display`
 
 ## Goal
 
-Determine whether rebuilding the G2 page as one blank full-screen event
-container provides a materially faster display-off interaction than sending
-four black image tiles, without breaking double-tap recovery, binocular output,
-or long-running WebView responsiveness.
+Compare hide duration for one blank full-screen event container against four black image tiles. Verify double-tap recovery, binocular output, and long-running WebView responsiveness.
 
 This candidate is not an official sleep mode. The Even Hub app, event listener,
 live-data session, and phone companion remain active.
@@ -52,8 +52,7 @@ page, clears the successful-tile cache, and sends all four current tiles.
 
 ## Serial comparison procedure
 
-Do not keep both WebViews open. Complete the control run, close it, and only
-then open the candidate.
+Complete the control run first. Close its WebView before opening the candidate.
 
 For each route:
 
@@ -125,9 +124,7 @@ unchanged so the historical evidence is not overstated.
 
 ## Physical result
 
-The owner ran the candidate on updated G2 hardware and Even App with SDK
-`0.0.13`, reported that disappearance was extremely fast, and supplied the
-complete WebView trace excerpt on 2026-07-31.
+The owner ran the candidate on updated G2 hardware and Even App with SDK `0.0.13`. The owner reported extremely fast disappearance and supplied the complete WebView trace excerpt on 2026-07-31.
 
 Eight candidate hide operations completed in `94`, `93`, `86`, `63`, `65`,
 `64`, `94`, and `89` ms. The median was 87.5 ms, with a 63–94 ms range. The
@@ -136,13 +133,10 @@ required blank-rebuild records and no `ENCODE` or `TILE` operation between hide
 start and completion.
 
 The most recent same-SDK black-tile control trace contained five comparable
-hide operations with a 394 ms median. The candidate therefore reduced median
-hide latency by 77.8%, comfortably passing the required 25% performance gate.
+hide operations with a 394 ms median. The candidate reduced median hide latency by 77.8%. It passed the required 25% performance gate.
 
 Seven candidate restores completed in `1,962`, `1,979`, `2,005`, `2,131`,
-`2,044`, `2,135`, and `2,103` ms. The median was 2,044 ms. The restore-page
-rebuild had an 84 ms median, the four-tile encode had a 91 ms median, and the
-four-tile image refresh had a 1,952 ms median. Every recorded restore rebuilt
+`2,044`, `2,135`, and `2,103` ms. The median was 2,044 ms. The restore-page rebuild had an 84 ms median. The four-tile encode had a 91 ms median. The four-tile image refresh had a 1,952 ms median. Every recorded restore rebuilt
 the normal page, encoded once, started all four tile calls, received four
 success results, and committed the display.
 
@@ -153,21 +147,14 @@ refresh was dropped rather than replayed.
 
 ## Decision
 
-The hide-performance and sampled transport-reliability criteria pass. On
-2026-07-31 the owner reported that disappearance was extremely fast, accepted
-the result, declined further testing of this behavior, and directed that blank
-rebuild become the query-free production default. The uncompleted items in the
+The hide-performance and sampled transport-reliability criteria pass. On 2026-07-31, the owner reported extremely fast disappearance and accepted the result. The owner declined further testing of this behavior and directed promotion of blank rebuild to the query-free production default. The uncompleted items in the
 original gate are therefore recorded as waived rather than silently marked as
 passed. The former black-tile behavior remains available only through exact
 `hide=black` for diagnosis and rollback.
 
 ## Automated evidence
 
-The implementation gate covers strict query resolution, blank and normal page
-shape, option propagation, zero-image candidate hide, forced four-tile restore,
-failed-hide visibility, failed-restore hidden state, fresh-event recovery,
-query-free blank behavior, explicit black-control behavior, serial test
-execution, and the 450-line transport module boundary.
+The implementation gate covers strict query resolution, blank and normal page shape, and option propagation. It checks zero-image hiding, forced four-tile restoration, failed-hide visibility, failed-restore hidden state, and fresh-event recovery. It also checks query-free blank behavior, explicit black-control behavior, sequential test execution, and the 450-line transport module boundary.
 
 ## Rollback
 

@@ -1,10 +1,15 @@
 # Detail Back Button Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a large localized “Back to Dashboard” button beneath the existing clickable breadcrumb on every phone companion detail screen.
 
-**Architecture:** Keep `PhoneHeader` unchanged as the breadcrumb owner. Render a separate navigation button in `PhoneCompanion` between the header and detail content, and route both controls through the existing `setScreen("home")` action so the persistent HUD Canvas is not remounted.
+**Architecture:** Keep `PhoneHeader` unchanged as the breadcrumb owner. Render a separate navigation button in `PhoneCompanion` between the header and detail content. Route both controls through the existing `setScreen("home")` action. The persistent HUD Canvas must not remount.
 
 **Tech Stack:** React 19, TypeScript, Pixelarticons through `PhoneIcon`, CSS, Testing Library, Vitest
 
@@ -21,9 +26,7 @@
 
 - [ ] **Step 1: Write the failing component test**
 
-Update the existing detail navigation test to assert that Home has no large
-return button, every detail has one, and clicking it returns Home without
-replacing the Canvas:
+Update the detail navigation test. Assert that Home has no large return button and every detail screen has one. Clicking the button must return Home without replacing the Canvas:
 
 ```tsx
 expect(screen.queryByRole("button", { name: "Back to Dashboard" }))

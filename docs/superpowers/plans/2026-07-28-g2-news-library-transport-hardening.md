@@ -1,10 +1,15 @@
 # G2 News Library and Transport Hardening Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Reverse fullscreen map zoom gestures, improve full-width news readability, accumulate up to 100 hourly RSS articles without changing an active reader, and make G2 tile/page failures recover without queued work.
+**Goal:** Reverse fullscreen map zoom gestures and improve full-width news readability. Accumulate up to 100 hourly RSS articles without changing an active reader. Recover from G2 tile/page failures without queued work.
 
-**Architecture:** Keep gesture state pure in `fast-hud-view`, add measured-width wrapping to the detail renderer, and let `news.ts` own normalized library merging and one-hour freshness. The existing minute callback performs independent due checks while `live-dashboard` enforces the “not while reading” gate. Tile sends gain a per-call timeout, while dashboard navigation repairs local page state by applying the inverse transition after a failed transfer.
+**Architecture:** Keep gesture state pure in `fast-hud-view`. Add measured-width wrapping to the detail renderer. Let `news.ts` own normalized library merging and one-hour freshness. The existing minute callback performs independent due checks while `live-dashboard` enforces the “not while reading” gate. Tile sends gain a per-call timeout, while dashboard navigation repairs local page state by applying the inverse transition after a failed transfer.
 
 **Tech Stack:** React 19, TypeScript 5.9, Canvas 2D, Even Hub SDK 0.0.11, SBS RSS, Vitest 4, Vite 6
 
@@ -152,9 +157,7 @@ export const NEWS_MAX_AGE_MS = 60 * 60 * 1000;
 export const NEWS_LIMIT = 100;
 ```
 
-Export `mergeNewsItems(network, cached)`. Merge by ID, prefer the network
-record, sort dated records newest-first with stable insertion order for ties,
-place undated records after dated records, and slice to 100.
+Export `mergeNewsItems(network, cached)`. Merge by ID and prefer the network record. Sort dated records newest-first, with stable insertion order for ties. Place undated records after dated records. Keep only the first 100 records.
 
 Let `parseNewsRss()` return at most 100. Accept caches with one through 100
 items. When a stale cache and network result both exist, persist and return:
@@ -188,15 +191,11 @@ git commit -m "feat: retain a 100-item hourly RSS library"
 
 - [ ] **Step 1: Write failing due-check and reader-gate tests**
 
-Add `canRefreshNews?: () => boolean` to test options and add a session test
-that starts with fresh cached news, advances time by one hour, sets the gate
-false, and calls `refreshNewsIfDue()` twice. Assert no fetch. Set the gate true,
+Add `canRefreshNews?: () => boolean` to test options. Start a session test with fresh cached news. Advance time by one hour. Set the gate false and call `refreshNewsIfDue()` twice. Assert no fetch. Set the gate true,
 call once, and assert exactly one fetch. While a deferred fetch is active,
 call again and assert it is dropped rather than replayed.
 
-In `App.test.tsx`, include `refreshNewsIfDue` on the session mock. Assert the
-minute callback calls it outside news, does not call it while news detail is
-open, and calls it once immediately when double-tap exits news.
+In `App.test.tsx`, include `refreshNewsIfDue` on the session mock. Assert that the minute callback calls the refresh function outside news. While news detail is open, assert no call. When double-tap exits news, assert one immediate call.
 
 - [ ] **Step 2: Run the session and App tests and verify RED**
 

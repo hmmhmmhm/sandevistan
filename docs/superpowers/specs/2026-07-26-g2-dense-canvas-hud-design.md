@@ -1,47 +1,45 @@
 # G2 High Density Canvas HUD Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
 
 ## Target
 
-Existing Sandevistan HUD time, location, compass, map, microphone, acceleration, route guidance and
-Recreate directly on the `576×288` Canvas without the original PNG while maintaining the quest configuration.
-Draw. Elements and letters are grown and blackened within the maximum perimeter identified in the calibration test.
-Reduce the blank space to create a HUD that feels similar in size to the system dashboard.
+Recreate the existing Sandevistan HUD on the `576×288` Canvas without using the original PNG.
+Preserve the time, location, compass, map, microphone, acceleration, route guidance, and quest configuration.
+Enlarge the elements and text within the maximum perimeter identified by calibration.
+Reduce empty space to approach the perceived size of the system dashboard.
 
 ## Success Criteria
 
-- `/hud-canvas` does not read the original image, only Canvas primitives and text.
-  Use it.
-- The logical screen is exactly `576×288`.
-- The map, central guidance, and right sensor panel occupy a larger area than the existing version.
-- Does not change the existing `/`, `/diagnostic-v10`, and `/calibration-max` operations.
-- Reuse the four image container serial transmission paths of SDK `0.0.10`.
-- In the real G2, four tiles are displayed and the HUD elements are larger than the original image cyan.
-  Users can compare how they feel.
+- Render `/hud-canvas` with Canvas primitives and text without reading the original image.
+- Keep the logical screen exactly `576×288`.
+- Enlarge the map, central guidance, and right sensor panel relative to the existing version.
+- Keep the existing `/`, `/diagnostic-v10`, and `/calibration-max` behavior unchanged.
+- Reuse the four-image-container serial transmission path from SDK `0.0.10`.
+- On the actual G2, display four tiles and let users compare element size with the original image concept.
 
 ## Rendering Structure
 
-A new `src/canvas-hud.ts` is dedicated to rendering. This module supports the Even Hub bridge or
-It does not depend on React and takes only one input, `HTMLCanvasElement`.
+Use a new `src/canvas-hud.ts` module for rendering.
+The module takes only an `HTMLCanvasElement` and does not depend on the Even Hub bridge or React.
 
-`App.tsx` calls a new renderer from the `/hud-canvas` path. When rendering is finished
-The existing `transmitCanvas()` divides the Canvas into four `288×144` pieces.
-Transmit in the following order: `relicTL`, `relicTR`, `relicBL`, and `relicBR`.
+`App.tsx` calls the new renderer for `/hud-canvas`.
+After rendering, the existing `transmitCanvas()` divides the Canvas into four `288×144` pieces.
+Transmit them in this order: `relicTL`, `relicTR`, `relicBL`, and `relicBR`.
 
 ## Visual principles
 
-- Leave the background completely black to reflect the real environment.
-- Use only three levels: maximum brightness, medium brightness, and low brightness.
-- Assuming that G2 is converted to the green layer, Canvas
-  Use `#ffffff`, `#aaaaaa`, and `#555555`.
-- All panels and lines are drawn with a `fillRect` in integer coordinates and a 1-pixel path.
-- Characters use a fixed-width font, 16 to 26 pixels for core information, and 16 to 26 pixels for auxiliary information.
-  Draw at 10 to 13 pixels.
-- The peripheral information structure of the existing draft is maintained, but the central route guidance is increased to reduce empty space.
-  Reduce.
+- Keep the background completely black to reflect the real environment.
+- Use only maximum, medium, and low brightness.
+- For conversion to the G2 green layer, use Canvas colors `#ffffff`, `#aaaaaa`, and `#555555`.
+- Draw panels and lines with `fillRect` at integer coordinates and 1-pixel paths.
+- Use a fixed-width font. The original wording lists 16 to 26 pixels for core information and 16 to 26 pixels for auxiliary information.
+  It also specifies 10 to 13 pixels for auxiliary text. This size conflict remains unresolved.
+- Preserve peripheral information from the existing draft. Enlarge central route guidance to reduce empty space.
 
 ## Fixed Layout
 
@@ -58,8 +56,8 @@ Transmit in the following order: `relicTL`, `relicTR`, `relicBL`, and `relicBR`.
 | acceleration | `404,142,164×80` | `X +0.12`, `Y -0.03`, `Z +0.98` |
 | Quest·News | `404,230,164×50` | `Q. Move to subway station`, `NEWS 02` |
 
-Maintain a gap of at least 8 pixels between panels. All areas are outside the Canvas and
-Keep a safe distance of 4 pixels or more.
+Maintain a gap of at least 8 pixels between panels.
+Keep every area at least 4 pixels inside the Canvas boundary.
 
 ## Map and direction display
 
@@ -75,10 +73,9 @@ It is displayed larger than the existing bottom line, and the distance and motio
 
 ## Error handling
 
-If the 2D Canvas context is not obtained, an explicit error is thrown, just like the existing renderer.
-throw it Errors in page creation or individual tile transmission are consistent with the existing status output.
-Use `transmitCanvas()` error handling as is. Automatic retry or SDK changes
-do not add
+If no 2D Canvas context is available, throw an explicit error, as the existing renderer does.
+For page-creation or tile-transmission failures, keep the existing status output and `transmitCanvas()` error handling.
+Do not add automatic retries or SDK changes.
 
 ## Automatic verification
 
@@ -92,8 +89,8 @@ do not add
 
 ## Hardware judgment
 
-Even App Developer Open `/hud-canvas` with QR scanner and wait for four tiles to be sent.
-Compared to the existing image HUD, the following is recorded:
+In the Even App Developer QR scanner, open `/hud-canvas` and wait for four tiles to finish sending.
+Record the following comparisons with the existing image HUD:
 
 - Are the time, compass, map, and sensor letters larger and easier to read?
 - Does the central guide make the screen feel larger without excessively blocking the field of view?

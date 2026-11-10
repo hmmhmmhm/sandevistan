@@ -1,5 +1,10 @@
 # G2 Four-Call Image Transport Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add an opt-in `pipeline=4` G2 hardware experiment that starts all four full-frame SDK image calls without changing the serial default or refresh scheduling contract.
@@ -203,9 +208,7 @@ Add this script without changing stable `qr`:
 
 - [ ] **Step 4: Update physical documentation**
 
-Document the pipeline-four URL, ordered `1/4` through `4/4` diagnostics,
-owner-approved direct comparison with pipeline two, empty physical evidence
-fields, and rollback to pipeline two or one.
+Document the pipeline-four URL and ordered `1/4` through `4/4` diagnostics. Record the owner-approved direct comparison with pipeline two. Leave physical evidence fields empty. Document rollback to pipeline two or one.
 
 Update README to state that this experimental branch accepts `pipeline=2`,
 `pipeline=3`, or `pipeline=4`, and that no mode becomes the `main` default

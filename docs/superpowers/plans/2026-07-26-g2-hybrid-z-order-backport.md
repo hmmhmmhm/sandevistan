@@ -1,10 +1,15 @@
 # G2 Hybrid z-order Backport Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add an isolated `/hud-hybrid-z` hardware route that keeps SDK `0.0.10` image transport but serializes explicit unique z-order values with native Text above all four Canvas images.
+**Goal:** Add an isolated `/hud-hybrid-z` hardware route with SDK `0.0.10` image transport. Serialize explicit unique z-order values that place native Text above all four Canvas images.
 
-**Architecture:** Extend the existing container factory with an opt-in explicit layering flag and expose `createLayeredGlassesPage()` for the contract test. Reuse `transmitHybridCanvas()` internally through a thin `transmitLayeredHybridCanvas()` wrapper so image sequencing, Text updates, event handling, and the legacy `/hud-hybrid` path stay on one implementation.
+**Architecture:** Extend the existing container factory with an opt-in explicit layering flag. Expose `createLayeredGlassesPage()` for the contract test. Reuse `transmitHybridCanvas()` internally through a `transmitLayeredHybridCanvas()` wrapper. Image sequencing, Text updates, event handling, and the legacy `/hud-hybrid` path keep one implementation.
 
 **Tech Stack:** React 19, TypeScript, Vitest, Even Hub SDK `0.0.10`, Canvas, Vite
 

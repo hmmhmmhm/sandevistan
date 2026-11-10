@@ -1,52 +1,51 @@
 # G2 Tactical HUD Policy Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Background
 
-The first `576×288` Canvas HUD feels the same as the existing dashboard on the actual G2.
-It was displayed in size, and large letters and maps were clearly readable. However, all information is the same
-The game is placed in a thick closed square panel and the central rotation indication is expressed as a filled arrow.
-It left the impression that it was closer to an instrument panel or management screen than a HUD.
+On the actual G2, the first `576×288` Canvas HUD appeared as large as the existing dashboard.
+Large text and maps were clearly readable.
+However, thick closed panels and a filled central turn arrow made the design resemble an instrument panel rather than a HUD.
 
-This change changes the information hierarchy and graphics without affecting the successful size and transmission path.
-Just improve the grammar.
+Improve the information hierarchy and graphic style while preserving the successful size and transmission path.
 
 ## Target
 
-- Completely removes the `ACC` panel and X/Y/Z values.
-- Integrate `404,142,164×138` in the lower right corner into one large news/mission card.
-- Increase key Korean phrases in news and missions to at least 17 pixels.
-- Existing map size, time size, central guide area and `576×288` logical resolution
-  maintain
-- Open corners, cut lines, index marks and brightness hierarchy instead of repeated closed squares
-  Creates the impression of a high-quality tactical gaming HUD.
-- SDK `0.0.10` does not change the tile transmission method.
+- Remove the `ACC` panel and X/Y/Z values.
+- Combine the lower-right area `404,142,164×138` into one large news and mission card.
+- Increase key Korean news and mission phrases to at least 17 pixels.
+- Preserve map size, time size, the central guide area, and `576×288` logical resolution.
+- Use open corners, cut lines, index marks, and brightness levels instead of repeated closed squares.
+- Keep SDK `0.0.10` tile transmission unchanged.
 
 ## Design direction
 
 ### 1. Open tactical frame
 
-Do not draw the entire border of the main area. Each area contains 10 to 16 pixels.
-Place only the corner brackets and short edges, with one selected key corner white.
-Emphasize. Between frames there are small section indices such as `01`, `02`, `03` and short
-Enter the scale.
+Do not draw a complete border around each main area.
+Use corner brackets and short edges of 10 to 16 pixels.
+Emphasize one selected corner in white.
+Between frames, add small section indices such as `01`, `02`, `03` and short scale marks.
 
-This method maintains area separation while creating a feeling of layered dashboard boxes.
-Reduce. Low brightness for frames, medium brightness for auxiliary information, only current action and path at maximum.
-Use brightness.
+Keep the areas visually separate without repeated closed boxes.
+Use low brightness for frames and medium brightness for auxiliary information.
+Reserve maximum brightness for the current action and route.
 
 ### 2. Map depth
 
-The map area `8,72,184×172` and the bottom legend `8,252,184×28` are maintained. The road network is
-A single line of low brightness, with the active path being a 6-pixel mid-bright bottom line and a 2-pixel white line.
-Overlap the center lines. The current location is indicated by an arrowhead and a small central incision, and the destination is
-Expressed as a double square target.
+Keep the map area `8,72,184×172` and bottom legend `8,252,184×28`.
+Draw roads as single low-brightness lines.
+Draw the active path with a 6-pixel medium-bright base and a 2-pixel white center line.
+Mark the current location with an arrowhead and small central notch.
+Mark the destination with a double-square target.
 
 ### 3. Central direction guidance
 
-The central area `204,72,188×130` is used as is, but the large filled arrow is removed.
-Instead, the bending path is drawn with an 8-pixel mid-bright bottom line and a 3-pixel white center line.
-Use visual language such as map paths. At the right end is an open arrowhead.
-Connect. The information hierarchy is in the following order: `NAV // ROUTE 01`, `120m`, and `turn right`.
+Keep the central area `204,72,188×130`, but remove the large filled arrow.
+Draw the bent route with an 8-pixel medium-bright base line and a 3-pixel white center line.
+Match the map-route style and add an open arrowhead at the right end.
+Use this information order: `NAV // ROUTE 01`, `120m`, and `turn right`.
 
 The bottom guide '204,214,188×66' contains 'next intersection', large 'right turn', and small direction.
 Place symbols separately.
@@ -62,8 +61,8 @@ Combine into a single card of `404,142,164×138`.
 - Body: ‘To subway station’ 17 pixels, ‘Move’ 24 pixels
 - Bottom: `ROUTE UPDATED`, `02:14`
 
-The large text and ample line spacing make it immediately readable with actual glasses. left side of card
-There is a vertical status line and a small progress scale at the edge to emphasize that it is a mission card.
+Use large text and ample line spacing for immediate readability on the actual glasses.
+Place a vertical status line and small progress scale along the card's left edge to identify it as a mission card.
 
 ## Fixed palette and typography
 
@@ -78,8 +77,8 @@ There is a vertical status line and a small progress scale at the edge to emphas
 - General information: 11 to 14 pixels
 - Fine label: 8-10 pixels
 
-Do not increase the number of colors or use blur, shadow, or transparency effects. G2's
-Priority is given to monochromatic raster conversion and actual display characteristics close to 1 bit.
+Do not add colors, blur, shadows, or transparency effects.
+Prioritize monochrome raster conversion and the G2's near-1-bit display characteristics.
 
 ## Compatibility and off-target
 
@@ -92,15 +91,12 @@ Priority is given to monochromatic raster conversion and actual display characte
 ## Automatic verification
 
 - Check that the Canvas is exactly `576×288`.
-- Check that the `ACC` and X/Y/Z strings are not drawn at all.
-- `NEWS // 02`, `MISSION ACTIVE`, `To the subway station`, `Move` are drawn
-  Make sure the text in the text is 17 pixels or longer.
-- Is the corner of the right integrated card drawn on the border between `404,142` and `568,280`?
-  Confirm.
-- Are there both a medium-bright bottom line and a white center line on the map and central guidance?
-  Confirm.
-- Make sure the entire palette is limited to the four existing colors.
-- Passes full testing, type checking, production build, and Sites packaging testing.
+- Check that `ACC` and X/Y/Z strings are absent.
+- Check that `NEWS // 02`, `MISSION ACTIVE`, `To the subway station`, and `Move` use text of at least 17 pixels.
+- Check right-card corners against the boundary from `404,142` to `568,280`.
+- Check for medium-bright base lines and white center lines on both the map route and central guidance.
+- Check that the palette uses only the four existing colors.
+- Pass the full tests, type checking, production build, and Sites package checks.
 
 ## Judgment of practical equipment
 

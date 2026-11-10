@@ -1,11 +1,12 @@
 # Sandevistan Rebrand and English Documentation Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
-Rename the current project from `even-relic` / `RELIC` to `sandevistan` /
-`SANDEVISTAN`, publish a polished English-facing repository, and translate
-every Markdown document into English without deleting or consolidating the
-historical implementation record.
+Rename the project from `even-relic` and `RELIC` to `sandevistan` and `SANDEVISTAN`.
+Publish an English-facing repository and translate every Markdown document into English.
+Do not delete or consolidate the historical implementation record.
 
 The GitHub repository will become `hmmhmmhm/sandevistan`. The existing
 `0.0.12-reproduce` branch must remain available and unchanged so Even
@@ -70,11 +71,10 @@ rebrand.
 Narrative references that incorrectly use Sandevistan as the project name are
 rewritten as Sandevistan.
 
-Exact historical evidence is not falsified. A quoted payload, file name,
-container name, log line, commit message, URL, or branch state that actually
-contained `relicTL`, `relicTR`, or another old identifier remains exact and is
-described as a legacy identifier. Korean prose surrounding that evidence is
-translated into English.
+Preserve exact historical evidence.
+If a quoted payload, filename, container name, log, commit message, URL, or branch state used `relicTL`, `relicTR`, or another old identifier, retain it.
+Describe such names as legacy identifiers.
+Translate the surrounding Korean prose into English.
 
 The SDK 0.0.12 reproduction branch remains the authoritative byte-for-byte
 record of that failure. Its files are not translated or rebranded.

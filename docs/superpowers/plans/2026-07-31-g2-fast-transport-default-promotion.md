@@ -1,8 +1,13 @@
 # G2 Fast Transport Default Promotion Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make four-call image transmission and four-level content PNGs the query-free `/hud-canvas-fast` defaults while bypassing redundant palette work for black hide frames and preserving explicit serial/original rollback.
+**Goal:** Make four-call image transmission and four-level content PNGs the query-free `/hud-canvas-fast` defaults. Bypass redundant palette work for black hide frames. Preserve explicit serial/original rollback.
 
 **Architecture:** Query resolvers own the route defaults and retain explicit rollback values. The existing local `refreshImages` function accepts a per-call palette mode, so only the hidden-frame call overrides the content default. Package scripts, durable repository guidance, and hardware records expose the new default and preserve every historical experiment URL.
 

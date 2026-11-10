@@ -1,14 +1,16 @@
 # G2 Fast Blank Display Experiment Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Approved for planning; implementation not started
 
 ## Goal
 
-Measure whether rebuilding the active glasses page as one blank event-capture
-container can hide the Sandevistan HUD faster than transmitting four black
-image tiles, while keeping the WebView session and double-tap input alive.
+Compare a blank event-capture page rebuild with sending four black image tiles.
+Measure whether the rebuild hides the Sandevistan HUD faster.
+Keep the WebView session and double-tap input active.
 
 This is an isolated hardware experiment. The query-free production route keeps
 the proven four-black-tile display toggle until the candidate passes its
@@ -21,11 +23,10 @@ black PNG tiles. Recent physical traces measured approximately 330–450 ms for
 the complete hide operation. Restore redraws the latest HUD and sends four
 content tiles, typically taking about 1.8–2.1 seconds.
 
-SDK `0.0.13` does not expose display sleep, container visibility, or z-order
-update APIs. `shutDownPageContainer(0)` closes the glasses page and therefore
-cannot guarantee that the hidden page continues receiving the double tap needed
-to restore it. The candidate instead uses the supported
-`rebuildPageContainer` lifecycle operation.
+SDK `0.0.13` has no display-sleep, container-visibility, or z-order update API.
+`shutDownPageContainer(0)` closes the glasses page.
+It cannot guarantee that the hidden page still receives the double tap required to restore it.
+Instead, use the supported `rebuildPageContainer` lifecycle operation for this candidate.
 
 ## Routes and Isolation
 

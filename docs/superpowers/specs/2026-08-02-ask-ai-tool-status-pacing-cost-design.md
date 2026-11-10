@@ -1,13 +1,14 @@
 # Ask AI Tool Status, Pacing, and Cost Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
-Make Ask AI easier to understand and control on the glasses while keeping the
-phone companion responsible for durable preferences. The glasses must show
-which tool is currently running, pace completed assistant text at a user-set
-speed, and offer an explicit tap-to-reveal shortcut once generation is
-complete. The phone companion must expose the pacing control and show a more
-accurate local estimate of Realtime and web-search spend.
+Make Ask AI easier to understand and control on the glasses.
+Keep durable preferences in the phone companion.
+On the glasses, show the active tool and pace completed assistant text at the user-selected speed.
+After generation completes, provide an explicit tap-to-reveal shortcut.
+On the phone, expose pacing controls and a more accurate local estimate of Realtime and web-search spend.
 
 ## Product behavior
 
@@ -43,12 +44,12 @@ clear the matching lifecycle identifier in `finally`, covering success,
 failure, cancellation, and socket shutdown. A late completion from an older
 tool cannot clear a newer tool because identifiers must match.
 
-MCP status follows the Realtime MCP event lifecycle. Approval remains a
-separate, higher-priority state. Execution begins on an in-progress MCP call
-event and ends on the matching completed or failed item, with response
-completion and session cleanup as defensive clearing boundaries. This follows
-the documented distinction between app-executed function tools and
-Realtime-executed MCP tools.
+MCP status follows the Realtime MCP event lifecycle.
+Approval remains separate and has higher priority.
+Start execution status on an in-progress MCP call event.
+End it on the matching completed or failed item.
+Also clear status on response completion and session cleanup.
+This follows the documented distinction between app-executed function tools and Realtime-executed MCP tools.
 
 Only the safe state is projected into `AiHudSnapshot`. The native text HUD and
 canvas fallback consume the same localized status formatter, so both rendering
@@ -89,20 +90,22 @@ Counting both paths is intentional. Search results passed back into Realtime
 may later appear in Realtime input usage and are separately billable from the
 Responses API search request.
 
-The web-search endpoint returns a bounded usage envelope containing the actual
-model identifier, total input tokens, cached input tokens, output tokens, and
-the number of billable `search` actions. It counts search actions rather than
-all navigation actions. The client validates every field and never trusts a
-client-provided model or price.
+Return a bounded usage envelope from the web-search endpoint.
+Include the actual model identifier, total input tokens, cached input tokens, output tokens, and billable `search` action count.
+Count search actions, not all navigation actions.
+Validate every field on the client.
+Never trust a client-provided model or price.
 
-The pricing registry is model-aware and versioned. The initial standard-tier
-snapshot is dated 2026-08-02 and includes the active Realtime, transcription,
-and search-proxy models. For the active `gpt-5.5` search request it uses the
-official standard prices of $5.00 per million uncached input tokens, $0.50 per
-million cached input tokens, and $30.00 per million output tokens. Each
-billable web-search action adds $10.00 per 1,000 calls ($0.01 per action).
-Search content tokens are included in the model input usage returned by the
-Responses API and are therefore priced at the model input rate.
+The pricing registry is versioned by model.
+The initial standard-tier snapshot is dated 2026-08-02 and covers the active Realtime, transcription, and search-proxy models.
+For the active `gpt-5.5` search request, it records these official standard prices per million tokens:
+
+- Uncached input: $5.00.
+- Cached input: $0.50.
+- Output: $30.00.
+
+Each billable web-search action adds $10.00 per 1,000 calls ($0.01 per action).
+Responses API input usage includes search-content tokens. Price them at the model input rate.
 
 Cost is calculated at event time with integer nano-USD units, then persisted
 with the raw counters and pricing-version identifier in the daily local
@@ -110,18 +113,17 @@ ledger. This avoids floating-point accumulation and prevents later price-table
 updates from rewriting historical estimates. Week and month totals sum stored
 event-time costs and round only for display.
 
-Existing ledger entries have no reliable model snapshot. They remain readable
-and are migrated as legacy estimates using their original category rates;
-their historical search component is not silently reclassified as `gpt-5.5`.
-All new events use snapshot pricing. An unknown returned model records the raw
-usage as unpriced instead of applying an invented rate; the phone screen marks
-the total as containing unpriced usage.
+Existing ledger entries lack a reliable model snapshot.
+Keep them readable and migrate them as legacy estimates with their original category rates.
+Do not silently reclassify historical search costs as `gpt-5.5`.
+Use snapshot pricing for all new events.
+If the returned model is unknown, record raw usage as unpriced instead of inventing a rate.
+Mark the phone total as containing unpriced usage.
 
-The estimate remains explicitly labeled as an estimate because account-level
-service tiers, regional uplifts, billing rounding, and future price changes can
-differ from the local registry. Time and location tools add no external cost.
-Third-party MCP billing is excluded because OpenAI usage events cannot measure
-it.
+Label the estimate explicitly.
+Account service tiers, regional uplifts, billing rounding, and future prices can differ from the local registry.
+Time and location tools add no external cost.
+Exclude third-party MCP billing because OpenAI usage events cannot measure it.
 
 ## Data flow
 

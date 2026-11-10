@@ -1,8 +1,13 @@
 # G2 Honest Map, Readable News, and TODO Redraw Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace fake map geometry with honest empty states and heading-aware markers, paginate every RSS summary before article changes, and redraw checked or unchecked TODOs within the accepted input operation.
+**Goal:** Replace fake map geometry with empty states and heading-aware markers. Paginate every RSS summary before article changes. Redraw checked or unchecked TODOs within the accepted input operation.
 
 **Architecture:** `fast-map` decides one map-area state before drawing any geometry. A focused `fast-news-pages` module owns measured four-line summary pagination shared by App state and the Canvas renderer, while `fast-hud-view` owns article/page transitions. TODO data continues to toggle in the live session, but App promotes a successful toggle to the current operation’s `redraw` result.
 
@@ -193,9 +198,7 @@ Add `newsPage` to `FastDetailHudOptions`. Render only the selected page from
 
 and change the footer to `SCROLL // TEXT / ARTICLES`.
 
-In App, use the Canvas context and `paginateFastNewsSummary()` to construct
-`newsPageCounts`, pass `view.newsPage` to the detail renderer, and keep the
-same array for reducer synchronization and drawing.
+In App, use the Canvas context and `paginateFastNewsSummary()` to construct `newsPageCounts`. Pass `view.newsPage` to the detail renderer. Use the same array for reducer synchronization and drawing.
 
 - [ ] **Step 5: Run focused news tests and verify GREEN**
 
@@ -310,9 +313,7 @@ Expected: `200`.
 
 - [ ] **Step 5: Record and commit the superseding checkpoint**
 
-Record automated results and pending physical checks for both embedded and
-fullscreen map empty states, marker behavior, multi-page news order, TODO
-check/uncheck, transfer timeout, page rollback, and long-running responsiveness.
+Record automated results and pending physical checks for embedded and fullscreen map empty states and marker behavior. Include multi-page news order and TODO check/uncheck. Include transfer timeout, page rollback, and responsiveness during extended use.
 Mark the previous `news-library-025` record as superseded.
 
 ```bash

@@ -1,15 +1,17 @@
 # G2 session reconfiguration diagnostic design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Background
 
-We reapplied the `200×100` configuration that was successful in the official image example, but
-`createStartUpPageContainer()` kept returning `invalid`. Therefore PNG format,
-Image size and number of containers alone cannot explain the current symptom.
+The `200×100` configuration succeeded in the official image example.
+After reapplying it here, `createStartUpPageContainer()` continued to return `invalid`.
+PNG format, image size, and container count alone therefore cannot explain the symptom.
 
-According to the Even Hub SDK documentation, creation of the start page only occurs once in the Glasses UI session.
-You can call Subsequent page changes must use `rebuildPageContainer()`.
-However, since the user saw the same error even after completely closing the app, the remaining
-Rather than determining the session as the cause, the creation and reconstruction results are collected together.
+According to the Even Hub SDK documentation, create the startup page only once per Glasses UI session.
+For later page changes, use `rebuildPageContainer()`.
+The user also saw the error after fully closing the app, so an existing session is not yet a confirmed cause.
+Record both creation and rebuild results.
 
 ## Target
 
@@ -18,8 +20,7 @@ Rather than determining the session as the cause, the creation and reconstructio
 - Send the reference image only when the page is ready.
 - The existing URL profile for size comparison is maintained.
 
-Actual Sandevistan functions such as sensors, full screen HUD, STT, etc. are not included in the scope of this diagnosis.
-No.
+Sandevistan sensor functions, the full-screen HUD, and STT are outside this diagnostic scope.
 
 ## Selected access
 
@@ -32,9 +33,8 @@ Use conditional reconstruction.
 5. If reconstruction fails, it displays an error and does not start image transfer.
 6. Do not attempt reconstruction on `oversize` or `outOfMemory`.
 
-The reason for rebuilding only on `invalid` is both session duplication and incorrect page definitions.
-Because it can produce the same results. If you check the reconstruction results, you will find two cases:
-can be distinguished.
+Rebuild only after `invalid`, because either a duplicate session or an incorrect page definition can produce that result.
+Compare the rebuild result to distinguish these cases.
 
 The always-reconfiguring method does not guarantee first execution. After force quitting again
 Do not use the creation method because it can terminate the web view and the app itself.
@@ -56,15 +56,14 @@ Display phrases in order.
 - `PAGE REBUILD RESULT: true|false`
 - `PAGE READY <width>x<height> - SEND IN 3S`
 
-When an error occurs, the last success boundary and failure cause should be readable from the webview.
-Do it.
+If an error occurs, keep the last successful boundary and failure cause readable in the WebView.
 
 ## Data flow
 
-Select a diagnostic profile from the webview URL and define the image container for the profile.
-Pass it to the page initialization function. The initialization function succeeds in creating or reconstructing
-Returns only the bridge. The caller waits 3 seconds after loading the image to the returned bridge.
-Wait and transmit once serially.
+Select a diagnostic profile from the WebView URL.
+Pass its image-container definition to the page-initialization function.
+Return the bridge only after page creation or rebuilding succeeds.
+The caller loads the image, waits 3 seconds, and transmits it once serially.
 
 The current baseline profile consists of two text containers and `200×100` like the official example.
 Uses one image container.
@@ -78,8 +77,8 @@ Uses one image container.
 | `oversize` | do not call | interruption |
 | `outOfMemory` | do not call | interruption |
 
-If the bridge call itself throws an exception, it immediately aborts at that boundary and sends the exception message.
-Displayed in webview.
+If a bridge call throws, stop immediately at that boundary.
+Display the exception message in the WebView.
 
 ## Test
 

@@ -1,14 +1,19 @@
 # G2 Fullscreen Map Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Open a full-display live map from the overview, retain one zoom state across map modes and movement, and route gestures without disturbing serialized G2 image transport.
+**Goal:** Open a full-display live map from the overview. Retain one zoom state across map modes and movement. Route gestures without disturbing serialized G2 image transport.
 
-**Architecture:** Add a pure map-view state machine, parameterize the existing vector map renderer for embedded and fullscreen viewports, and let the current transport queue ask the App whether an SDK input is handled. Handled redraws use the proven four-tile `3/5/2/4` order; unhandled input preserves dashboard paging and black-frame hiding.
+**Architecture:** Add a pure map-view state machine. Parameterize the existing vector map renderer for embedded and fullscreen viewports. Let the current transport queue ask the App whether it handles an SDK input. Handled redraws use the proven four-tile `3/5/2/4` order; unhandled input preserves dashboard paging and black-frame hiding.
 
 **Tech Stack:** React 19, TypeScript 5.9, Vitest 4, Even Hub SDK 0.0.11, Canvas 2D, Vite
 
-**Execution:** Inline in the current worktree; the user explicitly requested direct work without subagents.
+**Execution:** Inline in the current worktree. The user explicitly requested direct work without subagents.
 
 ---
 
@@ -351,7 +356,7 @@ export function drawFastFullscreenMap(
 ```
 
 The header values must be exactly `MAP // <source> · <layer>` and
-`ZOOM // <radius>m`; the footer must include the OSM attribution and exit hint.
+`ZOOM // <radius>m`. The footer must include the OSM attribution and exit hint.
 
 - [x] **Step 5: Thread zoom through the dashboard HUD**
 

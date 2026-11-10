@@ -1,5 +1,7 @@
 # G2 Four-Call Image Transport Experiment Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Date: 2026-07-30
 
 Status: Implemented; partial physical pass
@@ -8,9 +10,8 @@ Branch: `experiment/g2-pipelined-transport`
 
 ## Goal
 
-Measure whether allowing all four full-frame G2 image updates to remain in
-flight at once is faster than the owner-observed `pipeline=2` mode while
-remaining visually complete, binocular, responsive, and stable.
+Compare four concurrent full-frame G2 image updates with the owner-observed `pipeline=2` mode.
+Measure speed while checking complete output, both eyes, responsiveness, and stability.
 
 The experiment remains opt-in. It does not change the serial default, the
 stable `main` branch, or the pinned Even Hub SDK `0.0.11`.
@@ -49,18 +50,16 @@ the serial limit of one.
 - Calls already in flight settle before the accepted refresh rejects.
 - Existing logical page rollback remains unchanged.
 
-For a four-tile refresh at limit four, all four calls will normally have
-started before an asynchronous failure can be observed. Failure handling still
-matters for smaller target sets, synchronous throws, and future target sizes;
-it does not imply cancellation of calls already handed to the SDK.
+At concurrency four, all four calls normally start before an asynchronous failure is observable.
+Failure handling still applies to smaller target sets, synchronous exceptions, and future target sizes.
+It does not cancel calls already sent to the SDK.
 
 ## Alternatives
 
 ### Promote pipeline two
 
-The owner already reports that pipeline two feels better, but this experiment
-does not make that observation the default before comparable logs and a
-stability record exist.
+The owner reports that pipeline two feels better.
+Do not make it the default until comparable logs and a stability record support the change.
 
 ### Test pipeline three first
 

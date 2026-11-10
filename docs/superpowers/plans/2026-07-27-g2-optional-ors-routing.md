@@ -1,5 +1,10 @@
 # G2 Optional ORS Routing Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -8,7 +13,7 @@
 
 **Goal:** Add destination search and turn-by-turn route guidance through OpenRouteService only when `ORS_API_KEY` exists, with a clean routing-disabled state otherwise.
 
-**Architecture:** The client never contacts ORS or sees its key. Same-origin server endpoints expose status, normalized geocoding, and normalized directions; a navigation session starts continuous Even SDK location only for an active route and feeds throttled map/right-panel refreshes into the shared G2 queue.
+**Architecture:** The client never contacts ORS or sees its key. Same-origin server endpoints expose status, normalized geocoding, and normalized directions. A navigation session starts continuous Even SDK location only for an active route and feeds throttled map/right-panel refreshes into the shared G2 queue.
 
 **Tech Stack:** OpenRouteService APIs, Sites Worker secrets, Even Hub SDK `0.0.11`, React, TypeScript, Canvas 2D, Node test runner, Vitest
 
@@ -133,7 +138,7 @@ export async function handleRouteRequest(request, env, dependencies = {});
 ```
 
 Import `jsonResponse`, `readLimitedBytes`, and `createTimeout` from
-`./http.js`; do not import from `api-router.js`, which imports these handlers.
+`./http.js`. Do not import from `api-router.js`, which imports these handlers.
 
 Geocode through:
 
@@ -337,7 +342,7 @@ export async function requestRoute(
 ```
 
 All calls are same-origin. Set a client eight-second timeout. Parse and validate
-every response; never accept raw ORS structures in the renderer.
+every response. Never accept raw ORS structures in the renderer.
 
 - [ ] **Step 5: Implement phone-only controls**
 
@@ -486,9 +491,7 @@ and emits `all`.
 
 Before route actions, synchronize the dashboard route state with the startup
 routing status: `disabled` when no key is configured, otherwise `fresh` with no
-route value. If a start or reroute request fails, retain the last safe geometry
-as `stale`, stop automatic reroute attempts until the next valid fix/cooldown,
-and keep end/retry actions available.
+route value. If a start or reroute request fails, retain the last safe geometry as `stale`. Stop automatic reroute attempts until the next valid fix/cooldown. Keep end/retry actions available.
 
 App cleanup must call `endRoute()` before disposing the live dashboard.
 
@@ -503,9 +506,7 @@ type ActiveRouteCache = {
 ```
 
 On successful route start or reroute, overwrite the record. On end, call
-`clearCache(storage, "active-route")`. During dashboard startup, restore a
-valid record younger than six hours as route status `stale` and emit `all`;
-require an explicit new start action before continuous location begins.
+`clearCache(storage, "active-route")`. During dashboard startup, restore a valid record younger than six hours as route status `stale`. Emit `all`. Require an explicit new start action before continuous location begins.
 
 - [ ] **Step 6: Verify and commit**
 
@@ -583,8 +584,8 @@ Start the server without `ORS_API_KEY` and open:
 http://100.96.68.73:4176/hud-canvas-fast?sdk=0.0.11&build=ors-optional-015
 ```
 
-Confirm location, weather, RSS, and OSM remain live; only the navigation page
-shows `path key required`; the phone shows no destination input.
+Confirm location, weather, RSS, and OSM remain live. Only the navigation page
+shows `path key required`. The phone shows no destination input.
 
 - [ ] **Step 2: Verify with a key**
 

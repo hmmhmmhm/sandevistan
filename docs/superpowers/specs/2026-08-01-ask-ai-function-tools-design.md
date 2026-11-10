@@ -1,5 +1,7 @@
 # Ask AI Function Tools Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
 Extend the continuous text-only Ask AI conversation with three built-in
@@ -22,11 +24,11 @@ The Realtime session advertises `tool_choice: auto` and these function tools:
   API request with the hosted `web_search` tool. It returns a concise result and
   a bounded list of cited source titles and URLs.
 
-Time and location execute inside the WebView. Web search executes through a
-same-origin Worker endpoint because the standard BYOK must not be exposed to an
-additional browser request target. The endpoint accepts the key only in the
-existing private request header, forwards it to OpenAI for that request, and
-never persists, logs, or reflects it.
+Run time and location tools inside the WebView.
+Run web search through a same-origin Worker endpoint to avoid exposing the standard BYOK to another browser request target.
+Accept the key only in the existing private request header.
+Forward it to OpenAI for that request.
+Never persist, log, or return the key.
 
 Exact coordinates are disclosed to OpenAI only after the model explicitly
 calls `get_current_location`. They are not inserted into session instructions,
@@ -36,24 +38,21 @@ result instead of pretending to be the user's current location.
 
 ## Realtime flow
 
-When a completed Realtime response contains one or more function-call output
-items, the session validates the function name and JSON arguments, executes
-each recognized call once, and sends a `conversation.item.create` item of type
-`function_call_output` for every call ID. After all outputs are acknowledged by
-the local WebSocket send path, one `response.create` asks the model to continue
-the turn.
+If a completed Realtime response contains function-call output items, validate each function name and its JSON arguments.
+Execute each recognized call once.
+For every call ID, send a `conversation.item.create` item of type `function_call_output`.
+After the local WebSocket send path acknowledges all outputs, send one `response.create` to continue the turn.
 
 Call IDs are deduplicated for the lifetime of the session. Unknown tools,
 invalid arguments, unavailable device data, upstream rejection, timeout, and
 abort all produce small structured error outputs. No failed tool call is
 queued, retried, or replayed on a later event.
 
-The visible protocol stays in a thinking/tool state while a function is
-running. A normal detail tap aborts an active search request or cancels the
-follow-up model response, reveals the latest received text, and returns to
-listening with the microphone still open. Double tap aborts all active tool
-work before closing the Realtime session and restoring the Canvas dashboard.
-Late tool results and late model deltas from a cancelled turn are ignored.
+While a function runs, keep the visible protocol in its thinking or tool state.
+On a normal detail tap, abort an active search or cancel the follow-up model response.
+Reveal the latest received text and return to listening with the microphone open.
+On double tap, abort all active tool work before closing Realtime and restoring the Canvas dashboard.
+Ignore late tool results and model deltas from cancelled turns.
 
 ## User-configured MCP servers
 
@@ -65,18 +64,18 @@ only in Even local storage and masks authentication values after save. URLs,
 labels, token lengths, tool-name syntax, record count, and serialized size are
 strictly bounded.
 
-At the start of a new Ask AI session, enabled records become Realtime `mcp`
-tools with stable unique `server_label` values, `server_url`, optional
-`authorization`, optional `allowed_tools`, and `require_approval` enabled. The
-MCP server connects directly from the OpenAI Realtime service; Sandevistan's
-Worker does not proxy, inspect, or persist MCP traffic or credentials. Editing
-the phone configuration affects the next AI session and never mutates a live
-session underneath an active response.
+At session start, convert enabled records to Realtime `mcp` tools.
+Give each tool a stable, unique `server_label` and a `server_url`.
+Include optional `authorization` and `allowed_tools` values.
+Enable `require_approval`.
+The OpenAI Realtime service connects directly to the MCP server.
+Sandevistan's Worker does not proxy, inspect, or persist MCP traffic or credentials.
+Phone configuration edits affect only the next AI session.
+They must not change a live session during an active response.
 
-Every user-added MCP call requires explicit approval. When Realtime emits an
-`mcp_approval_request`, the native glasses view temporarily replaces the normal
-listening status with a localized approval prompt containing the configured
-server name, tool name, and a short bounded argument summary:
+Require explicit approval for every user-added MCP call.
+When Realtime emits `mcp_approval_request`, temporarily replace the native listening status with a localized approval prompt.
+Include the configured server name, tool name, and a short, bounded argument summary:
 
 - one tap sends an `mcp_approval_response` with `approve: true` and returns to
   the thinking state;
@@ -85,13 +84,12 @@ server name, tool name, and a short bounded argument summary:
 - while no approval is pending, one tap retains its established response
   interruption behavior.
 
-An approval request is never auto-approved, queued, or reused for another
-call. MCP list/import and call failures are visible as localized nonfatal
-conversation errors and do not close the microphone. Session stop rejects any
-still-pending approvals best-effort before closing the socket. Remote MCP
-servers do not receive the whole transcript automatically, but the UI warns
-that they receive arguments selected by the model and may perform external
-actions after approval.
+Never approve an MCP request automatically, queue it, or reuse its approval for another call.
+Show MCP list, import, and call failures as localized nonfatal conversation errors.
+Keep the microphone open after these failures.
+On session stop, attempt to reject pending approvals before closing the socket.
+Remote MCP servers do not automatically receive the whole transcript.
+Warn users that these servers receive model-selected arguments and may perform external actions after approval.
 
 ## Web-search endpoint
 
@@ -107,9 +105,11 @@ request contains only a query and active locale. The handler:
 5. aborts on a short timeout and maps upstream failures to generic client-safe
    errors.
 
-The response body and diagnostic logs must never contain the BYOK. Search
-output is treated as untrusted data: titles and snippets are plain text, URL
-protocols are restricted to HTTPS, and result counts and lengths are bounded.
+Never include the BYOK in response bodies or diagnostic logs.
+Treat search output as untrusted data.
+Use plain text for titles and snippets.
+Allow only HTTPS result URLs.
+Bound result counts and lengths.
 
 ## Citations and local history
 
@@ -126,21 +126,20 @@ removes stored source metadata.
 
 ## Cost accounting
 
-Realtime usage continues through the existing ledger. The search endpoint also
-returns the Responses API token usage and count of web-search actions. The
-client aggregates those values into the same device-local daily usage record
-under a versioned search category so weekly and monthly estimates do not
-silently omit searches. Pricing remains centralized; unknown or changed tool
-pricing is labeled as an incomplete estimate rather than fabricated.
+Continue recording Realtime usage in the existing ledger.
+The search endpoint also returns Responses API token usage and web-search action counts.
+Aggregate them in the same device-local daily usage record under a versioned search category.
+Include that category in weekly and monthly estimates.
+Keep pricing centralized.
+If tool pricing is unknown or changed, label the estimate incomplete instead of inventing a price.
 
 ## Localization
 
-Tool definitions instruct the model to use the active locale. Local visible
-states and errors, including searching, location unavailable, tool timeout, and
-search failure, plus MCP loading, approval, rejection, and failure, are added to
-the centralized Ask AI dictionary for all thirty locales. Tool names and JSON
-keys remain stable English protocol identifiers and are never used as
-user-facing labels.
+Tool definitions instruct the model to use the active locale.
+Add local visible states and errors to the centralized Ask AI dictionary for all thirty locales.
+Cover searching, location unavailable, tool timeout, search failure, and MCP loading, approval, rejection, and failure.
+Keep tool names and JSON keys as stable English protocol identifiers.
+Never display those identifiers as user-facing labels.
 
 ## Verification
 

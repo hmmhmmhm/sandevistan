@@ -1,5 +1,10 @@
 # G2 Fast Blank Default Promotion Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make the validated blank-page rebuild the default G2 display toggle and retain black-tile hiding only behind `hide=black`.
@@ -91,7 +96,7 @@ assertions fail because production still defaults to black tiles.
 - [ ] **Step 1: Change URL resolution**
 
 Return `black-tiles` only when `new URLSearchParams(search).get("hide")` is the
-exact string `"black"`; otherwise return `blank-rebuild`.
+exact string `"black"`. Otherwise return `blank-rebuild`.
 
 ```ts
 export function resolveG2DisplayHideStrategy(

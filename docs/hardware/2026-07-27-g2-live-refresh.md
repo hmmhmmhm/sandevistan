@@ -1,5 +1,8 @@
 # G2 Live Refresh Checkpoint
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-27
 Branch: `feature/g2-fast-content`
 Tested implementation commit: `f49a6b04de07ec391d7451c0d36c6a3e0b27f568`
@@ -12,8 +15,7 @@ Result: PASS
 
 - The clock requests only the right-top tile at the next minute boundary and
   realigns every later tick to a minute boundary.
-- An official device-status event requests the right-top tile only when the
-  connected G2 battery percentage or charging state actually changes.
+- An official device-status event requests the right-top tile only if the connected G2 battery percentage or charging state changes.
 - Official continuous location updates request a HUD location redraw after at
   least 15 metres of accepted movement.
 - OSM roads and labels are requested again only after entering a new
@@ -53,5 +55,4 @@ The user confirmed the requested physical checklist as a whole:
 
 > Yes, it's very good and works very well.
 
-The exact minute, battery values, movement distance, and map cell transition
-were not transcribed, so this record does not infer those values.
+The record omits the exact minute, battery values, movement distance, and map-cell transition. The checklist confirmation does not establish those unrecorded values.

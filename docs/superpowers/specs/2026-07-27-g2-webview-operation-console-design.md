@@ -1,5 +1,7 @@
 # G2 WebView Operation Console Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -10,10 +12,9 @@ Status: APPROVED
 
 ## Goal
 
-Add a phone-WebView-only diagnostic console that shows which Sandevistan operation is
-running, when it starts and finishes, and how long it takes, so a later WebView
-freeze can be traced to its last successful boundary instead of inferred from
-glasses behavior.
+Add a diagnostic console only to the phone WebView.
+Show the running Sandevistan operation, its start and finish times, and its duration.
+If the WebView later freezes, these records identify the last successful boundary without relying on glasses behavior.
 
 The console must not appear in the 576×288 glasses Canvas or trigger an Even Hub
 image update.

@@ -1,5 +1,10 @@
 # G2 SDK 0.0.12 LZ4 Experiment Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Isolate and hardware-test the Even Hub SDK 0.0.12 LZ4 image transport without changing the proven G2 HUD rendering or scheduling behavior.

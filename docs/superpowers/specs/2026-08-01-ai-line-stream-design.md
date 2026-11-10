@@ -1,5 +1,7 @@
 # Ask AI Line Stream Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Goal
 
 Make the native Ask AI detail view read like a plain, live transcript rather
@@ -35,18 +37,17 @@ move through history one wrapped line at a time.
 
 ## Presentation and transport
 
-This follows the buffering model of Vercel AI SDK `smoothStream`: upstream
-generation remains unthrottled while presentation releases bounded chunks at
-a configured delay. Sandevistan already receives OpenAI Realtime events over
-its own WebSocket, so importing the full Vercel AI SDK only for this transform
-would duplicate transport code and increase the WebView bundle. A small local
-grapheme pacer provides the same relevant behavior.
+Follow the buffering model of Vercel AI SDK `smoothStream`.
+Leave upstream generation unthrottled and release bounded presentation chunks at a configured delay.
+Sandevistan already receives OpenAI Realtime events through its own WebSocket.
+Importing the full Vercel AI SDK only for this transform would duplicate transport code and increase the WebView bundle.
+Use a small local grapheme pacer for the relevant behavior.
 
-The 250 ms clock is a presentation clock, not an SDK call queue. Each assistant
-grapheme waits for its native `textContainerUpgrade` acknowledgement before
-the next delay starts, so slow bridge calls cannot build a backlog or freeze
-the WebView. A tap flush is serialized behind an update already in flight and
-then replaces all pending presentation work with one newest-target update.
+The 250 ms clock controls presentation. It does not queue SDK calls.
+For each assistant grapheme, wait for the native `textContainerUpgrade` acknowledgement before starting the next delay.
+This prevents slow bridge calls from accumulating a backlog or freezing the WebView.
+If an update is in flight, serialize tap flush behind it.
+Then replace all pending presentation work with one update to the newest target.
 
 ## Data model
 

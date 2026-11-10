@@ -1,34 +1,33 @@
 # G2 Hybrid Text Console Alignment Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
 
 ## Target
 
-Fast page switching and clarity of native text confirmed in `/hud-hybrid-z`
-While maintaining the problem of Text and Canvas frames using different coordinate systems,
-Solve it.
+Correct the Text and Canvas coordinate mismatch while preserving the fast page transitions and clear native text confirmed in `/hud-hybrid-z`.
 
 ## Confirmed cause
 
-The Text container in SDK `0.0.10` displays `xPosition`, `yPosition`,
-You can specify `width`, `height`, and `paddingLength`. After the page is opened
-Only the content can be changed with `textContainerUpgrade`. Font, font size, line height,
-Paragraph alignment and individual phrase coordinates cannot be specified.
+In SDK `0.0.10`, a Text container supports `xPosition`, `yPosition`, `width`, `height`, and `paddingLength`.
+After opening the page, `textContainerUpgrade` can change only its content.
+The SDK cannot specify the font, font size, line height, paragraph alignment, or coordinates of individual phrases.
 
-In the current implementation, one full-screen text flows like a regular document starting from `(8, 8)`.
-Canvas assumes absolute coordinates of multiple independent panels. Just spaces and line breaks
-The inability to accurately align the two coordinate systems is the cause of alignment failure.
+The current full-screen text flows as one document from `(8, 8)`.
+Canvas uses absolute coordinates for several independent panels.
+Spaces and line breaks cannot align these two coordinate systems accurately.
 
 ## Approaches reviewed
 
 ### 1. Map on the left and single text console on the right
 
-Keep a fixed Canvas map at `180px` on the left, and a single `372px` on the right.
-Use as a native text console. On the right, the interior depends on the line height.
-Do not draw partitions. One text update and all existing maps
-This method is adopted because it can be maintained.
+Keep a fixed `180px` Canvas map on the left.
+Use a single `372px` native Text console on the right.
+Do not draw internal dividers that depend on text line height.
+Adopt this approach to preserve the map and one text update per transition.
 
 ### 2. Full-screen single Text console
 
@@ -43,23 +42,20 @@ It is not adopted because it may be lost or the phrases may change sequentially.
 
 ## Layout
 
-- The entire Canvas is the same as before, `576×288`.
-- The map frame on the left is `(8, 8)`, `180×272`.
-- The text console frame on the right is `(196, 8)`, `372×272`.
-- Layers 1–4 are the existing four image tiles.
-- The Layer 5 Text container uses the same coordinates and size as the right frame.
-- The text inner margin is `8px`.
+- Keep the Canvas at `576×288`.
+- Place the left map frame at `(8, 8)` with size `180×272`.
+- Place the right Text console at `(196, 8)` with size `372×272`.
+- Keep the existing four image tiles on layers 1–4.
+- Give the layer 5 Text container the same coordinates and size as the right frame.
+- Set its inner margin to `8px`.
 - Do not draw text on Canvas.
-- The right frame uses only outlines, corner marks, and short marks. Specific Text
-  Do not use horizontal dividers that match the height of the row.
-- The layout and transmission behavior of the existing `/hud-canvas` and `/hud-hybrid` are not changed.
-  No.
+- Use only outlines, corner marks, and short marks in the right frame. Do not align horizontal dividers to Text rows.
+- Keep the layout and transmission behavior of `/hud-canvas` and `/hud-hybrid` unchanged.
 
 ## Text composition
 
-Every page has two lines of common status, one line of space, and five lines of page information.
-Compose. So a total of eight lines per page, with only one string when scrolling.
-Replace it.
+Compose each page from two common status lines, one blank line, and five page-information lines.
+Each page has eight lines. On scroll, replace the entire string once.
 
 1. Time in seconds, weather, page number
 2. `RELIC // LIVE`, location
@@ -73,28 +69,25 @@ Use it as is.
 
 ## Data flow
 
-When you open the app, you draw a new Canvas background once and transfer it to the four tiles. same start
-Make the right Text container on the page as layer 5. When the scroll event comes
-Use the existing circular page calculations, and set the eight-line string for the new page to
-Send `textContainerUpgrade` once. Send image tiles again
-No.
+At startup, draw the Canvas background once and send its four tiles.
+On the same startup page, create the right Text container at layer 5.
+On scroll, use the existing circular page calculation.
+Send the new eight-line string with one `textContainerUpgrade` call.
+Do not resend image tiles.
 
 ## Error handling
 
-If there is no Canvas 2D context or image transfer or text update fails, the existing
-Use the status reporting path as is. This change requires a retry or separate recovery flow.
-do not add If the text disappears again on the actual device, due to layer regression, the text
-If it goes outside the frame, it is diagnosed separately using line length regression.
+If the Canvas 2D context is unavailable, or an image transfer or text update fails, use the existing status-reporting path.
+Do not add retries or a separate recovery flow.
+If text disappears on the actual device, investigate a layer regression.
+If text extends outside the frame, investigate a line-length regression.
 
 ## Verification
 
-- Check that the new Canvas is `576×288` and that there are no Canvas characters.
-- Check whether the outer coordinates of the map and text console match the design values.
-- Layer 5 Text container uses right console coordinates, size, and margins
-  Confirm.
-- Each of the four pages has eight lines and includes a common time, weather, and page number.
-  Confirm.
-- Existing text update once per scroll and no image update
-  Maintain regression testing.
-- Run full unit tests, type checking, production builds, and Sites output inspection.
-- Final check the actual G2 alignment and binocular display at the Tailscale test address.
+- Check that the new Canvas is `576×288` and contains no text.
+- Check map-frame and Text-console coordinates against the design values.
+- Check that the layer 5 Text container uses the right console coordinates, size, and margins.
+- Check that all four pages have eight lines, including common time, weather, and page-number content.
+- Retain regression checks for one text update and no image update per scroll.
+- Run the full unit tests, type checking, production build, and Sites output inspection.
+- At the Tailscale test address, check alignment and binocular display on the actual G2.

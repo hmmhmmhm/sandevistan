@@ -27,7 +27,8 @@
     "build:api": "node scripts/build-api-worker.mjs",
     "check:evenhub-network": "node scripts/check-evenhub-network.mjs",
     "test:server": "node --test --test-concurrency=1 tests/*.test.mjs",
-    "release:check": "npm run typecheck && npm run typecheck:simulator && npm run test:repo && npm test && npm run test:server && npm run pack && npm run build:api"
+    "release:check": "npm run typecheck && npm run typecheck:simulator && npm run test:repo && npm run test:docs && npm test && npm run test:server && npm run pack && npm run build:api",
+    "test:docs": "node scripts/check-docs.mjs"
   },
   "dependencies": {
     "@evenrealities/even_hub_sdk": "0.0.16",

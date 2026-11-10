@@ -1,23 +1,28 @@
 # G2 full screen detailed deck implementation plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement the dashboard's news, TODO, and navigation into a 576×288 full-screen detailed deck that can be opened with a single tap and navigated or manipulated with a glasses gesture.
+**Goal:** Add a 576×288 full-screen detail deck for dashboard news, TODOs, and navigation. Open the deck with a single tap. Use glasses gestures to navigate and operate the deck.
 
-**Architecture:** Replaces the existing map-only state with a common detailed screen state machine. It normalizes RSS digests and persistent TODOs to a `LiveDashboardState`, and separates the per-page Canvas renderer and update filter, which sends only the changes needed to the current detail screen to four tiles. All input and image transmission uses the existing serial queue.
+**Architecture:** Replace the existing map-only state with a shared detail-screen state machine. Normalize RSS digests and persistent TODOs to a `LiveDashboardState`. Keep the per-page Canvas renderer separate from the update filter. The filter sends only the changes that the current detail screen needs across four tiles. All input and image transmission use the existing serial queue.
 
 **Tech Stack:** Even Hub SDK `0.0.11`, React 19, TypeScript 5.9, Canvas 2D, Vitest, Even local storage, RSS
 
 ---
 
-Implementation is carried out directly in the current session without a subagent according to user instructions.
-The approval specification is
-`docs/superpowers/specs/2026-07-27-g2-fullscreen-detail-decks-design.md` and
-The commit is `ea42e058d951ea7bd55b657b7c39bacf8d5a7290`.
+The historical user instruction required direct implementation in the current session without a subagent.
+The approved specification is
+`docs/superpowers/specs/2026-07-27-g2-fullscreen-detail-decks-design.md`.
+The recorded commit is `ea42e058d951ea7bd55b657b7c39bacf8d5a7290`.
 
 ### Task 1: Normalize RSS article summaries and include them in the cache
 
@@ -47,8 +52,7 @@ expect(items[0].summary).toBe(
 expect(parseNewsRss(longSummaryRss)[0].summary).toHaveLength(360);
 ```
 
-Cache tests include `summary` and contain no control characters or more than 361 summaries.
-Add case where cache is ignored.
+Add cache tests for `summary`. Confirm that the parser ignores a cache containing control characters or a summary with 361 code points.
 
 - [x] **Step 2: Check for failure**
 
@@ -74,8 +78,8 @@ Add the following restrictions to `news.ts`:
 const NEWS_SUMMARY_MAX_CODE_POINTS = 360;
 ```
 
-Removes `script` and `style` elements from the result of `sanitizeText()` and replaces control characters with
-Change it to a space and then truncate the summary.
+Remove `script` and `style` elements during summary sanitation associated with `sanitizeText()`.
+Replace control characters with spaces. Then truncate the summary.
 
 ```ts
 function sanitizeSummary(value: string): string | undefined {
@@ -90,8 +94,7 @@ function sanitizeSummary(value: string): string | undefined {
 }
 ```
 
-`parseNewsRss()` reads `<description>`, cache verification and `cloneItems()`
-Keep the summary.
+Make `parseNewsRss()` read `<description>`. Preserve the summary during cache validation and in `cloneItems()`.
 
 - [x] **Step 4: Confirm passing**
 
@@ -138,8 +141,8 @@ expect(toggleTodo(DEFAULT_TODOS, -1)).toBe(DEFAULT_TODOS);
 await expect(writeTodos(failingStorage, changed)).resolves.toBe(false);
 ```
 
-The title is empty, exceeds 40 code points, has duplicate IDs, or the entry is
-Make sure that caches exceeding 6 are restored to their default values.
+If a title is empty or exceeds 40 code points, restore the default cache values.
+Also restore the defaults if IDs are duplicated or the cache contains more than 6 entries.
 
 - [x] **Step 2: Check for failure**
 
@@ -167,9 +170,9 @@ readonly todos: DataState<readonly TodoItem[]>;
 export const DEFAULT_TODOS: readonly TodoItem[];
 ```
 
-In the initial state, the three items of `DEFAULT_TODOS` are entered as `fresh`. circular import
-To avoid this, the initial value is owned by `live-state.ts` and `todos.ts` again
-export. `todos.ts` provides the following API.
+Initialize the three items of `DEFAULT_TODOS` with status `fresh`.
+To avoid a circular import, define the initial value in `live-state.ts`. Re-export the value from `todos.ts`.
+`todos.ts` provides the following API.
 
 ```ts
 export const DEFAULT_TODOS: readonly TodoItem[];
@@ -186,8 +189,7 @@ export function writeTodos(
 ): Promise<boolean>;
 ```
 
-The keys in `readCache()` and `writeCache()` use `"todos"` to represent the actual stored key.
-Fixed with `relic:todos:v1`.
+In `readCache()` and `writeCache()`, pass `"todos"`. The actual stored key is `relic:todos:v1`.
 
 - [x] **Step 4: Confirm passing**
 
@@ -235,8 +237,8 @@ expect(JSON.parse(bridge.values.get("relic:todos:v1")!)[0].completed)
   .toBe(true);
 ```
 
-Calls after an out-of-scope index and dispose return `false` and do not change state or storage.
-It should not be changed. Even after a save failure, the completion status of the current session is maintained.
+For an out-of-range index or a call after disposal, return `false`. Do not change state or storage.
+If a save fails, preserve the completion status in the current session.
 
 - [x] **Step 2: Check for failure**
 
@@ -251,8 +253,7 @@ Expected: Fails because `toggleTodo` is missing.
 
 - [x] **Step 3: Minimal Implementation**
 
-Call `resolveTodos()` at session start and when the saved value is different from the initial state.
-Changes the state and emits `right`.
+At session start, call `resolveTodos()`. If the saved value differs from the initial state, update the state and emit `right`.
 
 ```ts
 const toggleTodoAt = async (index: number): Promise<boolean> => {
@@ -266,8 +267,7 @@ const toggleTodoAt = async (index: number): Promise<boolean> => {
 };
 ```
 
-The method first creates a state change and transfer request, waits for saving, and then
-returns
+First, update the state and request a transfer. Wait for the save to finish. Then return.
 
 - [x] **Step 4: Confirm passing**
 
@@ -332,9 +332,8 @@ The TODO tab should return the following effect:
 }
 ```
 
-Change navigation scrolling to `navigationFollowsActive: false`, tabs to current
-Return to action and change back to `true`. `syncFastHudView()` has reduced items
-Limit all indices to the number.
+On navigation scroll, set `navigationFollowsActive: false`. On tap, return to the current step and set the flag to `true`.
+In `syncFastHudView()`, clamp all indices when the item count decreases.
 
 - [x] **Step 2: Check for failure**
 
@@ -366,9 +365,9 @@ export function reduceFastHudInput(
 ): FastHudTransition;
 ```
 
-The existing map zoom direction and default value of 650m are retained. scrolling of the dashboard
-Double tapping remains `unhandled`. The existing `fast-map-view.ts` returns the App to a new state.
-It is maintained until Task 7, which is moved.
+Keep the existing map zoom direction and default value of 650m.
+Dashboard scrolling and double tap remain `unhandled`.
+Keep the existing `fast-map-view.ts` until Task 7 moves the App to the new state model.
 
 - [x] **Step 4: Confirm passing**
 
@@ -411,8 +410,8 @@ expect(wrapHudText("alpha beta gamma", 10, 2)).toEqual([
 ]);
 ```
 
-Empty strings, long words, mixed Korean and English characters, and even cases where the maximum number of lines is 0.
-Verify.
+Test empty strings, long words, and mixed Korean and English characters.
+Also test a maximum line count of 0.
 
 - [x] **Step 2: Write a renderer failure test**
 
@@ -443,9 +442,9 @@ expect(navTexts).toEqual(expect.arrayContaining([
 ]));
 ```
 
-In all renders, the Canvas is set to 576×288 and
-The phrases `LOADING`, `STALE`, `UNAVAILABLE`, and `DISABLED`
-Check whether `DOUBLE TAP // BACK` is visible.
+For every render, verify that the Canvas is 576×288.
+Test the status labels `LOADING`, `STALE`, `UNAVAILABLE`, and `DISABLED`.
+Verify that `DOUBLE TAP // BACK` is visible.
 
 - [x] **Step 3: Check for failure**
 
@@ -461,9 +460,9 @@ Expected: Failure due to missing two modules.
 
 - [x] **Step 4: Minimal Implementation**
 
-`fast-detail-text.ts` calculates 1 ASCII unit, 2 non-ASCII units, and
-Divide lines by giving priority to boundaries. 2 units if there is any content left in the last line
-Ellipsis `… Enter `.
+In `fast-detail-text.ts`, count each ASCII character as 1 unit and each non-ASCII character as 2 units.
+Prefer word boundaries when wrapping lines. If content remains after the last line, reserve 2 units for an ellipsis.
+The historical literal `… Enter ` is ambiguous. Confirm the intended ellipsis and trailing space against the approved specification before implementation.
 
 `fast-detail-hud.ts` provides one API:
 
@@ -480,9 +479,8 @@ export function drawFastDetailHud(
 ): void;
 ```
 
-Draw a common header, open corner body frame, black footer, and mode-specific content.
-Divide into separate internal functions. Existing colors, text, and
-Reuse the path tool.
+Draw a common header, an open-corner body frame, a black footer, and mode-specific content.
+Use separate internal functions. Reuse the existing colors, text helpers, and path helpers.
 
 - [x] **Step 5: Confirm passing**
 
@@ -543,10 +541,10 @@ expect(detailRefreshTarget("news", before, routeChanged, "all"))
   .toBeUndefined();
 ```
 
-News compares status, `fetchedAt`, ID, title, summary, and publication time. TODO is
-Compare ID, title, and completion status. Navigation uses state, destination, `fetchedAt`,
-Compares active motions, visible distance buckets, and motion lists and retrieves the entire route coordinate array.
-Do not serialize on every position update.
+For news, compare status, `fetchedAt`, ID, title, summary, and publication time.
+For TODOs, compare ID, title, and completion status.
+For navigation, compare status, destination, `fetchedAt`, active step, visible distance bucket, and step list.
+Do not serialize the entire route coordinate array on each position update.
 
 - [x] **Step 2: Check for failure**
 
@@ -561,8 +559,8 @@ Expected: Failure due to missing update filter module.
 
 - [x] **Step 3: Minimum implementation and check for passing**
 
-Create a small equality function for each data type and set only the visible mode changes to `all`.
-Get promoted.
+Create a small equality function for each data type.
+Promote changes to `all` only when they affect the visible mode.
 
 Run:
 
@@ -593,8 +591,7 @@ git commit -m "feat: filter fullscreen detail refreshes"
 
 - [x] **Step 1: Write an App Failure Test**
 
-Add `drawFastDetailHud` to your renderer mockup and once in your dashboard tab
-Check the results of your tap.
+Add `drawFastDetailHud` to the renderer mock. Verify the result of one tap on a dashboard page.
 
 ```ts
 await navigate?.("next"); // NEWS
@@ -605,20 +602,20 @@ expect(mocks.drawDetail).toHaveBeenCalledWith(
 );
 ```
 
-If you scroll and tap in the TODO details, you will see `session.toggleTodo(1)` exactly once.
-When called, the input result should be `consume`. Session `onUpdate` changed
-When TODO is sent, `requestRefresh("all")` must be called once.
+In TODO detail, scroll and tap. Verify that the controller calls `session.toggleTodo(1)` exactly once and returns `consume`.
+When the session sends changed TODO data through `onUpdate`, verify one call to `requestRefresh("all")`.
 
-Updates where only the weather and route have changed in the news details, and divisions in all detail screens
-Battery changes should not be transmitted. Visible changes in news, TODO, and routes are
-You must request `all`. Double tap to update the dashboard page you entered.
-It must be fully rendered.
+In news detail, do not transmit updates that change only weather or routing.
+In every detail screen, do not transmit battery-only changes.
+For visible news, TODO, or route changes, request `all`.
+On double tap, redraw the complete dashboard page from which the user entered detail.
 
 - [x] **Step 2: Write a transfer failure test**
 
-In `glasses.test.ts`, three clicks corresponding to entering news details, scrolling, and returning:
-Check whether `redraw` is sent serially to `3/5/2/4` respectively. with border `consume`
-The TODO effect's `consume` should not send an image as the input itself.
+In `glasses.test.ts`, test entry to news detail, scrolling, and return.
+For each `redraw`, verify serial transmission to `3/5/2/4`.
+A boundary `consume` must not send an image.
+The TODO effect's `consume` must not send an image directly from the input handler.
 
 - [x] **Step 3: Check for failure**
 
@@ -634,8 +631,9 @@ Expected: Failure due to lack of detailed renderer, new state and TODO session c
 
 - [x] **Step 4: Minimal App Integration**
 
-Replace the map state in `App.tsx` with `FastHudViewState`. `drawCurrentPage()`
-On startup we synchronize the state with the current number of items and active actions and draw it like this:
+Replace the map state in `App.tsx` with `FastHudViewState`.
+At the start of `drawCurrentPage()`, synchronize the state with the current item counts and active step.
+Then draw as follows:
 
 ```ts
 if (view.mode === "map") {
@@ -653,19 +651,17 @@ if (view.mode === "map") {
 }
 ```
 
-If input effect is `toggle-todo`, wait for `liveSession?.toggleTodo(index)`
-Returns `consume`. The other `redraw` immediately draws the Canvas in the traditional way.
-Draw.
+If the input effect is `toggle-todo`, await `liveSession?.toggleTodo(index)`.
+Return `consume`. For another `redraw` result, draw the Canvas immediately through the existing path.
 
-In session updates, the state before the change is preserved and used with `detailRefreshTarget()`.
-After deciding on the transmission destination, change the state. Minutes and battery refresh
-Sent only when `view.mode === "dashboard"`.
+During session updates, preserve the previous state for `detailRefreshTarget()`.
+Determine the transmission target before changing the state.
+Send minute and battery refreshes only when `view.mode === "dashboard"`.
 
 - [x] **Step 5: Generalize the transfer phrase**
 
-`redraw` completion statement in `fast-canvas-transport.ts`
-Change it to `"Detailed screen transfer completed"`. Transfer order and tile set do not change
-No.
+Change the `redraw` completion message in `fast-canvas-transport.ts`
+to `"Detailed screen transfer completed"`. Preserve the transfer order and tile set.
 
 - [x] **Step 6: Confirm passing**
 
@@ -725,8 +721,7 @@ git grep -n "ORS_API_KEY" -- src app.json package.json
 git diff --check
 ```
 
-Expected: All tests and builds pass and client key retrieval produces no results.
-Returns exit code 1.
+Expected: All tests and builds pass. The client-key search returns no results and exits with code 1.
 
 - [x] **Step 2: Create checkpoint document**
 
@@ -738,14 +733,14 @@ Build: detail-decks-019
 Result: PENDING
 ```
 
-News summary, TODO selection and save, navigation steps, map zoom, return, black screen,
-Set the four tiles on both sides and `SENDFAILED` as actual check items. The automatic verification figures are
-It only records the actual results of what was just executed.
+Add physical checks for news summaries, TODO selection and saving, navigation steps, map zoom, return, and the black screen.
+Check all four tiles in both eyes and record any `SENDFAILED` result.
+For automated verification figures, record only the results of commands that were actually run.
 
 - [x] **Step 3: Update QR and README**
 
-Replace the `qr` build ID in `package.json` with `detail-decks-019` and the current
-Update the physical test URL and detailed deck gestures.
+Replace the `qr` build ID in `package.json` with `detail-decks-019`.
+Update the physical test URL and detail-deck gestures.
 
 - [x] **Step 4: Document Verification and Commit**
 
@@ -765,8 +760,8 @@ git commit -m "docs: prepare G2 detail deck checkpoint"
 
 - [x] **Step 5: Replace the 4176 server only once**
 
-Terminate the existing `fullscreen-map-018` Vite session normally and check if the port is empty.
-Confirm. Run only one server on the new branch:
+Terminate the existing `fullscreen-map-018` Vite session normally.
+Verify that the port is free. Run only one server on the new branch:
 
 ```bash
 npm run dev -- --host 0.0.0.0 --port 4176 --strictPort
@@ -788,5 +783,6 @@ GET /api/map?... -> 200 normalized OSM
 
 - [ ] **Step 6: Wait for the actual G2**
 
-After charging the glasses, observe the checkpoint directly. Before that, basic branch integration,
-It does not handle remote pushes, completion notifications, or goal completion.
+After charging the glasses, observe the checkpoint directly.
+Until physical verification finishes, do not integrate the implementation branch or push remotely.
+Do not send completion notifications or mark the goal complete.

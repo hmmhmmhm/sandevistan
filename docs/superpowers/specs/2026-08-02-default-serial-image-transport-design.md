@@ -1,5 +1,7 @@
 # Default Serial Image Transport Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 Status: Rejected after physical G2 testing. Pipeline one remains an explicit
 diagnostic, while the query-free route uses pipeline four.
 
@@ -26,10 +28,9 @@ experiments.
 
 ## Implementation Boundary
 
-Change only the default resolution in `image-send-concurrency.ts` and the
-tests and durable documentation that define that default. The bounded task
-pool and image transport remain unchanged because they already enforce a
-limit of one correctly.
+Change only the default resolution in `image-send-concurrency.ts` and the tests and durable documentation that define it.
+Keep the bounded task pool and image transport unchanged.
+They already enforce a limit of one correctly.
 
 ## Verification
 

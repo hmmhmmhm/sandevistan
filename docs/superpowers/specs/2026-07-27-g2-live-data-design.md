@@ -1,5 +1,7 @@
 # G2 Live Data and Optional Routing Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -30,11 +32,9 @@ routing is the only feature that may require a user-provided key.
 
 The live-data baseline is pinned to `@evenrealities/even_hub_sdk` `0.0.11`.
 
-SDK `0.0.11` adds `getAppLocation`, `startAppLocationUpdates`,
-`onAppLocationChanged`, and `stopAppLocationUpdates`. SDK `0.0.12` adds LZ4
-image transport and produced `SENDFAILED` on the physical G2. Version `0.0.11`
-therefore provides the official location bridge while retaining the pre-LZ4
-image path closest to the proven `0.0.10` transport.
+SDK `0.0.11` adds `getAppLocation`, `startAppLocationUpdates`, `onAppLocationChanged`, and `stopAppLocationUpdates`.
+SDK `0.0.12` adds LZ4 image transport and produced `SENDFAILED` on the physical G2.
+Use version `0.0.11` for the official location bridge and the pre-LZ4 image path closest to the proven `0.0.10` transport.
 
 The hardware gate ran in two stages. SDK-only build `fast-live-011` first
 established bilateral display, row-major `2/3/4/5` four-tile rendering, normal
@@ -88,9 +88,8 @@ Existing 576 x 288 Canvas renderer
 Serialized G2 image updates
 ```
 
-The production Worker and local Vite server expose the same API contract so
-the Tailscale hardware URL can exercise the same news and map flows before
-deployment.
+The production Worker and local Vite server expose the same API contract.
+Before deployment, the Tailscale hardware URL can therefore test the same news and map flows.
 
 ## Live state model
 
@@ -186,10 +185,11 @@ The browser calls a same-origin Sandevistan endpoint using a stable feed ID:
 GET /api/news?feed=sbs-latest
 ```
 
-The endpoint does not accept arbitrary target URLs. The Worker maps the ID to a
-hard-coded HTTPS feed, rejects unsupported IDs, disables redirects, enforces an
-eight-second timeout and a one-megabyte response limit, and returns the XML
-with a five-minute shared cache.
+The endpoint rejects arbitrary target URLs.
+The Worker maps each supported ID to a hard-coded HTTPS feed.
+It rejects unsupported IDs and disables redirects.
+It enforces an eight-second timeout and a one-megabyte response limit.
+It returns XML with a five-minute shared cache.
 
 The client parses RSS with `DOMParser`, tolerating absent `guid`, `link`, or
 `pubDate`. It:
@@ -313,9 +313,10 @@ One serialized image-update coordinator owns all G2 image sends.
 - Display hide: black IDs 3, 5, 2, 4.
 - Display restore: current IDs 3, 5, 2, 4.
 
-The send-order change does not alter navigation semantics: user-forward scroll
-still advances pages 1→2→3→4, backward scroll reverses that sequence, and no
-SDK event-direction inversion is needed.
+The send-order change preserves navigation semantics.
+Forward scroll advances through pages 1→2→3→4.
+Backward scroll reverses that sequence.
+Do not invert SDK event directions.
 
 State changes may coalesce while a send is in flight. The newest state wins;
 obsolete intermediate frames may be dropped. A failed send reports the error

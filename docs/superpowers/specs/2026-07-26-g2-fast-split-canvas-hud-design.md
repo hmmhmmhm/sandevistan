@@ -1,14 +1,16 @@
 # G2 Quick Split Canvas HUD Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
 
 ## Target
 
-While preserving the existing multi-section `/hud-canvas`, separate
-Control the font size, thickness, brightness, and precise placement of the Canvas in `/hud-canvas-fast`.
-Recover and reduce the amount of scroll image transmission from four to two.
+Preserve the existing multi-section `/hud-canvas`.
+In `/hud-canvas-fast`, control the font size, weight, brightness, and position independently.
+Reduce scroll image transfers from four tiles to two.
 
 ## Preservation criteria
 
@@ -20,23 +22,21 @@ Recover and reduce the amount of scroll image transmission from four to two.
 
 ## Identified performance causes
 
-Currently `refreshImages()` in `transmitCanvas()` works on start send and scroll send.
-All four identical tiles are encoded as PNG and transmitted serially in the order ‘2, 3, 4, 5’.
-Since the entire Canvas is redrawn when changing pages, even the map on the left is redrawn every time.
-It is retransmitted.
+At startup and on scroll, `refreshImages()` in `transmitCanvas()` encodes all four tiles as PNG.
+It transmits them serially in the order "2, 3, 4, 5".
+Each page change redraws and retransmits the entire Canvas, including the unchanged map on the left.
 
-In SDK `0.0.10`, the existing four image containers are maintained while the specific container is
-Only images can be updated. So the left half that doesn't change between pages is
-Send only once for the first time, and when scrolling only the container `3, 5` in the dynamic right half
-It can be renewed.
+SDK `0.0.10` can update individual images without replacing the four existing image containers.
+Send the unchanged left half only at startup.
+On scroll, update only containers `3, 5` in the dynamic right half.
 
 ## Approaches reviewed
 
 ### 1. Update the fixed map on the left and the two tiles on the right
 
-Canvas reduces scroll image transfer by half while maintaining full design control
-Reduce. The map on the left should be exactly the same on all pages, but if the user
-We adopt this method because we can maintain the preferred large map.
+This approach halves scroll image transfers while preserving full Canvas design control.
+The left map must be identical on all pages.
+Adopt this approach to retain the large map that the user prefers.
 
 ### 2. Update Canvas for all four tiles
 
@@ -45,9 +45,9 @@ Same as existing transmission. The existing `/hud-canvas` continues to serve as 
 
 ### 3. Mixing Canvas and native text
 
-The conversion is the fastest, but the SDK does not have font size, thickness, and font brightness properties, so this time
-It does not meet the game HUD expression, which is the core of the experiment. The existing hybrid route
-This serves as the standard for comparison.
+This approach has the fastest transitions.
+However, the SDK has no font-size, weight, or brightness properties, so it cannot provide the visual control required by this experiment.
+Keep the existing hybrid route for comparison.
 
 ## Screen composition
 
@@ -75,37 +75,34 @@ The page order is the same as before: `overview`, `navigation`, `news`, and `tod
 - `news`: Big traffic headlines, Hongik University Station status, weather briefing
 - `todo`: two incomplete items, completed items, G2 and R1 connection status
 
-The left map pixel is the same on all four pages. All page differences are on the right
-It only happens in half of the cases.
+The left map pixels are identical on all four pages.
+All page differences are confined to the right half.
 
 ## Transmission flow
 
-When starting the app, it creates four image containers as before and sends all four tiles.
-When a scroll event comes, it uses the existing circular page calculation and serial queue to get the next
-Draw the page on Canvas. Then, top right `relicTR` and bottom right
-Only `relicBR` is encoded and transmitted to containers `3, 5` in order.
+At startup, create four image containers and send all four tiles as before.
+On scroll, use the existing circular page calculation and serial queue to draw the next page.
+Encode only the top-right `relicTR` and bottom-right `relicBR` tiles.
+Transmit them to containers `3, 5` in order.
 
 Optimization of the fast path only specifies a different list of update tiles during navigation.
 `/hud-canvas` continues to use the default of four tiles.
 
 ## Error handling
 
-If any of the four tiles fail at startup, the existing error is reported as is.
-If one of the two tiles on the right fails when scrolling, the corresponding container name and failure
-Displays results and clears existing error paths so that the next navigation request in the queue can be executed.
-maintain Automatic retry or left tile replacement transmission are not included in this scope.
+If a startup tile fails, report the existing error.
+If a right-side tile fails on scroll, display the container name and failure result.
+Keep the existing error recovery so the next queued navigation request can run.
+Do not add automatic retries or replacement sends for left-side tiles.
 
 ## Verification
 
-- The existing `/hud-canvas` rendering test must pass without changing a single pixel contract.
-  Do it.
-- The new renderer must use `576×288` and a high brightness four-level palette.
-- The `288×288` rendering command on the left side of all four pages must be the same.
-- The new page contains key characters of `20px` or more, time in seconds, weather, and page size.
-  Must include number.
-- When starting, the image ID is only `2, 3, 4, 5`, and when scrolling down and up, it is only `3 and 5` respectively.
-  must be transmitted.
-- Even with continuous scrolling, image transfers must be serialized one at a time.
-- Run full unit tests, type checks, production builds, and sites checks.
-- Is it actually faster than the existing four tile transition on the G2?
-  Make sure it looks like a transition.
+- Pass the existing `/hud-canvas` rendering test without changing its expected pixels.
+- Check that the new renderer uses `576×288` and a high-brightness four-level palette.
+- Check that every page draws the same left-side `288×288` area.
+- Check for key text of at least `20px`, time with seconds, weather, and a page number.
+- At startup, send only image IDs `2, 3, 4, 5`.
+- On scroll down or up, send only IDs `3 and 5`.
+- Even during continuous scrolling, send images serially.
+- Run the full unit tests, type checks, production build, and Sites checks.
+- On the G2, compare transition speed with the existing four-tile path.

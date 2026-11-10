@@ -1,14 +1,15 @@
 # G2 Base64 Image Bridge Hardware Gate
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 Date: 2026-07-31
 
 Status: Physical failure confirmed; candidate rejected
 
 ## Goal
 
-Determine whether sending the same encoded PNG bytes to Even Hub SDK `0.0.13`
-as a Base64 string reduces end-to-end G2 refresh latency compared with the
-current `Uint8Array` path. This experiment changes only the JavaScript value
+Compare end-to-end G2 refresh latency for Base64 strings and the current `Uint8Array` path. Send the same encoded PNG bytes through Even Hub SDK `0.0.13`. This experiment changes only the JavaScript value
 passed to `ImageRawDataUpdate.imageData`.
 
 ## Tested routes
@@ -34,9 +35,7 @@ Both routes used:
 SDK `0.0.13` declares `ImageRawDataUpdate.imageData` as accepting
 `number[] | string | Uint8Array | ArrayBuffer`. However, the SDK comments for
 this update recommend `number[]`, and the official image example uses a number
-array. A direct serialization check showed that typed bytes are converted to a
-number array, while a Base64 string is passed through unchanged to the native
-host.
+array. A direct serialization check showed that the SDK converts typed bytes to a number array. It passes a Base64 string unchanged to the native host.
 
 The hardware result proves that the current Even App image-update host does
 not accept that string form. All four Base64 calls returned `sendFailed` in
@@ -57,18 +56,13 @@ The candidate startup trace reported:
 [ERROR] app startup failed · Error
 ```
 
-The string representation was 4,326 characters larger than the encoded binary
-payload, a 33.4% representation expansion. More importantly, no tile became
-visible and startup failed immediately, so no refresh-latency comparison was
-possible.
+The string representation was 4,326 characters larger than the encoded binary payload, a 33.4% representation expansion. No tile became visible, and startup failed immediately. No refresh-latency comparison was possible.
 
 ## Decision rule
 
 The candidate failed the required zero-`sendFailed` gate and is removed from
 normal operation. The stable path remains encoded `Uint8Array` input, which the
-SDK serializes to the supported number-array representation. There is no
-automatic fallback, replay, retry, or queue: a failed refresh remains failed,
-and a later independent event may request another refresh.
+SDK serializes to the supported number-array representation. There is no automatic fallback, replay, retry, or queue. A failed refresh remains failed. A later independent event may request another refresh.
 
 ## Result
 

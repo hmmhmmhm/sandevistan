@@ -1,10 +1,11 @@
 # G2 Fast Canvas content reorganization design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Target
 
-Layout of `/hud-canvas-fast` approved for structure and transition speed on actual device and
-While maintaining the two-tile transfer agreement, the sequence of four pages and sample content are actually
-Organize it close to its purpose.
+Reorganize the four-page sequence and sample content in `/hud-canvas-fast`.
+Preserve the layout, transition speed, and two-tile transmission behavior approved on the actual device.
 
 ## Approved page order
 
@@ -15,16 +16,17 @@ The scroll order rotates as follows.
 3. `TODO`
 4. `NAVIGATION`
 
-The `288×288` map on the left remains the same on all pages. Image when app starts
-Send ID `2, 3, 4, 5`, and when scrolling, only right image ID `3, 5` is sent.
-There will be no changes to existing contracts for serial transmission.
+The `288×288` map on the left remains the same on all pages.
+At startup, send image IDs `2, 3, 4, 5`.
+On scroll, send only the right image IDs `3, 5`.
+Keep the existing serial transmission behavior.
 
 ## Reviewed battery display methods
 
 ### 1. Static sample values
 
-This method always draws a fixed value such as `G2 82%`. The implementation is the simplest, but practical
-Do not use it as it can be misunderstood as a status.
+This method always draws a fixed value such as `G2 82%`.
+Although the implementation is simplest, reject it because users could mistake the sample for actual device status.
 
 ### 2. SDK single device snapshot
 
@@ -55,9 +57,9 @@ The existing content, which was centered on traffic news, is changed to a summar
 
 ### 2. NEWS
 
-Samples that looked like maps or subway conditions were removed, and what was clearly a general article title was removed.
-Shows six short sample titles. Four in the upper right main text, lower right
-Place two in the auxiliary area so that they do not overlap the tile border.
+Replace the map-like or subway-condition samples with six short general article titles.
+Place four titles in the upper-right main area and two in the lower-right auxiliary area.
+Keep the titles clear of the tile border.
 
 ### 3. TODO
 
@@ -70,9 +72,9 @@ The current ‘120m’, right turn, next intersection content is maintained as i
 
 ## Clock
 
-The clock is displayed in `HH:MM` format with seconds removed. Canvas supports app launch and scrolling
-Since it is only redrawn, the display time is also updated at that moment. retransmitting tiles every second
-A real-time second clock is not implemented because it can increase BLE load and battery consumption.
+Display the clock in `HH:MM` format without seconds.
+The Canvas redraws only at app launch and on scroll, so the time updates only then.
+Do not retransmit tiles every second. That would increase BLE traffic and battery use.
 
 ## Data flow
 
@@ -87,16 +89,14 @@ Battery inquiry failure is not treated as HUD image transmission failure.
 
 ## Test
 
-- Check whether the page order is `overview`, `news`, `todo`, and `navigation`.
-- Check that the clock is `HH:MM` and does not include seconds.
-- OVERVIEW shows actual battery, charging indicator, and unknown alternative text drawn
-  Confirm.
-- Check whether six general article titles are drawn in NEWS.
-- Check that the connection status disappears in TODO and the progress is displayed.
-- Verify that battery inquiry is performed before image encoding.
-- Check whether transmission of the first four tiles continues even if the battery inquiry fails.
-- Reversion of the existing `/hud-canvas` and the initial `2, 3, 4, 5`, scroll `3, 5` contracts.
-  Keep testing.
+- Check that page order is `overview`, `news`, `todo`, and `navigation`.
+- Check that the clock uses `HH:MM` without seconds.
+- Check that OVERVIEW draws the actual battery, charging indicator, and unknown-value fallback text.
+- Check that NEWS draws six general article titles.
+- Check that TODO replaces connection status with progress.
+- Check that the battery query precedes image encoding.
+- If the battery query fails, check that all four initial tiles still send.
+- Retain regression checks for `/hud-canvas`, initial IDs `2, 3, 4, 5`, and scroll IDs `3, 5`.
 
 ## Out of range
 

@@ -1,9 +1,8 @@
 # Adding a Sandevistan Language
 
 Sandevistan keeps application-owned localization in a typed locale registry.
-The phone companion, shipped G2 HUD, route controls, weather labels, default
-TODO titles, weekdays, OSM label selection, preference validation, and language
-screen all derive from that registry.
+The phone companion and shipped G2 HUD derive from that registry.
+The registry also controls route copy, weather labels, default TODO titles, weekdays, OSM label selection, preferences and language choices.
 
 User-authored TODO text, RSS article content, destination names, route
 instructions, and the OSM default name are never translated.
@@ -97,11 +96,13 @@ Add three unique public HTTPS entries to `server/news-feeds.js`:
 The browser source manager and same-origin server allowlist import this same
 catalog. Do not duplicate the feed in a client TypeScript file.
 
-Built-in feed IDs and URLs must be unique. Feeds must return bounded RSS or Atom
-XML without an upstream redirect. Custom sources remain separate and do not
+Built-in feed IDs must be unique.
+A locale can reuse a feed URL through the declared English fallback.
+Feeds must return bounded RSS or Atom XML without an upstream redirect. Custom sources remain separate and do not
 count toward the three built-ins.
 
-The current baseline is thirty registered languages and ninety built-in feeds.
+The earlier baseline contained thirty registered languages and ninety built-in feeds.
+The current catalog contains 180 locales and 540 built-in feed entries.
 For Google News, store final canonical topic URLs rather than short topic paths
 that return a redirect.
 
@@ -140,11 +141,13 @@ npm run pack
 Add language-specific assertions for representative phone, HUD, weather, TODO,
 and route strings. Registry tests verify pack structure, seven weekdays,
 code/key consistency, native options, and fallback. RSS tests fail unless the
-new locale has exactly three built-in feeds. The live verifier checks every
-feed serially with an eight-second timeout and rejects redirects, non-200
-responses, non-XML content, bodies over 1 MB, missing RSS/Atom roots, and empty
-feeds.
+new locale has exactly three built-in feeds. The live verifier checks every feed serially with an eight-second timeout.
+It rejects redirects, non-200 responses, non-XML content and bodies over 1 MB.
+It also rejects missing RSS/Atom roots and empty feeds.
 
 The new locale must not change four-tile encoding, the `3/5/2/4` initial
 transfer order, `3/5` page transfers, binocular output, busy-drop refresh, or
 black-frame hide and restore.
+
+The current root quick menu provides separate Hide, Exit and Return actions.
+See the [product guide](../product/overview.md) before changing those gestures.

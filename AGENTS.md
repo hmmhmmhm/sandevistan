@@ -442,3 +442,11 @@ origin against app.json; never bypass audit failures or add wildcard permissions
 After any client/environment/manifest change, rebuild, audit and hash the package
 again. Keep physical checks explicitly pending when unperformed. This gate applies
 to private builds as well as Public review submissions.
+
+Documentation rule (2026-11-10): keep README as a short entry point with current
+guide links. Put detailed product, development and architecture text under docs.
+Apply `docs/reference/documentation-style.md` to research and experiment records.
+Preserve code, identifiers, measured values, versions, evidence and negative results.
+Mark historical plans and checkpoints explicitly. Do not claim full STE dictionary
+certification or convert a simulator result into a physical-device pass.
+Run `npm run test:docs` before publication. Keep private evidence under output excluded.

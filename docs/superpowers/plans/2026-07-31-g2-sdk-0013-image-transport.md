@@ -1,5 +1,10 @@
 # G2 SDK 0.0.13 Image Transport Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task. This task
 > is intentionally executed inline without subagents.
@@ -10,9 +15,7 @@ a verified G2 hardware-test server without changing `main`.
 
 **Architecture:** Change only dependency and compatibility metadata while the
 existing fast Canvas renderer and four-call no-queue transport remain intact.
-Use manifest-derived UI metadata, a dedicated QR/build marker, and a separate
-port 4179 server so every physical result can be attributed to the SDK and
-updated host firmware.
+Use manifest-derived UI metadata and a dedicated QR/build marker. Use a separate port 4179 server. Record physical results against the SDK and updated host firmware.
 
 **Tech Stack:** Even Hub SDK `0.0.13`, TypeScript 5.9, React 19, Vitest 4,
 Vite 6, Even Hub CLI `0.1.13`, physical Even Realities G2.
@@ -117,9 +120,7 @@ git commit -m "chore: test Even Hub SDK 0.0.13 transport"
 
 Document the exact branch, base commit, app/SDK requirements, fixed transport
 settings, candidate URL, rollback URL, automated checks, and a pending physical
-checklist. The checklist must cover four-tile bilateral startup, page changes,
-detail interactions, hide/restore, busy drops, idle minute boundaries, and the
-absence of `sendFailed`, retries, queue growth, or WebView stalls.
+checklist. Include four-tile bilateral startup, page changes, detail interactions, hide/restore, busy drops, and idle minute boundaries in the checklist. Check for `sendFailed`, retries, queue growth, or WebView stalls. None may occur.
 
 - [ ] **Step 2: Validate repository copy**
 

@@ -1,5 +1,10 @@
 # Ask AI Tool Status, Pacing, and Cost Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 Status: `IMPLEMENTED AND INTEGRATED`
 
 Implementation commits: `ffa7a57`, `b7547be`, `09bdbe0`, `153bf87`, and
@@ -58,7 +63,12 @@ expect(priceSearchUsage({
 })).toMatchObject({ estimatedNanoUsd: 10_000_000, unpricedEvents: 1 })
 ```
 
-Add ledger tests proving that new entries sum stored `estimatedNanoUsd`, old entries migrate once with the legacy estimator, week/month ranges remain local-date aware, and an unknown-model event makes `hasUnpricedUsage` true.
+Add ledger tests for these conditions:
+
+- New entries sum stored `estimatedNanoUsd`.
+- Old entries migrate once with the legacy estimator.
+- Week/month ranges use local dates.
+- An unknown-model event makes `hasUnpricedUsage` true.
 
 - [ ] **Step 2: Run focused tests and confirm RED**
 
@@ -118,7 +128,7 @@ Expected: FAIL because the endpoint and client currently omit model/cached usage
 
 - [ ] **Step 7: Implement and validate the search envelope**
 
-Return the upstream model, total input, cached input, output, and only `web_search_call` items whose `action.type === "search"`. Extend `AiWebSearchUsage` accordingly, clamp all token counts to non-negative safe integers, require cached input not to exceed total, and never accept price information from the client or upstream payload.
+Return the upstream model, total input, cached input, output, and only `web_search_call` items whose `action.type === "search"`. Extend `AiWebSearchUsage` accordingly. Clamp all token counts to non-negative safe integers. Require cached input not to exceed total input. Never accept price information from the client or upstream payload.
 
 - [ ] **Step 8: Run search tests and confirm GREEN**
 
@@ -212,7 +222,15 @@ git commit -m "feat: expose safe Ask AI tool activity"
 
 - [ ] **Step 1: Write failing pacer tests**
 
-Use fake timers to prove: default 200 ms; one Unicode grapheme per tick; values clamp to 100–1000 and snap to 50; changing a getter from 200 to 600 affects the next scheduled tick; at most one timer and one presentation ACK exist; `canRevealFullResponse` is true only when `responseComplete` is true and target text is ahead; and `flush()` reveals the completed target in one acknowledged frame.
+Use fake timers to verify these conditions:
+
+- The default interval is 200 ms.
+- Each tick reveals one Unicode grapheme.
+- Values clamp to 100–1000 and snap to 50.
+- Changing a getter from 200 to 600 affects the next scheduled tick.
+- At most one timer and one presentation ACK exist.
+- `canRevealFullResponse` is true only when `responseComplete` is true and target text is ahead.
+- `flush()` reveals the completed target in one acknowledged frame.
 
 - [ ] **Step 2: Run pacer tests and confirm RED**
 
@@ -276,7 +294,40 @@ Expected: FAIL because the new keys and formatter do not exist.
 
 - [ ] **Step 3: Add complete 30-locale catalogs and shared status formatter**
 
-Extend the compile-time `Record<SupportedLocale, AiHudStrings>` for all registered locales: `en`, `ko`, `ja`, `zh-Hans`, `zh-Hant`, `es`, `fr`, `de`, `it`, `pt`, `nl`, `pl`, `ru`, `uk`, `tr`, `ar`, `he`, `hi`, `bn`, `id`, `vi`, `th`, `ms`, `fil`, `sv`, `no`, `da`, `fi`, `cs`, and `ro`. Add a complete phone catalog for the three preference/cost strings rather than relying on English fallback.
+Extend the compile-time `Record<SupportedLocale, AiHudStrings>` for all registered locales:
+
+- `en`
+- `ko`
+- `ja`
+- `zh-Hans`
+- `zh-Hant`
+- `es`
+- `fr`
+- `de`
+- `it`
+- `pt`
+- `nl`
+- `pl`
+- `ru`
+- `uk`
+- `tr`
+- `ar`
+- `he`
+- `hi`
+- `bn`
+- `id`
+- `vi`
+- `th`
+- `ms`
+- `fil`
+- `sv`
+- `no`
+- `da`
+- `fi`
+- `cs`
+- `ro`
+
+Add a complete phone catalog for the three preference/cost strings rather than relying on English fallback.
 
 Expose one formatter:
 
@@ -326,7 +377,7 @@ git commit -m "feat: localize Ask AI tool and reveal status"
 
 - [ ] **Step 1: Write failing preference and UI tests**
 
-Test missing preferences migrate to 200, invalid values clamp/snap, and save/load preserves the value without touching ORS/OpenAI keys. Render `AiScreen` and assert a range input with `min=100`, `max=1000`, `step=50`, current localized `200 ms` value, persistence callback on change, week/month estimates including search costs, and a localized unpriced warning only when the summary flag is true.
+Test missing preferences migrate to 200, invalid values clamp/snap, and save/load preserves the value without touching ORS/OpenAI keys. Render `AiScreen`. Assert a range input with `min=100`, `max=1000`, `step=50`, and the current localized `200 ms` value. Verify persistence on change and week/month estimates including search costs. Show a localized unpriced warning only when the summary flag is true.
 
 - [ ] **Step 2: Run phone tests and confirm RED**
 
@@ -415,4 +466,4 @@ Then start the production preview on the established Tailscale port:
 npm run preview -- --host 0.0.0.0 --port 4179
 ```
 
-Expected: the server reports `http://100.127.255.11:4179/`; the user can open `/hud-canvas-fast?sdk=0.0.13` on the physical glasses.
+Expected: the server reports `http://100.127.255.11:4179/`. The user can open `/hud-canvas-fast?sdk=0.0.13` on the physical glasses.

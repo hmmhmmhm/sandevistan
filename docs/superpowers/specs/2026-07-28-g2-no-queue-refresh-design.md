@@ -1,5 +1,7 @@
 # G2 No-Queue Refresh Design
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 ## Background
 
 During a physical-glasses test, minute-refresh callbacks fired repeatedly at
@@ -51,10 +53,10 @@ checks the current wall-clock minute key and allows at most one callback for
 that minute. If the SDK delivers overdue timer callbacks in a burst, duplicate
 minute keys are ignored without creating another timer.
 
-Record `lastSuccessfulDisplayMinute` after every successful screen transport.
-When the minute watcher runs, do not request a separate clock refresh if
-weather, location, battery, input, or another cause already produced a
-successful screen transport during that minute.
+After each successful screen transport, record `lastSuccessfulDisplayMinute`.
+When the minute watcher runs, check whether any screen transport already succeeded during that minute.
+If one succeeded, do not request another clock refresh.
+Count successful transports from weather, location, battery, input, or any other cause.
 
 If the minute refresh is dropped because the transport is busy or hidden, or
 if its transport fails, do not retry during the same minute. A later independent
@@ -68,9 +70,9 @@ another location is being processed, do not retain even the newest value;
 discard it immediately as `busy`. Process only the first new location that
 arrives after the current operation finishes.
 
-Map, weather, and news providers follow the same rule. If a request from that
-provider is already running, a new request is not chained for later execution.
-Apply the result of the existing request and end in a failed state if it fails.
+Apply the same rule to map, weather, and news providers.
+If a provider request is running, drop new requests for that provider instead of chaining them.
+Apply the running request's result. If it fails, leave the provider in a failed state.
 Only a later external event may start a new request.
 
 Do not accumulate locations while location processing waits for a map refresh.

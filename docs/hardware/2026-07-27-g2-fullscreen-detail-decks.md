@@ -1,5 +1,8 @@
 # G2 full screen detailed deck checkpoint
 
+> Historical record: Scope and results apply to the stated date and versions.
+> See the [documentation index](../index.md) for current behavior.
+
 > **Legacy evidence:** Historical RELIC names, paths, storage keys, and
 > transport identifiers in this record are preserved exactly as they appeared at
 > the time. Current main-branch identifiers use Sandevistan.
@@ -19,16 +22,12 @@ URL:
 
 ## Implementation scope
 
-- Single tap on `OVERVIEW`: existing full screen map and five levels that remain throughout the session
-  zoom
-- One tap on ‘NEWS’: Title, refined summary, and publication of one actual SBS RSS article
-  visual indication
-- `TODO` single tap: complete checklist of up to six items, highlight selections, complete status
-  conversion
+- A single tap on `OVERVIEW` opens the existing full-screen map. Five zoom levels persist throughout the session.
+- A single tap on ‘NEWS’ opens one SBS RSS article with its title, cleaned summary, and publication time.
+- A single tap on `TODO` opens up to six checklist items with selection highlighting and completion toggles.
 - Save TODO changes to `relic:todos:v1` and restore them in the next app session
-- Tap once on `NAVIGATION`: ORS path movement one step, movement distance, total remaining distance,
-  Indication of current operation
-- Detailed screen scroll border input consumption and quick double tap return to dashboard
+- A single tap on `NAVIGATION` opens the current ORS maneuver, maneuver distance, total remaining distance, and route status.
+- Detail screens consume scroll input at their boundaries. A quick double tap returns to the dashboard.
 - Four tiles ‘3 → 5 → 2 → 4’ are transmitted only when the visible detailed data changes.
 - Suppress transmission of invisible changes such as weather, battery, and minute-by-minute time in the detailed screen
 
@@ -50,16 +49,12 @@ URL:
 - [ ] In `NEWS`, you can read the article title and summary and move to the previous or next article.
 - [ ] Item selection and completion transition work in `TODO`.
 - [ ] Re-open the app and the TODO completion status is restored.
-- [ ] In `NAVIGATION`, the no path or no key state and the path action deck are
-  Looks correct.
-- [ ] Does not jump to the dashboard page from the list or zoom border of each detail screen
-  No.
+- [ ] In `NAVIGATION`, the no-route state, no-key state, and route-maneuver deck display correctly.
+- [ ] Scrolling at a detail-list or zoom boundary does not jump to a dashboard page.
 - [ ] If you quickly tap twice on the details screen, you will return to the dashboard page you entered.
 - [ ] If you quickly tap twice on the dashboard, the screen will change to a black screen and then be restored.
 - [ ] `SENDFAILED` does not occur during the entire test.
 
 ## Gate
 
-After charging the glasses and before actually checking the above items, the basic branch integration, remote
-Push and completion notifications are not processed. `Result` in this document is also before actual observation.
-Keep it as `PENDING`.
+Charge the glasses before checking the items above. Until physical verification is complete, do not integrate the branch, push remotely, or send completion notifications. Keep `Result` as `PENDING` until direct observations support a change.

@@ -1,10 +1,15 @@
 # G2 Clock Weather TODO Implementation Plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a real render-time `HH:MM:SS` clock, a compact weather line, and Canvas-native TODO checkboxes to the proven tactical HUD.
 
-**Architecture:** Keep `/hud-canvas`, the four-tile transport, and the existing renderer entry point. Add an optional `Date` argument for deterministic time rendering, then update only the time panel and the existing right-side mission card.
+**Architecture:** Keep `/hud-canvas`, the four-tile transport, and the existing renderer entry point. Add an optional `Date` argument for deterministic time rendering. Update only the time panel and the existing right-side mission card.
 
 **Tech Stack:** TypeScript, HTML Canvas 2D, Vitest, Vite, Even Hub SDK `0.0.10`
 
@@ -108,8 +113,8 @@ function formatTime(now: Date) {
 }
 ```
 
-Pass `now` into `drawHeader()`, draw `formatTime(now)` at 22 pixels, draw
-`HONGDAE 23°C CLEAR` at 9 pixels, and remove the time-panel `// 01`.
+Pass `now` into `drawHeader()`. Draw `formatTime(now)` at 22 pixels.
+Draw `HONGDAE 23°C CLEAR` at 9 pixels. Remove the time-panel `// 01`.
 
 - [ ] **Step 2: Add a Canvas checkbox helper**
 

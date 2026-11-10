@@ -1,5 +1,7 @@
 # Detail Back Button
 
+> Historical design record. This document describes the design at its recorded date. See [current implementation](../../index.md) for current behavior.
+
 **Date:** 2026-07-29
 
 ## Goal
@@ -29,11 +31,10 @@ without adding another app bar or changing the native Even navigation.
 
 ## Component structure
 
-`PhoneCompanion` owns the detail-screen boundary and renders one navigation
-region before `phone-detail-content`. `PhoneHeader` remains responsible only
-for the breadcrumb. The new button calls the same `setScreen("home")` action as
-the breadcrumb, so both controls return to the same Home instance without
-remounting the persistent HUD Canvas.
+`PhoneCompanion` owns the detail-screen boundary and renders one navigation region before `phone-detail-content`.
+`PhoneHeader` owns only the breadcrumb.
+The new button calls the breadcrumb's existing `setScreen("home")` action.
+Both controls return to the same Home instance without remounting the persistent HUD Canvas.
 
 The button uses a dedicated class instead of reusing the dark primary-action
 style. This keeps navigation visually distinct from actions such as adding an

@@ -1,18 +1,23 @@
 # Network whitelist resubmission plan
 
+> Historical plan. Its instructions and checkboxes do not establish current completion.
+> See the [documentation index](../../index.md) for scope and evidence.
+> The current main-only workflow supersedes historical branch and worktree instructions.
+> Historical commit and publication steps require current owner authorization.
+
 The owner requested correction of the v0.2.7 rejection, resubmission, and a
 mandatory pre-deployment whitelist checklist. Work stays on main.
 
 ## Design and scope
 
 The reviewer reported two bundled RSS URLs and the OpenAI key-issuance link
-missing from app.json. Built-in RSS still flows through the fixed API Worker;
-listing its metadata origins does not change request routing. Declare every
-embedded product URL origin, including provider setup and attribution links,
-using exact secure origins as required by the official networking guide.
-Do not hide, encode or remove useful URLs to evade review. Use the existing
-Iconify offline renderer for already bundled icon objects, eliminating its
-unused remote API fallback without changing the icons.
+missing from app.json. Built-in RSS still flows through the fixed API Worker.
+Listing metadata origins does not change request routing.
+Declare every embedded product URL origin, including provider setup and attribution links.
+Use exact secure origins as required by the official networking guide.
+Do not hide, encode, or remove useful URLs to evade review.
+Use the existing Iconify offline renderer for already bundled icon objects.
+Remove its unused remote API fallback. Preserve the icons.
 
 ## Implementation sequence
 
