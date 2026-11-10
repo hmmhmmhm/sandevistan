@@ -1,3 +1,4 @@
+import { CUSTOM_MCP_AVAILABLE } from "./mcp-capabilities";
 import {
   clearCache,
   readCache,
@@ -92,6 +93,7 @@ function isMcpServers(value: unknown): value is readonly McpServerConfig[] {
 export async function resolveMcpServers(
   storage: EvenStorage,
 ): Promise<readonly McpServerConfig[]> {
+  if (!CUSTOM_MCP_AVAILABLE) return [];
   return await readCache(storage, "mcp-servers", isMcpServers) ?? [];
 }
 

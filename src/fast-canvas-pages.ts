@@ -1,7 +1,9 @@
+import { fixedHud } from "./fixed-hud-i18n";
 import type { FastCanvasBattery } from "./glasses";
 import {
   getFastHudPages,
   type FastHudPage,
+  type FastHudLayout,
 } from "./fast-hud-pages";
 import {
   type LiveDashboardState,
@@ -27,6 +29,7 @@ import { drawFastConversatePanel } from "./fast-conversate-hud";
 import type { ConversateSnapshot } from "./conversate-state";
 
 export type FastCanvasHudData = {
+  readonly layout?: FastHudLayout;
   readonly battery?: FastCanvasBattery;
   readonly live: LiveDashboardState;
   readonly mapRadiusMeters?: number;
@@ -97,6 +100,7 @@ export function drawFastDynamicHeader(
   page: FastHudPage,
   live: LiveDashboardState,
   locale: PhoneLocale,
+  layout?: FastHudLayout,
 ) {
   drawFrame(context, 296, 8, 272, 54);
   drawText(context, formatTime(now), 306, 12, 22, COLOR.primary, "bold");
@@ -118,7 +122,7 @@ export function drawFastDynamicHeader(
     COLOR.secondary,
     "bold",
   );
-  const pages = getFastHudPages(live.route.status);
+  const pages = getFastHudPages(live.route.status, layout);
   const pageNumber = pages.indexOf(page) + 1;
   drawText(
     context,
@@ -140,13 +144,13 @@ function drawOverview(
 ) {
   const { battery, live } = data;
   const batteryText = battery?.level === undefined
-    ? "BATTERY --"
+    ? fixedHud(locale, "BATTERY --")
     : `${battery.label} ${battery.level}%${battery.charging ? " +" : ""}`;
-  drawText(context, "SYSTEM // OVERVIEW", 308, 82, 11, COLOR.secondary, "bold");
+  drawText(context, fixedHud(locale, "SYSTEM // OVERVIEW"), 308, 82, 11, COLOR.secondary, "bold");
   drawText(context, batteryText, 308, 106, 22, COLOR.primary, "bold");
   context.fillStyle = COLOR.dim;
   context.fillRect(308, 140, 248, 1);
-  drawText(context, "WEATHER // NOW", 308, 152, 11, COLOR.secondary, "bold");
+  drawText(context, fixedHud(locale, "WEATHER // NOW"), 308, 152, 11, COLOR.secondary, "bold");
   drawText(
     context,
     weatherSummary(live, locale),
@@ -186,10 +190,10 @@ function drawOverview(
       "bold",
     );
     if (live.weather.status === "stale") {
-      drawText(context, "LAST", 522, 226, 8, COLOR.dim, "bold");
+      drawText(context, fixedHud(locale, "LAST"), 522, 226, 8, COLOR.dim, "bold");
     }
   } else {
-    drawText(context, "LIVE DATA UNAVAILABLE", 308, 244, 11, COLOR.dim, "bold");
+    drawText(context, fixedHud(locale, "LIVE DATA UNAVAILABLE"), 308, 244, 11, COLOR.dim, "bold");
   }
 }
 
@@ -200,19 +204,19 @@ function drawWeather(
 ) {
   const weather = usableWeather(live);
   const status = live.weather.status === "stale"
-    ? "WEATHER // LAST"
+    ? fixedHud(locale, "WEATHER // LAST")
     : live.weather.status === "loading"
-      ? "WEATHER // LOADING"
+      ? fixedHud(locale, "WEATHER // LOADING")
       : weather
-        ? "WEATHER // NOW"
-        : "WEATHER // UNAVAILABLE";
+        ? fixedHud(locale, "WEATHER // NOW")
+        : fixedHud(locale, "WEATHER // UNAVAILABLE");
   drawText(context, status, 308, 82, 11, COLOR.secondary, "bold");
   if (!weather) {
     drawText(
       context,
       live.weather.status === "loading"
         ? translateHud(locale, "weatherLoading")
-        : "WEATHER DATA UNAVAILABLE",
+        : fixedHud(locale, "WEATHER DATA UNAVAILABLE"),
       308,
       112,
       18,
@@ -303,12 +307,13 @@ function weatherSummary(
     ? `${Math.round(weather.temperature)}°C ${
       weatherCodeLabel(weather.weatherCode, locale)
     }`
-    : "WEATHER --";
+    : fixedHud(locale, "WEATHER --");
 }
 
 function drawNews(
   context: CanvasRenderingContext2D,
   live: LiveDashboardState,
+  locale: PhoneLocale,
 ) {
   const stale = live.news.status === "stale";
   const items = live.news.status === "fresh" || stale
@@ -316,7 +321,7 @@ function drawNews(
     : [];
   drawText(
     context,
-    stale ? "NEWS // FOCUS · STALE" : "NEWS // FOCUS",
+    stale ? fixedHud(locale, "NEWS // FOCUS · STALE") : fixedHud(locale, "NEWS // FOCUS"),
     308,
     82,
     11,
@@ -326,7 +331,7 @@ function drawNews(
   if (items.length === 0) {
     drawText(
       context,
-      live.news.status === "loading" ? "NEWS LOADING" : "NEWS UNAVAILABLE",
+      live.news.status === "loading" ? fixedHud(locale, "NEWS LOADING") : fixedHud(locale, "NEWS UNAVAILABLE"),
       308,
       112,
       16,
@@ -356,7 +361,7 @@ function drawNews(
       "bold",
     );
   });
-  drawText(context, "NEWS // MORE", 308, 222, 10, COLOR.secondary, "bold");
+  drawText(context, fixedHud(locale, "NEWS // MORE"), 308, 222, 10, COLOR.secondary, "bold");
 }
 
 function drawTodo(
@@ -366,7 +371,7 @@ function drawTodo(
 ) {
   const items = live.todos.value ?? [];
   const completed = items.filter((item) => item.completed).length;
-  drawText(context, "TODO // ACTIVE", 308, 82, 11, COLOR.secondary, "bold");
+  drawText(context, fixedHud(locale, "TODO // ACTIVE"), 308, 82, 11, COLOR.secondary, "bold");
   const positions = [108, 150, 188] as const;
   items.slice(0, positions.length).forEach((item, index) => {
     drawCheckbox(context, 308, positions[index], item.completed);
@@ -381,7 +386,7 @@ function drawTodo(
     );
   });
 
-  drawText(context, "PROGRESS // TODAY", 308, 226, 10, COLOR.secondary, "bold");
+  drawText(context, fixedHud(locale, "PROGRESS // TODAY"), 308, 226, 10, COLOR.secondary, "bold");
   const progress = `${translateHud(locale, "done")} ${
     completed
   } / ${items.length}`;
@@ -400,7 +405,7 @@ export function drawFastDynamicPage(
   if (page === "navigation") {
     drawFastCanvasNavigation(context, data.live.route, locale);
   }
-  if (page === "news") drawNews(context, data.live);
+  if (page === "news") drawNews(context, data.live, locale);
   if (page === "todo") drawTodo(context, data.live, locale);
   if (page === "weather") drawWeather(context, data.live, locale);
   if (page === "ai") {

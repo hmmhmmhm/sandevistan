@@ -1,4 +1,4 @@
-export const AI_PRICING_VERSION = "openai-2026-08-02-standard" as const;
+export const AI_PRICING_VERSION = "openai-2026-11-08-standard" as const;
 export const LEGACY_AI_PRICING_VERSION = "sandevistan-legacy-category-rates" as const;
 
 export type AiUsageCharge = {
@@ -63,7 +63,9 @@ export function mergeAiUsageCharge(
 }
 
 export function priceRealtimeUsage(input: RealtimePricingInput): AiUsageCharge {
-  if (input.model !== "gpt-realtime" && !input.model.startsWith("gpt-realtime-")) {
+  const legacy = input.model === "gpt-realtime" || /^gpt-realtime-2025-\d{2}-\d{2}$/.test(input.model);
+  const current = input.model === "gpt-realtime-2.1";
+  if (!legacy && !current) {
     const hasUsage = [
       input.textInputTokens,
       input.cachedTextInputTokens,
@@ -78,7 +80,7 @@ export function priceRealtimeUsage(input: RealtimePricingInput): AiUsageCharge {
     + count(input.cachedTextInputTokens) * 400
     + count(input.audioInputTokens) * 32_000
     + count(input.cachedAudioInputTokens) * 400
-    + count(input.textOutputTokens) * 16_000,
+    + count(input.textOutputTokens) * (current ? 24_000 : 16_000),
   );
 }
 
@@ -104,14 +106,16 @@ export function priceSearchUsage(input: SearchPricingInput): AiUsageCharge {
   const totalInput = count(input.inputTokens);
   const cachedInput = Math.min(totalInput, count(input.cachedInputTokens));
   const output = count(input.outputTokens);
-  const supported = input.model === "gpt-5.5" || input.model.startsWith("gpt-5.5-");
+  const legacy = input.model === "gpt-5.5" || /^gpt-5\.5-\d{4}-\d{2}-\d{2}$/.test(input.model);
+  const current = input.model === "gpt-6.1-sol";
+  const supported = legacy || current;
   if (!supported) {
     return charge(actionCost, totalInput > 0 || output > 0 ? 1 : 0);
   }
   return charge(
-    (totalInput - cachedInput) * 5_000
-    + cachedInput * 500
-    + output * 30_000
+    (totalInput - cachedInput) * (current ? 2_000 : 5_000)
+    + cachedInput * (current ? 100 : 500)
+    + output * (current ? 10_000 : 30_000)
     + actionCost,
   );
 }

@@ -1,4 +1,10 @@
-import { AudioInputSource } from "@evenrealities/even_hub_sdk";
+import { createAiResponseCancellation } from "./ai-response-cancellation";
+import { createAiHoldCapture } from "./ai-hold-capture";
+import { createAiMicrophone } from "./ai-microphone";
+import { createAiLiveCaptions } from "./ai-live-captions";
+import { createAiResponseWatchdog } from "./ai-response-watchdog";
+import { createRealtimeTranscriptInput } from "./ai-realtime-transcript-input";
+import { resolveOpenAiModels, DEFAULT_OPENAI_MODELS } from "./openai-models";
 import { requestAiWebSearch } from "./ai-web-search";
 import {
   createAiRealtimeToolRunner,
@@ -7,19 +13,10 @@ import {
   mcpApprovalResponse,
   responseFunctionCalls,
 } from "./ai-realtime-tools";
-import {
-  createDefaultRealtimeSocket,
-  type RealtimeSocket,
-} from "./ai-realtime-transport";
-import {
-  addAiSearchUsage,
-  mergeAiCitationSources,
-} from "./ai-realtime-search-usage";
+import { createDefaultRealtimeSocket, type RealtimeSocket } from "./ai-realtime-transport";
+import { addAiSearchUsage, mergeAiCitationSources } from "./ai-realtime-search-usage";
 import { requestRealtimeClientSecret } from "./ai-realtime-token";
-import type {
-  AiRealtimeSession,
-  AiRealtimeSessionOptions,
-} from "./ai-realtime-session-types";
+import type { AiRealtimeSession, AiRealtimeSessionOptions } from "./ai-realtime-session-types";
 import {
   cancelActiveRealtimeResponse,
   createAudioAppendEvent,
@@ -29,22 +26,17 @@ import {
   reduceRealtimeServerEvent,
   type AiRealtimeProtocolState,
 } from "./ai-realtime-protocol";
-
 export type { AiRealtimeSession } from "./ai-realtime-session-types";
-
-const REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime";
+const REALTIME_URL = "wss://api.openai.com/v1/realtime";
 const SOCKET_OPEN = 1;
-const MAX_PCM_CHUNK_BYTES = 65_536;
 export function createAiRealtimeSession(
   options: AiRealtimeSessionOptions,
 ): AiRealtimeSession {
   const fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
   const createSocket = options.createSocket ?? createDefaultRealtimeSocket;
+  let models = DEFAULT_OPENAI_MODELS;
   let state = createRealtimeProtocolState();
   let socket: RealtimeSocket | undefined;
-  let unsubscribeAudio: (() => void) | undefined;
-  let microphoneOpen = false;
-  let microphoneActivation: Promise<boolean> | undefined;
   let starting = false;
   let closing = false;
   let cleanupPromise: Promise<boolean> | undefined;
@@ -52,19 +44,34 @@ export function createAiRealtimeSession(
   let pendingResponseCancel = false;
   let suppressCancelledResponse = false;
   let startAbortController: AbortController | undefined;
-
+  const watchdog = createAiResponseWatchdog(() => {
+    publish({ ...state, phase: "error", activeTool: undefined, responseComplete: false, error: "AI response timed out" });
+    void cleanup("error");
+  });
   const publish = (next: AiRealtimeProtocolState, eventType?: string) => {
     state = next;
+    watchdog.observe(next);
     options.onState?.(state, eventType);
   };
-
   const send = (event: unknown) => {
     if (socket?.readyState !== SOCKET_OPEN) return;
     socket.send(JSON.stringify(event));
   };
-
+  const cancellation = createAiResponseCancellation(send);
+  const transcriptInput = createRealtimeTranscriptInput(send);
+  const captions = createAiLiveCaptions({ key: options.key, fetchImpl, createSocket,
+    onPartial: (itemId, text) => {
+      if (!closing && state.activeUserItemId === itemId) publish({ ...state, userText: text }, "caption.partial");
+    },
+    onUsage: () => publish({ ...state, charge: { ...state.charge, unpricedEvents: state.charge.unpricedEvents + 1 } }, "caption.usage"),
+    onError: () => {
+      publish({ ...state, phase: "error", error: "Live transcription connection failed" });
+      void cleanup("error");
+    },
+  });
   const mcpServers = options.mcpServers ?? [];
   const toolRunner = createAiRealtimeToolRunner({
+    fetchImpl,
     locale: options.locale,
     now: options.now ?? (() => new Date()),
     getLocation: options.getLocation ?? (() => ({ status: "unavailable" })),
@@ -75,6 +82,7 @@ export function createAiRealtimeSession(
         locale,
         signal,
         fetchImpl,
+        model: models.search,
       })
     )),
     send,
@@ -92,22 +100,33 @@ export function createAiRealtimeSession(
       }
     },
   });
-
-  const closeMicrophone = async (attempts = 2): Promise<boolean> => {
-    if (!microphoneOpen) return true;
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-      const closed = await options.bridge.audioControl(false)
-        .catch(() => false);
-      if (closed) {
-        microphoneOpen = false;
-        return true;
-      }
-    }
-    return false;
-  };
-
+  const microphone = createAiMicrophone(options.bridge, bytes => {
+    if (closing || socket?.readyState !== SOCKET_OPEN || (hold && !hold.acceptsAudio())) return;
+    hold?.countAudio(bytes.length);
+    const resampled = resamplePcm16Le16To24(bytes);
+    if (resampled.length) { const append = createAudioAppendEvent(resampled); send(append); captions.append(append); }
+  });
+  const hold = options.captureMode === "hold" ? createAiHoldCapture({
+    ready: () => !starting && !closing && !state.pendingApproval && socket?.readyState === SOCKET_OPEN,
+    open: () => microphone.start(), close: () => microphone.stop(),
+    clear: () => { send({ type: "input_audio_buffer.clear" }); captions.clear(); },
+    commit: () => send({ type: "input_audio_buffer.commit" }),
+    onBegin: id => {
+      const awaiting = state.phase === "thinking" && !state.responseComplete;
+      toolRunner.cancel();
+      suppressCancelledResponse = awaiting; pendingResponseCancel = awaiting && !state.activeResponseId;
+      if (awaiting && state.activeResponseId) cancellation.cancel(state.activeResponseId);
+      const event = { type: "input_audio_buffer.speech_started", item_id: id };
+      captions.handlePrimary(event); publish(reduceRealtimeServerEvent(state, event), "capture.begin");
+    },
+    onCommitted: (previous, itemId) => { captions.rebind(previous, itemId); publish({ ...state, activeUserItemId: itemId }); },
+    onStatus: captureState => publish({ ...state, captureState,
+      phase: captureState === "finishing" ? "thinking" : captureState === "waiting" && state.activeResponseId ? state.phase : "listening" }, "capture.state"),
+    onError: error => { publish({ ...state, phase: "error", error }); void cleanup("error"); },
+  }) : undefined;
   const cleanup = (finalPhase: "idle" | "error" = "idle") => {
     lifecycle += 1;
+    watchdog.clear();
     cleanupPromise ??= (async () => {
       closing = true;
       if (state.pendingApproval) {
@@ -115,25 +134,18 @@ export function createAiRealtimeSession(
         state = { ...state, pendingApproval: undefined };
       }
       toolRunner.cancel();
+      hold?.dispose();
       startAbortController?.abort();
       startAbortController = undefined;
-      const activation = microphoneActivation;
-      unsubscribeAudio?.();
-      unsubscribeAudio = undefined;
+      const microphoneStopping = microphone.stop();
       const activeSocket = socket;
       socket = undefined;
       pendingResponseCancel = false;
       suppressCancelledResponse = false;
+      transcriptInput.reset(); cancellation.reset();
+      captions.stop();
       activeSocket?.close();
-      if (activation) {
-        const opened = await activation.catch(() => false);
-        if (microphoneActivation === activation) {
-          microphoneActivation = undefined;
-        }
-        if (opened) microphoneOpen = true;
-      }
-      const microphoneClosed = await closeMicrophone();
-      microphoneOpen = false;
+      const microphoneClosed = await microphoneStopping;
       starting = false;
       if (finalPhase === "idle") {
         publish({
@@ -151,40 +163,9 @@ export function createAiRealtimeSession(
     });
     return cleanupPromise;
   };
-
-  const activateMicrophone = () => {
-    const activation = Promise.resolve().then(() => (
-      options.bridge.audioControl(true, AudioInputSource.Glasses)
-    ));
-    microphoneActivation = activation;
-    return activation.finally(() => {
-      if (microphoneActivation === activation) {
-        microphoneActivation = undefined;
-      }
-    });
-  };
-
-  const subscribeAudio = () => {
-    unsubscribeAudio = options.bridge.onEvenHubEvent((event) => {
-      const audio = event.audioEvent;
-      if (
-        !microphoneOpen
-        || socket?.readyState !== SOCKET_OPEN
-        || !audio
-        || audio.source !== AudioInputSource.Glasses
-        || audio.audioPcm.length === 0
-        || audio.audioPcm.length > MAX_PCM_CHUNK_BYTES
-      ) {
-        return;
-      }
-      const resampled = resamplePcm16Le16To24(audio.audioPcm);
-      if (resampled.length > 0) send(createAudioAppendEvent(resampled));
-    });
-  };
-
   const openSocket = (secret: string): Promise<void> => new Promise(
     (resolve, reject) => {
-      const nextSocket = createSocket(REALTIME_URL, [
+      const nextSocket = createSocket(`${REALTIME_URL}?model=${models.realtime}`, [
         "realtime",
         `openai-insecure-api-key.${secret}`,
       ]);
@@ -193,13 +174,10 @@ export function createAiRealtimeSession(
       const timeout = globalThis.setTimeout(() => {
         if (settled) return;
         settled = true;
-        reject(new Error("Realtime connection timed out"));
+        reject(new Error("Realtime configuration timed out"));
       }, 10_000);
       nextSocket.onopen = () => {
-        if (settled) return;
-        settled = true;
-        globalThis.clearTimeout(timeout);
-        resolve();
+        if (!settled) send(createRealtimeSessionUpdate(options.locale, mcpServers, models.realtime, models.refinement, Boolean(hold)));
       };
       nextSocket.onerror = () => {
         if (!settled) {
@@ -208,7 +186,7 @@ export function createAiRealtimeSession(
           reject(new Error("Realtime connection failed"));
           return;
         }
-        if (closing) return;
+        if (closing || socket !== nextSocket) return;
         publish({
           ...state,
           phase: "error",
@@ -225,7 +203,7 @@ export function createAiRealtimeSession(
           reject(new Error("Realtime connection closed"));
           return;
         }
-        if (closing) return;
+        if (closing || socket !== nextSocket) return;
         publish({
           ...state,
           phase: "error",
@@ -236,6 +214,7 @@ export function createAiRealtimeSession(
         void cleanup("error");
       };
       nextSocket.onmessage = (event) => {
+        if (closing || socket !== nextSocket) return;
         let parsed: unknown;
         try {
           parsed = JSON.parse(event.data);
@@ -248,6 +227,13 @@ export function createAiRealtimeSession(
           && typeof parsed.type === "string"
           ? parsed.type
           : undefined;
+        if (eventType === "session.created" || cancellation.consumeExpectedError(parsed)) return;
+        if (!settled && eventType === "session.updated") {
+          settled = true;
+          globalThis.clearTimeout(timeout);
+          resolve();
+          return;
+        }
         const parsedRecord = typeof parsed === "object" && parsed !== null
           ? parsed as Record<string, unknown>
           : undefined;
@@ -296,10 +282,7 @@ export function createAiRealtimeSession(
           && eventType?.startsWith("response.")
           && parsedResponseId
         ) {
-          send({
-            type: "response.cancel",
-            response_id: parsedResponseId,
-          });
+          cancellation.cancel(parsedResponseId);
           publish(cancelActiveRealtimeResponse({
             ...state,
             phase: "thinking",
@@ -322,6 +305,9 @@ export function createAiRealtimeSession(
           pendingResponseCancel = false;
           suppressCancelledResponse = false;
         }
+        hold?.handle(parsed);
+        captions.handlePrimary(parsed);
+        if (eventType === "conversation.item.input_audio_transcription.delta") return;
         const next = reduceRealtimeServerEvent(state, parsed as never);
         const hasFunctionCalls = eventType === "response.done"
           && responseFunctionCalls(parsed).length > 0;
@@ -335,14 +321,14 @@ export function createAiRealtimeSession(
           toolRunner.handle(parsed, () => publish(published, eventType));
           return;
         }
-        const published = next;
-        if (published !== state) publish(published, eventType);
-        if (published.phase === "error") void cleanup("error");
+        if (next !== state) publish(next, eventType);
+        transcriptInput.handle(parsed, state.activeUserItemId, suppressCancelledResponse);
+        if (next.phase === "error") void cleanup("error");
       };
     },
   );
-
   return {
+    capture: hold,
     async start() {
       if (starting || socket) return;
       starting = true;
@@ -351,9 +337,12 @@ export function createAiRealtimeSession(
       startAbortController = abortController;
       publish({ ...createRealtimeProtocolState(), phase: "connecting" });
       try {
+        models = await resolveOpenAiModels(options.key, fetchImpl, abortController.signal);
+        state = { ...state, model: models.realtime, transcriptionModel: models.refinement };
         const secret = await requestRealtimeClientSecret({
           fetchImpl,
           key: options.key,
+          model: models.realtime,
           signal: abortController.signal,
         });
         if (operation !== lifecycle) {
@@ -363,15 +352,14 @@ export function createAiRealtimeSession(
         if (operation !== lifecycle) {
           throw new Error("Realtime start cancelled");
         }
-        send(createRealtimeSessionUpdate(options.locale, mcpServers));
-        subscribeAudio();
-        const opened = await activateMicrophone();
-        microphoneOpen = opened;
+        await captions.start(abortController.signal);
+        if (operation !== lifecycle) throw new Error("Realtime start cancelled");
+        const opened = hold ? true : await microphone.start();
         if (operation !== lifecycle) {
           throw new Error("Realtime start cancelled");
         }
         if (!opened) throw new Error("G2 microphone unavailable");
-        publish({ ...state, phase: "listening", error: undefined });
+        publish({ ...state, phase: "listening", captureState: hold ? "waiting" : undefined, error: undefined });
       } catch (error) {
         if (operation !== lifecycle) {
           await cleanup(state.phase === "error" ? "error" : "idle");
@@ -412,10 +400,7 @@ export function createAiRealtimeSession(
       suppressCancelledResponse = true;
       pendingResponseCancel = !state.activeResponseId;
       if (state.activeResponseId) {
-        send({
-          type: "response.cancel",
-          response_id: state.activeResponseId,
-        });
+        cancellation.cancel(state.activeResponseId);
       }
       publish(cancelActiveRealtimeResponse(state), "response.cancel");
       return state;

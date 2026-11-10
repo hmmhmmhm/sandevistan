@@ -179,7 +179,7 @@ export const mkLocale = {
     "Вторник",
     "Среда",
     "Четврток",
-    "Петок\n011 |||Сабота",
-    "Saturday"
+    "Петок",
+    "Сабота"
   ]
 } as const satisfies LocalePack;

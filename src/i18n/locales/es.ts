@@ -17,7 +17,7 @@ export const esLocale = {
     "devices": "Dispositivos",
     "hudLayout": "diseño HUD",
     "news": "Noticias",
-    "todo": "TODO",
+    "todo": "Pendiente",
     "weather": "El tiempo",
     "navigation": "Navegación",
     "language": "Idioma",

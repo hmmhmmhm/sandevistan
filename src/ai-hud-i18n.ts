@@ -1,3 +1,5 @@
+import { translatePhone } from "./phone-i18n";
+import { releaseTranslation } from "./release-i18n";
 import type { SupportedLocale } from "./i18n/locale-registry";
 import type { AiHudSnapshot } from "./ai-hud-state";
 import { ADDITIONAL_AI_TRANSLATIONS } from "./i18n/additional-ai-translations";
@@ -111,6 +113,8 @@ export function translateAiHud(
   locale: SupportedLocale,
   key: AiHudStringKey,
 ): string {
+  const translated = releaseTranslation(locale, "hud", key);
+  if (translated !== undefined) return translated;
   if (key in AI_HUD_TRANSLATIONS[locale]) {
     return AI_HUD_TRANSLATIONS[locale][key as keyof AiHudStrings];
   }
@@ -124,6 +128,7 @@ export function aiHudStatusLabel(
   if (!snapshot.configured) return translateAiHud(locale, "ready");
   const tool = snapshot.activeTool;
   if (tool) {
+    if (tool.kind === "weather") return `${translatePhone(locale, "weather")}…`;
     if (tool.kind === "time") return translateAiHud(locale, "toolTime");
     if (tool.kind === "location") return translateAiHud(locale, "toolLocation");
     if (tool.kind === "web-search") return translateAiHud(locale, "toolWebSearch");
@@ -189,14 +194,19 @@ const AI_APPROVAL_TRANSLATIONS = {
 } as const satisfies Readonly<Record<SupportedLocale, AiApprovalStrings>>;
 
 export function translateAiApproval(locale: SupportedLocale): AiApprovalStrings {
-  return AI_APPROVAL_TRANSLATIONS[locale];
+  const base = AI_APPROVAL_TRANSLATIONS[locale];
+  return {
+    title: releaseTranslation(locale, "approval", "title") ?? base.title,
+    approve: releaseTranslation(locale, "approval", "approve") ?? base.approve,
+    reject: releaseTranslation(locale, "approval", "reject") ?? base.reject,
+  };
 }
 
 export function localizeAiTranscriptLines(
   lines: readonly string[],
   locale: SupportedLocale,
 ): readonly string[] {
-  const strings = AI_HUD_TRANSLATIONS[locale];
+  const strings = { you: translateAiHud(locale, "you"), assistant: translateAiHud(locale, "assistant") };
   return lines.map((line) => {
     if (line.startsWith("YOU // ")) {
       return `${strings.you} // ${line.slice("YOU // ".length)}`;

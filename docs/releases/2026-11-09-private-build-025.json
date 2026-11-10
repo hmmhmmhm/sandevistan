@@ -1,0 +1,23 @@
+{
+  "version": "0.2.5",
+  "bytes": 2201422,
+  "sha256": "6f9cbf8d6b69fd951e07a74afaac6a95b62c70fd42f87f1180e304f743fca299",
+  "status": "uploaded-and-verified",
+  "visibility": "Private",
+  "changelog": "Fix repeated Ask AI requests and handle completed-response cancellation safely. Add sourced city weather forecasts, preserve rapid scrolling inputs, and show answer position with a scrollbar, visible line range and remaining lines. Improve Conversate context for earlier agreements, corrections and private Prep Notes. Verify live OpenAI answers and native simulator scrolling.",
+  "changelogApproved": true,
+  "designApproval": "Owner approved the displayed answer-position design and requested deployment on 2026-11-09.",
+  "vitestTests": 769,
+  "nodeTests": 637,
+  "bundleKeyPatterns": 0,
+  "liveVerification": [
+    "output/ask-ai-weather-2026-11-08/result.json",
+    "output/conversate-context-2026-11-08/verified.json"
+  ],
+  "limitations": "Synthetic SDK audio and native simulator; physical G2 hardware not tested.",
+  "approval": "Owner approved the exact final changelog with 네 게시합시다 on 2026-11-09.",
+  "changelogVerified": true,
+  "verifiedAt": "2026-11-08T22:55:27.670325+00:00",
+  "evidence": "output/release-025-2026-11-09/evenhub-confirmed.txt",
+  "browserSessionsRemaining": 0
+}

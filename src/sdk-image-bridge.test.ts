@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 describe("Even Hub SDK image bridge", () => {
-  it("forwards the 0.0.11 image contract to the host handler", async () => {
+  it("forwards the 0.0.16 image contract to the host handler", async () => {
     const callHandler = vi.fn(async (..._args: unknown[]) => 0);
     (window as FlutterBridgeWindow).flutter_inappwebview = { callHandler };
 
@@ -40,6 +40,7 @@ describe("Even Hub SDK image bridge", () => {
         containerID: 3,
         containerName: "frame",
         imageData: [1, 2, 3],
+        compressMode: 2,
       },
     });
   });

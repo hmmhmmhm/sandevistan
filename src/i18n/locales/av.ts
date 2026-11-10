@@ -28,7 +28,7 @@ export const avLocale = {
     "notConfigured": "Настройка гьабичӀо",
     "active": "ХӀаракатчи",
     "sources": "источникал\n021||Ӏпунктазул",
-    "items": "items",
+    "items": "предметал",
     "system": "Система",
     "overview": "Обзор",
     "locked": "Кидаго .",

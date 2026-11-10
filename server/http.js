@@ -31,13 +31,21 @@ export async function readLimitedBytes(response, maxBytes) {
   return output;
 }
 
-export async function readLimitedRequestJson(request, maxBytes) {
+export async function readLimitedRequestJson(request, maxBytes, { allowEmpty = false } = {}) {
   const declared = Number(request.headers.get("content-length") ?? 0);
   if (Number.isFinite(declared) && declared > maxBytes) {
     throw new Error("REQUEST_TOO_LARGE");
   }
-  const bytes = new Uint8Array(await request.arrayBuffer());
-  if (bytes.byteLength > maxBytes) throw new Error("REQUEST_TOO_LARGE");
+  let bytes;
+  try {
+    bytes = await readLimitedBytes(request, maxBytes);
+  } catch (error) {
+    if (error instanceof Error && error.message === "RESPONSE_TOO_LARGE") {
+      throw new Error("REQUEST_TOO_LARGE");
+    }
+    throw error;
+  }
+  if (allowEmpty && bytes.byteLength === 0) return undefined;
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
@@ -45,11 +53,58 @@ export function createTimeout(
   milliseconds,
   setTimeoutImpl = setTimeout,
   clearTimeoutImpl = clearTimeout,
+  parentSignal,
 ) {
   const controller = new AbortController();
+  const cancel = () => controller.abort(parentSignal?.reason);
+  parentSignal?.addEventListener("abort", cancel, { once: true });
+  if (parentSignal?.aborted) cancel();
   const timer = setTimeoutImpl(() => controller.abort(), milliseconds);
   return {
     signal: controller.signal,
-    dispose: () => clearTimeoutImpl(timer),
+    dispose: () => {
+      clearTimeoutImpl(timer);
+      parentSignal?.removeEventListener("abort", cancel);
+    },
   };
+}
+
+export async function readOpenAiTextStream(response, onText) {
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("EMPTY_STREAM");
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let text = "";
+  let bytes = 0;
+  let completed;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > 524_288) throw new Error("RESPONSE_TOO_LARGE");
+      buffer += decoder.decode(value, { stream: true });
+      let newline;
+      while ((newline = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, newline).trimEnd();
+        buffer = buffer.slice(newline + 1);
+        if (!line.startsWith("data:")) continue;
+        const data = line.slice(5).trim();
+        if (!data || data === "[DONE]") continue;
+        const event = JSON.parse(data);
+        if (event.type === "error" || event.type === "response.failed" || event.type === "response.incomplete") throw new Error("UPSTREAM_STREAM_FAILED");
+        if (event.type === "response.output_text.delta" && typeof event.delta === "string") {
+          text += event.delta;
+          if (text.length > 64_000) throw new Error("RESPONSE_TOO_LARGE");
+          onText(text);
+        }
+        if (event.type === "response.completed") completed = event.response;
+      }
+    }
+    if (!completed) throw new Error("INCOMPLETE_STREAM");
+    return completed;
+  } finally {
+    await reader.cancel().catch(() => undefined);
+    reader.releaseLock();
+  }
 }

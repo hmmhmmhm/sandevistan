@@ -1,3 +1,7 @@
+import { getReleaseCopy } from "./release-i18n";
+import { LOCALE_REGISTRY } from "./i18n/locale-registry";
+import { fixedHud } from "./fixed-hud-i18n";
+import { drawKeySetup } from "./fast-release-screens";
 import {
   drawFastCanvasOpenFrame as drawFrame,
   drawFastCanvasText as drawText,
@@ -28,8 +32,11 @@ import type { AiHudSnapshot } from "./ai-hud-state";
 import { createAiHudSnapshot } from "./ai-hud-state";
 import { drawFastAiDetail } from "./fast-ai-hud";
 import { drawFastConversateDetail } from "./fast-conversate-hud";
-import type { ConversateSnapshot } from "./conversate-state";
+import type { ConversateSnapshot, ConversateSettings } from "./conversate-state";
 
+function drawLocalizedFooter(context: CanvasRenderingContext2D, locale: PhoneLocale, first: string, second?: string) {
+  drawFooter(context, first, second, getReleaseCopy(locale, "backHint"));
+}
 const WIDTH = 576;
 const HEIGHT = 288;
 
@@ -43,6 +50,7 @@ export type FastDetailHudOptions = {
   readonly ai?: AiHudSnapshot;
   readonly aiLine?: number;
   readonly conversate?: ConversateSnapshot;
+  readonly conversateSettings?: ConversateSettings;
 };
 
 function newsLabel(state: DataState<readonly NewsItem[]>): string {
@@ -81,7 +89,7 @@ function drawNews(
   );
   drawHeader(
     context,
-    newsLabel(state),
+    fixedHud(locale, newsLabel(state)),
     item
       ? `${compactPosition(index, items.length)} · P${page + 1}/${pages.length}`
       : formatPosition(index, items.length),
@@ -94,7 +102,7 @@ function drawNews(
       translateHud(locale, loading ? "newsLoading" : "newsUnavailable"),
       translateHud(locale, loading ? "newsWaiting" : "retryConnected"),
     );
-    drawFooter(context, "SCROLL // TEXT / ARTICLES");
+    drawLocalizedFooter(context, locale, fixedHud(locale, "SCROLL // TEXT / ARTICLES"));
     return;
   }
 
@@ -131,7 +139,7 @@ function drawNews(
     COLOR.dim,
     "bold",
   );
-  drawFooter(context, "SCROLL // TEXT / ARTICLES");
+  drawLocalizedFooter(context, locale, fixedHud(locale, "SCROLL // TEXT / ARTICLES"));
 }
 
 function todoLabel(state: DataState<readonly TodoItem[]>): string {
@@ -151,7 +159,7 @@ function drawTodo(
   const completed = items.filter((item) => item.completed).length;
   drawHeader(
     context,
-    todoLabel(state),
+    fixedHud(locale, todoLabel(state)),
     `${translateHud(locale, "done")} ${completed} / ${items.length}`,
   );
   drawFrame(context, 14, 44, 548, 204);
@@ -167,7 +175,7 @@ function drawTodo(
       ),
       translateHud(locale, "todoChecking"),
     );
-    drawFooter(context, "SCROLL // SELECT", "TAP // TOGGLE");
+    drawLocalizedFooter(context, locale, fixedHud(locale, "SCROLL // SELECT"), fixedHud(locale, "TAP // TOGGLE"));
     return;
   }
 
@@ -186,7 +194,7 @@ function drawTodo(
       "bold",
     );
   });
-  drawFooter(context, "SCROLL // SELECT", "TAP // TOGGLE");
+  drawLocalizedFooter(context, locale, fixedHud(locale, "SCROLL // SELECT"), fixedHud(locale, "TAP // TOGGLE"));
 }
 
 function weatherLabel(
@@ -203,7 +211,7 @@ function drawWeather(
   state: LiveDashboardState["weather"],
   locale: PhoneLocale,
 ) {
-  drawHeader(context, weatherLabel(state));
+  drawHeader(context, fixedHud(locale, weatherLabel(state)));
   drawFrame(context, 14, 44, 548, 204);
   const weather = (
       state.status === "fresh"
@@ -221,7 +229,7 @@ function drawWeather(
       ),
       translateHud(locale, loading ? "weatherWaiting" : "weatherRetry"),
     );
-    drawFooter(context, "SOURCE // OPEN-METEO");
+    drawLocalizedFooter(context, locale, fixedHud(locale, "SOURCE // OPEN-METEO"));
     return;
   }
 
@@ -251,7 +259,7 @@ function drawWeather(
     "bold",
   );
   if (state.status === "stale") {
-    drawText(context, "LAST DATA", 468, 108, 12, COLOR.dim, "bold");
+    drawText(context, fixedHud(locale, "LAST DATA"), 468, 108, 12, COLOR.dim, "bold");
   }
 
   const metrics = [
@@ -271,7 +279,7 @@ function drawWeather(
     drawText(context, label, x, y, 14, COLOR.secondary, "bold");
     drawText(context, value, x, y + 18, 25, COLOR.primary, "bold");
   });
-  drawFooter(context, "SOURCE // OPEN-METEO");
+  drawLocalizedFooter(context, locale, fixedHud(locale, "SOURCE // OPEN-METEO"));
 }
 
 function routeLabel(state: DataState<RouteValue>): string {
@@ -296,9 +304,9 @@ function drawNavigation(
   );
   drawHeader(
     context,
-    routeLabel(state),
+    fixedHud(locale, routeLabel(state)),
     maneuvers.length > 0
-      ? `STEP ${formatPosition(index, maneuvers.length)}`
+      ? formatPosition(index, maneuvers.length)
       : undefined,
   );
   drawFrame(context, 14, 44, 548, 204);
@@ -318,14 +326,14 @@ function drawNavigation(
             translateHud(locale, "destinationSearch"),
           ];
     drawEmptyState(context, copy[0], copy[1]);
-    drawFooter(context, "SCROLL // STEPS", "TAP // CURRENT");
+    drawLocalizedFooter(context, locale, fixedHud(locale, "SCROLL // STEPS"), fixedHud(locale, "TAP // CURRENT"));
     return;
   }
 
   const maneuver = maneuvers[index];
   drawText(
     context,
-    `DEST // ${wrapHudText(route.destinationName, 38, 1)[0] ?? route.destinationName}`,
+    `${LOCALE_REGISTRY[locale].route.destination} // ${wrapHudText(route.destinationName, 38, 1)[0] ?? route.destinationName}`,
     32,
     54,
     13,
@@ -334,7 +342,7 @@ function drawNavigation(
   );
   drawText(
     context,
-    `REMAIN // ${formatDistance(route.remainingDistance)}`,
+    formatDistance(route.remainingDistance),
     32,
     76,
     21,
@@ -354,7 +362,7 @@ function drawNavigation(
   });
   drawText(
     context,
-    `STEP // ${formatDistance(maneuver.distance)}`,
+    formatDistance(maneuver.distance),
     32,
     218,
     15,
@@ -363,14 +371,14 @@ function drawNavigation(
   );
   drawText(
     context,
-    index === route.activeManeuverIndex ? "CURRENT" : "BROWSE",
+    index === route.activeManeuverIndex ? fixedHud(locale, "CURRENT") : fixedHud(locale, "BROWSE"),
     472,
     220,
     11,
     index === route.activeManeuverIndex ? COLOR.primary : COLOR.dim,
     "bold",
   );
-  drawFooter(context, "SCROLL // STEPS", "TAP // CURRENT");
+  drawLocalizedFooter(context, locale, fixedHud(locale, "SCROLL // STEPS"), fixedHud(locale, "TAP // CURRENT"));
 }
 
 export function drawFastDetailHud(
@@ -386,6 +394,9 @@ export function drawFastDetailHud(
   context.fillStyle = COLOR.background;
   context.fillRect(0, 0, WIDTH, HEIGHT);
 
+  if (options.mode === "navigation" && options.live.route.status === "disabled") {
+    drawKeySetup(context, locale, "ors"); return;
+  }
   if (options.mode === "ai") {
     drawFastAiDetail(
       context,
@@ -394,7 +405,7 @@ export function drawFastDetailHud(
       locale,
     );
   } else if (options.mode === "conversate" && options.conversate) {
-    drawFastConversateDetail(context, options.conversate, locale);
+    drawFastConversateDetail(context, options.conversate, locale, options.conversateSettings);
   } else if (options.mode === "news") {
     drawNews(
       context,

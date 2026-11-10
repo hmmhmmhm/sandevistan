@@ -1455,13 +1455,13 @@ describe("G2 raster transport", () => {
     await vi.waitFor(() => expect(
       harness.progress.some((message) => message.includes("sendFailed")),
     ).toBe(true));
-    expect(directions).toEqual(["previous", "next"]);
+    expect(directions).toEqual(["next", "previous"]);
     expect(pageIndex).toBe(0);
 
     harness.emit(OsEventTypeList.SCROLL_BOTTOM_EVENT);
     await vi.waitFor(() => expect(harness.imageIds).toHaveLength(7));
-    expect(directions).toEqual(["previous", "next", "previous"]);
-    expect(pageIndex).toBe(3);
+    expect(directions).toEqual(["next", "previous", "next"]);
+    expect(pageIndex).toBe(1);
   });
 
   it("live refresh skips hidden work and restores the newest full HUD", async () => {
@@ -1785,15 +1785,15 @@ describe("G2 raster transport", () => {
 
     harness.setInputResult("unhandled");
     harness.emit(OsEventTypeList.SCROLL_BOTTOM_EVENT);
-    await vi.waitFor(() => expect(directions).toEqual(["previous"]));
+    await vi.waitFor(() => expect(directions).toEqual(["next"]));
 
     harness.emit(OsEventTypeList.SCROLL_TOP_EVENT);
-    await vi.waitFor(() => expect(directions).toEqual(["previous", "next"]));
+    await vi.waitFor(() => expect(directions).toEqual(["next", "previous"]));
 
     harness.setInputResult("consume");
     harness.emit(OsEventTypeList.SCROLL_BOTTOM_EVENT);
     await vi.waitFor(() => expect(harness.inputs.at(-1)).toBe("scroll-next"));
-    expect(directions).toEqual(["previous", "next"]);
+    expect(directions).toEqual(["next", "previous"]);
   });
 
   it("traces one handled tap and one dashboard hide without extra sends", async () => {
@@ -1970,6 +1970,23 @@ describe("G2 raster transport", () => {
     expect(harness.encodedSources).toEqual(["hud", "black"]);
   });
 
+  it("handles detail exit during a send and redraws the latest canvas once after it", async () => {
+    const gate = deferred(); let blocked = false;
+    const harness = await createFastRefreshHarness({ inputResult: "redraw", update: async (_id, _call, attempt) => {
+      if (attempt === 2 && !blocked) { blocked = true; await gate.promise; }
+      return "success";
+    } });
+    harness.emit(OsEventTypeList.CLICK_EVENT);
+    await vi.waitFor(() => expect(blocked).toBe(true));
+    harness.emit(OsEventTypeList.DOUBLE_CLICK_EVENT);
+    await Promise.resolve(); await Promise.resolve();
+    expect(harness.inputs).toEqual(["tap", "double-tap"]);
+    expect(harness.maximumActiveImageSends).toBe(1);
+    gate.resolve();
+    await vi.waitFor(() => expect(harness.imageIds).toHaveLength(12));
+    expect(harness.encodedTileIds).toHaveLength(3);
+    expect(harness.maximumActiveImageSends).toBe(1);
+  });
   it("drops input received during an active send", async () => {
     const firstInputSend = deferred();
     let blocked = false;
@@ -2094,7 +2111,7 @@ describe("G2 raster transport", () => {
       3, 5,
     ]);
     expect(shutdownCalls).toBe(0);
-    expect(navigationCalls).toEqual(["previous"]);
+    expect(navigationCalls).toEqual(["next"]);
     expect(beforeRestoreCalls).toBe(1);
   });
 
@@ -2208,7 +2225,7 @@ describe("G2 raster transport", () => {
       "hud:3",
       "scroll",
     ]);
-    expect(navigationCalls).toEqual(["previous", "previous"]);
+    expect(navigationCalls).toEqual(["next", "next"]);
   });
 
   it("keeps fast Canvas transmission alive when battery lookup fails", async () => {
@@ -2598,7 +2615,7 @@ describe("G2 raster transport", () => {
     } as EvenHubEvent);
     await vi.waitFor(() => expect(imageIds).toHaveLength(12));
 
-    expect(directions).toEqual(["previous", "next"]);
+    expect(directions).toEqual(["next", "previous"]);
     expect(imageIds).toEqual([
       2, 3, 4, 5,
       2, 3, 4, 5,
@@ -2677,7 +2694,7 @@ describe("G2 raster transport", () => {
     }
     await vi.waitFor(() => expect(imageIds).toHaveLength(8));
 
-    expect(directions).toEqual(["previous"]);
+    expect(directions).toEqual(["next"]);
     expect(maximumActiveUpdates).toBe(1);
     expect(imageIds).toEqual([
       2, 3, 4, 5,
@@ -2813,4 +2830,20 @@ describe("G2 raster transport", () => {
       "status",
     ]);
   });
+});
+
+it("lets AI pacing await completion of all image tile acknowledgements", async () => {
+  const gate = deferred();
+  const harness = await createFastRefreshHarness({
+    imageSendConcurrency: 4,
+    update: async (_id, call) => { if (call > 4) await gate.promise; return 0; },
+  });
+  let settled = false;
+  const completion = Promise.resolve(harness.request("all")).then(() => { settled = true; });
+  await vi.waitFor(() => expect(harness.imageIds.length).toBe(8));
+  expect(settled).toBe(false);
+  gate.resolve();
+  await completion;
+  expect(settled).toBe(true);
+  harness.cleanup();
 });

@@ -51,7 +51,7 @@ export const arLocale = {
     "taskTitle": "عنوان المهمة",
     "addSource": "إضافة مصدر RSS",
     "sourceName": "اسم المصدر",
-    "sourceUrl": "HTTPS RSS URL",
+    "sourceUrl": "رابط RSS عبر HTTPS",
     "orsKey": "مفتاح OpenRouteService",
     "validateKey": "مفتاح التحقق",
     "deleteKey": "مفتاح الحذف",

@@ -85,6 +85,12 @@ function setCache(
 }
 
 describe("map response and projection helpers", () => {
+  it("preserves the vector provider credit and rejects unknown providers", () => {
+    const input = { cell: "test", attribution: "© OSM CONTRIBUTORS", roads: [], labels: [], tileSource: "openmaptiles" };
+    expect(parseMapResponse(input).tileSource).toBe("openmaptiles");
+    expect(() => parseMapResponse({ ...input, tileSource: "unknown" })).toThrow();
+  });
+
   it("parses normalized server roads into coordinate objects", () => {
     expect(parseMapResponse({
       cell: "37.555,126.920",

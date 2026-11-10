@@ -1,15 +1,7 @@
 import type { FastCanvasBattery } from "../glasses";
+import { DeviceBatteryCard } from "./DeviceBattery";
 import { EVEN_HUB_SDK_VERSION } from "../app-metadata";
 import type { PhoneStringKey } from "../phone-i18n";
-
-function batteryText(
-  battery: FastCanvasBattery | undefined,
-  unavailable: string,
-  charging: string,
-): string {
-  if (!battery || battery.level === undefined) return unavailable;
-  return `${battery.level}%${battery.charging ? ` · ${charging}` : ""}`;
-}
 
 export function DevicesScreen({
   battery,
@@ -24,27 +16,8 @@ export function DevicesScreen({
   const ring = battery?.label === "R1" ? battery : undefined;
   return (
     <div className="phone-detail-stack">
-      <section className="phone-panel">
-        <h2>{t("deviceStatus")}</h2>
-        <dl className="phone-data-list">
-          <div>
-            <dt>{t("glasses")}</dt>
-            <dd>{g2 ? t("connected") : t("unavailable")}</dd>
-          </div>
-          <div>
-            <dt>{t("battery")}</dt>
-            <dd>{batteryText(g2, t("unavailable"), t("charging"))}</dd>
-          </div>
-          <div>
-            <dt>{t("ring")}</dt>
-            <dd>{ring ? t("connected") : t("unavailable")}</dd>
-          </div>
-          <div>
-            <dt>{t("battery")}</dt>
-            <dd>{batteryText(ring, t("unavailable"), t("charging"))}</dd>
-          </div>
-        </dl>
-      </section>
+      <DeviceBatteryCard kind="g2" battery={g2} t={t}/>
+      <DeviceBatteryCard kind="r1" battery={ring} t={t}/>
       <section className="phone-panel">
         <dl className="phone-data-list">
           <div><dt>{t("sdk")}</dt><dd>{EVEN_HUB_SDK_VERSION}</dd></div>

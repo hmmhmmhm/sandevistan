@@ -1,0 +1,26 @@
+{
+  "version": "0.2.6",
+  "bytes": 2244476,
+  "sha256": "f1fb7e8259bf2f05f0b0740d22181b5c1d3d5e4c816ab8a2a0e573a04df46751",
+  "visibility": "Private",
+  "status": "uploaded-and-verified",
+  "changelog": "Add Auto, Light and Dark phone themes with saved preferences. Show official G2 and R1 product images with available battery and charging information. Keep Home images smaller and separated, while retaining larger images in device details. Display unavailable readings honestly and preserve the glasses HUD.",
+  "changelogApproved": true,
+  "vitestTests": 772,
+  "releaseVerificationTests": 19,
+  "bundleKeyPatterns": 0,
+  "visualEvidence": [
+    "output/phone-theme-live-2026-11-09/home-dark.png",
+    "output/phone-theme-live-2026-11-09/home-light.png",
+    "output/phone-theme-live-2026-11-09/home-small.png",
+    "output/phone-theme-live-2026-11-09/devices-dark.png"
+  ],
+  "limitations": "SDK currently supplies a single device reading; missing device values remain unavailable. Native global brightness is not exposed and was excluded.",
+  "approval": "Owner explicitly approved the displayed exact changelog with 네 갑시다 on 2026-11-09.",
+  "authentication": "Owner explicitly authorized the existing Chrome session for this deployment. Version, Private visibility and exact approved changelog verified; task session closed.",
+  "browserTaskWindowClosed": true,
+  "changelogVerified": true,
+  "verifiedAt": "2026-11-08T23:51:09.852465+00:00",
+  "evidence": "output/release-026-2026-11-09/evenhub-confirmed.txt",
+  "browserSessionsRemaining": 0
+}

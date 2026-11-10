@@ -144,7 +144,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  border-bottom: 1px solid #ededed;
+  border-bottom: 1px solid var(--phone-soft-line);
 }
 
 .phone-data-list > div:last-child {
@@ -174,15 +174,15 @@
 }
 
 .phone-primary-button {
-  color: #fff;
-  border: 1px solid #202020;
-  background: #202020;
+  color: var(--phone-button-text);
+  border: 1px solid var(--phone-button-bg);
+  background: var(--phone-button-bg);
 }
 
 .phone-danger-button {
-  color: #a52a2a;
-  border: 1px solid #d7b8b8;
-  background: #fff;
+  color: var(--phone-danger);
+  border: 1px solid var(--phone-danger-line);
+  background: var(--phone-input);
 }
 
 .phone-primary-button:disabled,
@@ -195,13 +195,13 @@
 .phone-companion a:focus-visible,
 .phone-companion input:focus-visible,
 .phone-companion select:focus-visible {
-  outline: 3px solid #202020;
+  outline: 3px solid var(--phone-text);
   outline-offset: 2px;
 }
 
 .phone-form-message {
   margin: 0;
-  color: #875050;
+  color: var(--phone-error);
   font-size: 0.86rem;
   line-height: 1.45;
 }

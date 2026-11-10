@@ -1,3 +1,4 @@
+import { releaseTranslation } from "./release-i18n";
 import type { SupportedLocale } from "./i18n/locale-registry";
 import { ADDITIONAL_AI_TRANSLATIONS } from "./i18n/additional-ai-translations";
 
@@ -127,6 +128,8 @@ export function translateAiPhone(
   locale: SupportedLocale,
   key: AiPhoneStringKey,
 ): string {
+  const translated = releaseTranslation(locale, "aiPhone", key);
+  if (translated !== undefined) return translated;
   if (key in AI_PHONE_CONTROL_TRANSLATIONS[locale]) {
     return AI_PHONE_CONTROL_TRANSLATIONS[locale][
       key as keyof AiPhoneControlStrings

@@ -1,3 +1,4 @@
+import { apiEndpoint } from "./api-endpoint";
 import type {
   Coordinate,
   RouteManeuver,
@@ -78,7 +79,7 @@ async function fetchJson(
     REQUEST_TIMEOUT_MS,
   );
   try {
-    const response = await fetchImpl(input, {
+    const response = await fetchImpl(apiEndpoint(input), {
       ...init,
       signal: controller.signal,
     });

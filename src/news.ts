@@ -1,3 +1,4 @@
+import { apiEndpoint } from "./api-endpoint";
 import { readCache, writeCache, type EvenStorage } from "./live-cache";
 import type { DataState, NewsItem } from "./live-state";
 import { logDiagnostic } from "./diagnostic-log";
@@ -287,7 +288,7 @@ export async function resolveNews(
         ? `/api/news?feed=${source.feed}`
         : `/api/news?url=${encodeURIComponent(source.url)}`;
       try {
-        const response = await fetchImpl(endpoint, {
+        const response = await fetchImpl(apiEndpoint(endpoint), {
           headers: {
             accept: "application/rss+xml, application/xml, text/xml",
           },

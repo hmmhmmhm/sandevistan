@@ -3,7 +3,13 @@ import { jsonResponse } from "./http.js";
 
 async function readRequestBody(request) {
   const chunks = [];
-  for await (const chunk of request) chunks.push(Buffer.from(chunk));
+  let bytes = 0;
+  for await (const chunk of request) {
+    const buffer = Buffer.from(chunk);
+    bytes += buffer.byteLength;
+    if (bytes > 32_000) throw new Error("REQUEST_TOO_LARGE");
+    chunks.push(buffer);
+  }
   return Buffer.concat(chunks);
 }
 
@@ -21,32 +27,38 @@ function requestHeaders(incoming) {
 
 function configureLocalApi(server) {
   server.middlewares.use(async (incoming, outgoing, next) => {
-    const method = incoming.method ?? "GET";
-    const host = incoming.headers.host ?? "127.0.0.1";
-    const body = method === "GET" || method === "HEAD"
-      ? undefined
-      : await readRequestBody(incoming);
-    const request = new Request(
-      new URL(incoming.url ?? "/", `http://${host}`),
-      {
-        method,
-        headers: requestHeaders(incoming),
-        body,
-      },
-    );
-
+    if (!incoming.url?.startsWith("/api/")) {
+      next();
+      return;
+    }
     let response;
     try {
+      const method = incoming.method ?? "GET";
+      const host = incoming.headers.host ?? "127.0.0.1";
+      const body = method === "GET" || method === "HEAD"
+        ? undefined
+        : await readRequestBody(incoming);
+      const request = new Request(
+        new URL(incoming.url ?? "/", `http://${host}`),
+        {
+          method,
+          headers: requestHeaders(incoming),
+          body,
+        },
+      );
+
       response = await handleApiRequest(request, process.env);
-    } catch {
+    } catch (error) {
+      const tooLarge = error instanceof Error
+        && error.message === "REQUEST_TOO_LARGE";
       response = jsonResponse(
         {
           error: {
-            code: "INTERNAL_ERROR",
-            message: "SANDEVISTAN API failed",
+            code: tooLarge ? "REQUEST_TOO_LARGE" : "INTERNAL_ERROR",
+            message: tooLarge ? "Request body is too large" : "SANDEVISTAN API failed",
           },
         },
-        { status: 500 },
+        { status: tooLarge ? 413 : 500 },
       );
     }
     if (!response) {

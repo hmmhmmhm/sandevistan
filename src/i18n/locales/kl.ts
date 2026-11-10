@@ -29,7 +29,7 @@ export const klLocale = {
     "active": "Atorneqartoq",
     "sources": "killiffiit",
     "items": "inissat",
-    "system": "System",
+    "system": "Aaqqissuutaa",
     "overview": "Oversigt",
     "locked": "Aallaqqaammut",
     "enabled": "Atorneqarsinnaasoq",

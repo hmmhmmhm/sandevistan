@@ -14,7 +14,7 @@ export const hyLocale = {
     "devices": "Սարքեր",
     "hudLayout": "HUD դասավորություն",
     "news": "Լուր",
-    "todo": "TODO",
+    "todo": "Անելիք",
     "weather": "Եղանակ",
     "navigation": "Նավագ",
     "language": "Լեզու",

@@ -138,7 +138,7 @@ describe("Ask AI runtime", () => {
     ]);
   });
 
-  it("keeps response.done text on the acknowledged grapheme cadence", async () => {
+  it("presents response.done as the next received-text batch", async () => {
     vi.useFakeTimers();
     const bridge = new TestBridge();
     let snapshot = createAiHudSnapshot(true);
@@ -185,14 +185,14 @@ describe("Ask AI runtime", () => {
     }, "response.done");
     expect(refresh).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(600);
-    expect(refresh).toHaveBeenCalledTimes(4);
+    expect(refresh).toHaveBeenCalledTimes(2);
     expect(snapshot.assistantText).toBe("첫 답변");
 
     runtime.dispose();
     vi.useRealTimers();
   });
 
-  it("does not advance the visible cursor while a glasses update is in flight", async () => {
+  it("coalesces new text while a batch is in flight", async () => {
     vi.useFakeTimers();
     const bridge = new TestBridge();
     let snapshot = createAiHudSnapshot(true);
@@ -242,15 +242,15 @@ describe("Ask AI runtime", () => {
     onState?.({
       ...protocol,
       phase: "listening",
-      assistantText: "가나다",
+      assistantText: "가나다라마",
     });
     release?.();
     await vi.advanceTimersByTimeAsync(199);
-    expect(transmitted).toEqual(["가"]);
+    expect(transmitted).toEqual(["가나다"]);
     expect(refresh).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(1);
     expect(refresh).toHaveBeenCalledTimes(2);
-    expect(snapshot.assistantText).toBe("가나");
+    expect(snapshot.assistantText).toBe("가나다라마");
 
     runtime.dispose();
     vi.useRealTimers();

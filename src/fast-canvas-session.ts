@@ -91,6 +91,7 @@ export async function transmitFastCanvas(
     },
     {
       beforeExternalRefresh: options.beforeExternalRefresh,
+      canHandleBusyInput: options.canHandleBusyInput,
       onRefreshReady: options.onRefreshReady,
       onNativeTextReady: options.onNativeTextReady,
       targetTiles: {

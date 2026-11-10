@@ -67,3 +67,10 @@ describe("AI pricing snapshots", () => {
     });
   });
 });
+
+it("prices current aliases and marks an unknown future Realtime model unpriced", () => {
+  const usage = { textInputTokens: 0, cachedTextInputTokens: 0, audioInputTokens: 0, cachedAudioInputTokens: 0, textOutputTokens: 1_000_000 };
+  expect(priceRealtimeUsage({ ...usage, model: "gpt-realtime-2.1" }).estimatedNanoUsd).toBe(24_000_000_000);
+  expect(priceRealtimeUsage({ ...usage, model: "gpt-realtime-99" }).unpricedEvents).toBe(1);
+  expect(priceSearchUsage({ model: "gpt-6.1-sol", inputTokens: 1_000_000, cachedInputTokens: 0, outputTokens: 1_000_000, webSearchCalls: 0 }).estimatedNanoUsd).toBe(12_000_000_000);
+});

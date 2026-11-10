@@ -14,7 +14,7 @@ export const mnLocale = {
     "devices": "Төхөөрөмжүүд",
     "hudLayout": "HUD зохион байгуулалт",
     "news": "Мэдээ",
-    "todo": "TODO",
+    "todo": "ХИЙХ ЗҮЙЛ",
     "weather": "Цаг агаар",
     "navigation": "Навигаци",
     "language": "Хэл",

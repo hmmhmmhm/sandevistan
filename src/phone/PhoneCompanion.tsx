@@ -30,6 +30,9 @@ import { LanguageScreen } from "./LanguageScreen";
 import { NavigationScreen } from "./NavigationScreen";
 import { NewsScreen } from "./NewsScreen";
 import { PhoneHeader } from "./PhoneHeader";
+import { usePhoneTheme } from "./use-phone-theme";
+import { PhoneThemeControl } from "./PhoneThemeControl";
+import "./phone-theme.css";
 import { PhoneHome } from "./PhoneHome";
 import { TodoScreen } from "./TodoScreen";
 import { WeatherScreen } from "./WeatherScreen";
@@ -120,6 +123,7 @@ export function PhoneCompanion({
   onConversateSettingsChange,
   onConversateSnapshotChange,
 }: PhoneCompanionProps) {
+  const theme = usePhoneTheme(storage);
   const [screen, setScreen] = useState<PhoneScreen>("home");
   const locale = resolvePhoneLocale(
     preferences.locale,
@@ -230,11 +234,6 @@ export function PhoneCompanion({
     return saved;
   };
 
-  const updateAiTextInterval = (aiTextIntervalMs: number) => {
-    const next = { ...preferences, aiTextIntervalMs };
-    onPreferencesChange(next);
-    if (storage) void writePhonePreferences(storage, next);
-  };
 
   const content = () => {
     switch (screen) {
@@ -285,6 +284,7 @@ export function PhoneCompanion({
       case "navigation":
         return (
           <NavigationScreen
+            locale={locale}
             storage={storage}
             routeControls={routeControls}
             t={t}
@@ -296,6 +296,7 @@ export function PhoneCompanion({
       case "language":
         return (
           <LanguageScreen
+            locale={locale}
             value={preferences.locale}
             t={t}
             onChange={(value) => savePreferences({
@@ -307,14 +308,13 @@ export function PhoneCompanion({
       case "ai":
         return (
           <AiScreen
+            locale={locale}
             storage={storage}
             openAiKey={openAiKey}
             snapshot={aiSnapshot}
             t={t}
             onKeyChange={onOpenAiKeyChange}
             onSnapshotChange={onAiSnapshotChange}
-            textIntervalMs={preferences.aiTextIntervalMs}
-            onTextIntervalChange={updateAiTextInterval}
           />
         );
       case "conversate":
@@ -349,14 +349,18 @@ export function PhoneCompanion({
     <main
       className="phone-companion"
       data-testid="phone-companion"
+      data-theme={theme.resolved}
       lang={locale}
       dir={LOCALE_REGISTRY[locale].direction}
     >
       <div hidden={screen !== "home"}>
         <PhoneHome
+          locale={locale}
           t={t}
           cards={cards}
           preview={canvas}
+          battery={battery}
+          appearance={<><PhoneThemeControl locale={locale} value={theme.setting} onChange={theme.choose}/>{theme.error && <p role="alert" className="phone-form-message">{t("storageFailed")}</p>}</>}
           onOpen={setScreen}
         />
       </div>

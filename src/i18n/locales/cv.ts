@@ -14,7 +14,7 @@ export const cvLocale = {
     "devices": "Устройствӑсем",
     "hudLayout": "HUD йӗрки",
     "news": "Хыпарсем",
-    "todo": "TODO",
+    "todo": "ТӲП",
     "weather": "Çанталӑк",
     "navigation": "Навигаци",
     "language": "Чӗлхе",

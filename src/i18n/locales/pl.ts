@@ -64,7 +64,7 @@ export const plLocale = {
     "sdk": "Nawet zestaw SDK koncentratora",
     "bilateral": "Wyświetlanie dwustronne",
     "trace": "Ślad WebView",
-    "renderer": "Renderer",
+    "renderer": "Moduł renderujący",
     "transport": "Transport",
     "location": "Lokalizacja",
     "temperature": "Temperatura",

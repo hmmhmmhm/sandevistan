@@ -58,7 +58,7 @@ export const foLocale = {
     "github": "Opna Sandevistan á GitHub",
     "deviceStatus": "Støða á tólinum",
     "glasses": "G2 brillur\nR1 ringur",
-    "ring": "R1 ring",
+    "ring": "R1 ringir",
     "battery": "Battarí",
     "sdk": "Sjálvt miðdepilin SDK",
     "bilateral": "Tvísíðug sýning",

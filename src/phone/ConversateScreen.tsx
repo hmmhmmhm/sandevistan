@@ -1,3 +1,4 @@
+import { KeySetupHelp } from "./KeySetupHelp";
 import { useState, type FormEvent } from "react";
 import type { EvenStorage } from "../live-cache";
 import type { PhoneStringKey } from "../phone-i18n";
@@ -77,6 +78,7 @@ export function ConversateScreen({
   };
   return (
     <div className="phone-detail-stack">
+      <KeySetupHelp locale={locale} provider="openai" />
       <section className="phone-panel phone-stacked-form">
         {openAiKey ? (
           <div className="phone-key-status">
@@ -162,7 +164,7 @@ export function ConversateScreen({
             min={3}
             max={60}
             value={settings.informSeconds}
-            disabled={!settings.inform}
+            disabled={!settings.inform && !settings.copilot}
             onChange={(event) => save({ informSeconds: Number(event.target.value) })}
           />
         </label>

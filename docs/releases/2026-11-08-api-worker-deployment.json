@@ -1,0 +1,20 @@
+{
+  "worker": "sandevistan-api",
+  "url": "https://sandevistan-api.hmmhmmhm.workers.dev",
+  "deployedAt": "2026-11-08T06:19:36.495411+00:00",
+  "sourceSha256": "3a0f8ade8d7bb39791e3337ecf91f0cdf7521de43637e89fc230fd6c887c3157",
+  "moduleBytes": 65666,
+  "workersDevEnabled": true,
+  "existingXRelayUnchanged": true,
+  "workerVersionId": null,
+  "relayVerification": {
+    "modifiedOnBefore": "2026-08-11T09:07:20.137729Z",
+    "modifiedOnAfter": "2026-08-11T09:07:20.137729Z",
+    "moduleReadbacksMatch": true,
+    "moduleHashes": {
+      "index.js": "18d06b832b643961d639b58b8791eaa5a5bcd60a4f1cdecf8fdbf98989d0e8bc"
+    },
+    "note": "Compare source modules and modification metadata, not randomized multipart boundaries."
+  },
+  "mapProvider": "OpenFreeMap / OpenMapTiles / OpenStreetMap"
+}

@@ -206,6 +206,7 @@ export function detailRefreshTarget(
   sourceTarget: FastCanvasRefreshTarget,
 ): FastCanvasRefreshTarget | undefined {
   if (mode === "dashboard") return sourceTarget;
+  if (mode === "ai" || mode === "conversate") return undefined;
   const unchanged = mode === "map"
     ? mapVisibleStateMatches(previous, next)
     : mode === "news"

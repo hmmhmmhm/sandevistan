@@ -32,7 +32,7 @@
   align-items: center;
   justify-content: space-between;
   padding-inline: 16px;
-  border-bottom: 1px solid #ededed;
+  border-bottom: 1px solid var(--phone-soft-line);
 }
 
 .phone-choice-list label:last-child {
@@ -42,7 +42,7 @@
 .phone-choice-list input {
   width: 22px;
   height: 22px;
-  accent-color: #202020;
+  accent-color: var(--phone-text);
 }
 
 .phone-reorder-list {
@@ -54,7 +54,7 @@
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: stretch;
-  border-bottom: 1px solid #ededed;
+  border-bottom: 1px solid var(--phone-soft-line);
 }
 
 .phone-reorder-row:last-child {
@@ -122,16 +122,16 @@
   color: var(--phone-text);
   border: 1px solid var(--phone-line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--phone-input);
 }
 
 .phone-inline-form button {
   display: grid;
   min-height: 50px;
-  color: #fff;
+  color: var(--phone-button-text);
   border: 0;
   border-radius: 8px;
-  background: #202020;
+  background: var(--phone-button-bg);
   place-items: center;
 }
 
@@ -147,7 +147,7 @@
   min-height: 66px;
   align-items: center;
   padding: 7px 5px;
-  border-bottom: 1px solid #ededed;
+  border-bottom: 1px solid var(--phone-soft-line);
 }
 
 .phone-item-row:last-child,
@@ -169,7 +169,7 @@
   display: grid;
   width: 44px;
   height: 44px;
-  color: #202020;
+  color: var(--phone-text);
   border: 0;
   background: transparent;
   place-items: center;
@@ -198,12 +198,12 @@
   color: var(--phone-text);
   border: 1px solid var(--phone-line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--phone-input);
   resize: vertical;
 }
 
 .phone-conversate-record {
-  border-top: 1px solid #ededed;
+  border-top: 1px solid var(--phone-soft-line);
   padding: 12px 0;
 }
 
@@ -227,7 +227,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  border-bottom: 1px solid #ededed;
+  border-bottom: 1px solid var(--phone-soft-line);
 }
 
 .phone-source-actions {
@@ -267,7 +267,7 @@
 
 .phone-ai-speed input[type="range"] {
   width: 100%;
-  accent-color: #202020;
+  accent-color: var(--phone-text);
 }
 
 .phone-ai-cost-warning {
@@ -312,7 +312,7 @@
 
 .phone-ai-history article {
   padding-top: 12px;
-  border-top: 1px solid #ededed;
+  border-top: 1px solid var(--phone-soft-line);
 }
 
 .phone-ai-history article:first-of-type {
@@ -361,7 +361,7 @@
   gap: 10px;
   align-items: start;
   padding-top: 12px;
-  border-top: 1px solid #ededed;
+  border-top: 1px solid var(--phone-soft-line);
 }
 
 .phone-mcp-list article > div:nth-child(2) {
@@ -400,7 +400,7 @@
   color: var(--phone-text);
   border: 0;
   border-radius: 10px;
-  background: #fff;
+  background: var(--phone-input);
   box-shadow: none;
 }
 
@@ -421,11 +421,11 @@
   min-height: 44px;
   color: var(--phone-text);
   border-color: var(--phone-line);
-  background: #fff;
+  background: var(--phone-input);
 }
 
 .phone-companion .diagnostic-console pre {
-  color: #444;
+  color: var(--phone-muted);
   border-color: var(--phone-line);
-  background: #f7f7f7;
+  background: var(--phone-code);
 }

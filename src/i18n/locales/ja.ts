@@ -15,7 +15,7 @@ export const jaLocale = {
     "devices": "デバイス",
     "hudLayout": "HUD レイアウト",
     "news": "ニュース",
-    "todo": "TODO",
+    "todo": "タスク",
     "weather": "天気",
     "navigation": "ナビゲーション",
     "language": "言語",

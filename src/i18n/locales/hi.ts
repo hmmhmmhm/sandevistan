@@ -15,7 +15,7 @@ export const hiLocale = {
     "devices": "डिवाइस",
     "hudLayout": "एचयूडी लेआउट",
     "news": "समाचार",
-    "todo": "TODO",
+    "todo": "करना है",
     "weather": "मौसम",
     "navigation": "नेविगेशन",
     "language": "भाषा",

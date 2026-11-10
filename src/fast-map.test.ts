@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
+import { fixedHud } from "./fixed-hud-i18n";
 import { drawFastFullscreenMap, drawFastMap } from "./fast-map";
 import {
   createInitialLiveDashboardState,
@@ -164,6 +165,7 @@ function draw(
         order: order++,
       });
     },
+    measureText: (value: string) => ({ width: [...value].length * 8 }),
     fillText: (value: string, x: number, y: number) => {
       texts.push({
         value,
@@ -297,14 +299,14 @@ describe("fast OSM map Canvas layer", () => {
   it("shows honest empty states without schematic geometry or markers", () => {
     expect(draw(liveState()).texts.map(({ value }) => value)).toEqual(
       expect.arrayContaining([
-      "LOC // LIVE · OSM",
+      "위치 // 실시간 · OSM",
       "© OSM CONTRIBUTORS",
       ]),
     );
 
     const initial = createInitialLiveDashboardState();
     const noGps = draw(initial);
-    expect(noGps.texts.map(({ value }) => value)).toContain("NO GPS DATA");
+    expect(noGps.texts.map(({ value }) => value)).toContain(fixedHud("ko", "NO GPS DATA"));
     expect(noGps.strokes).toEqual([]);
     expect(noGps.fills).toEqual([]);
 
@@ -313,7 +315,7 @@ describe("fast OSM map Canvas layer", () => {
       ...base,
       map: { status: "unavailable" },
     });
-    expect(noMap.texts.map(({ value }) => value)).toContain("NO DATA");
+    expect(noMap.texts.map(({ value }) => value)).toContain(fixedHud("ko", "NO DATA"));
     expect(noMap.strokes).toEqual([]);
     expect(noMap.fills).toEqual([]);
 
@@ -329,7 +331,7 @@ describe("fast OSM map Canvas layer", () => {
         },
       },
     });
-    expect(emptyMap.texts.map(({ value }) => value)).toContain("NO DATA");
+    expect(emptyMap.texts.map(({ value }) => value)).toContain(fixedHud("ko", "NO DATA"));
     expect(emptyMap.strokes).toEqual([]);
     expect(emptyMap.fills).toEqual([]);
   });
@@ -380,10 +382,10 @@ describe("fast OSM map Canvas layer", () => {
     expect(full.canvas.height).toBe(288);
     expect(full.texts.map(({ value }) => value)).toEqual(
       expect.arrayContaining([
-        "MAP // LIVE · OSM",
-        "ZOOM // 500m",
+        "위치 // 실시간 · OSM",
+        "Z // 500m",
         "© OSM CONTRIBUTORS",
-        "DOUBLE TAP // BACK",
+        "두 번 탭 // 뒤로",
       ]),
     );
     expect(full.strokes.some(({ points }) =>

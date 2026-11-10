@@ -1,4 +1,7 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { CUSTOM_MCP_AVAILABLE } from "../mcp-capabilities";
+import { KeySetupHelp } from "./KeySetupHelp";
+import type { PhoneLocale } from "../phone-types";
+import { useState, type FormEvent } from "react";
 import type { AiHudSnapshot } from "../ai-hud-state";
 import {
   clearAiConversationHistory,
@@ -13,7 +16,6 @@ import {
 } from "../openai-key";
 import type { PhoneStringKey } from "../phone-i18n";
 import { McpServersPanel } from "./McpServersPanel";
-import { normalizeAiPresentationInterval } from "../ai-presentation-pacer";
 
 function cost(value: number): string {
   return `$${value < 0.01 ? value.toFixed(4) : value.toFixed(2)}`;
@@ -21,33 +23,24 @@ function cost(value: number): string {
 
 export function AiScreen({
   storage,
+  locale = "en",
   openAiKey,
   snapshot,
   t,
   onKeyChange,
   onSnapshotChange,
-  textIntervalMs = 200,
-  onTextIntervalChange,
 }: {
+  readonly locale?: PhoneLocale;
   readonly storage?: EvenStorage;
   readonly openAiKey?: string;
   readonly snapshot: AiHudSnapshot;
   readonly t: (key: PhoneStringKey) => string;
   readonly onKeyChange?: (key: string | undefined) => void;
   readonly onSnapshotChange?: (snapshot: AiHudSnapshot) => void;
-  readonly textIntervalMs?: number;
-  readonly onTextIntervalChange?: (value: number) => void;
 }) {
   const [candidate, setCandidate] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const [intervalDraft, setIntervalDraft] = useState(
-    normalizeAiPresentationInterval(textIntervalMs),
-  );
-
-  useEffect(() => {
-    setIntervalDraft(normalizeAiPresentationInterval(textIntervalMs));
-  }, [textIntervalMs]);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
@@ -117,6 +110,7 @@ export function AiScreen({
 
   return (
     <div className="phone-detail-stack">
+      <KeySetupHelp locale={locale} provider="openai" />
       <section className="phone-panel phone-key-intro">
         <h2>{t("openAiKey")}</h2>
         <p>{t("keyLocalOnly")}</p>
@@ -157,27 +151,6 @@ export function AiScreen({
           </button>
         </form>
       )}
-      <section className="phone-panel phone-ai-speed">
-        <label>
-          <span>{t("responseSpeed")}</span>
-          <strong>{intervalDraft} {t("millisecondsPerCharacter")}</strong>
-          <input
-            type="range"
-            aria-label={t("responseSpeed")}
-            min="100"
-            max="1000"
-            step="50"
-            value={intervalDraft}
-            onChange={(event) => {
-              const next = normalizeAiPresentationInterval(
-                Number(event.target.value),
-              );
-              setIntervalDraft(next);
-              onTextIntervalChange?.(next);
-            }}
-          />
-        </label>
-      </section>
       <section className="phone-panel phone-ai-cost">
         <h2>{t("estimatedCost")}</h2>
         <div><span>{t("thisWeek")}</span><strong>{cost(snapshot.weekUsd)}</strong></div>
@@ -206,7 +179,7 @@ export function AiScreen({
           </article>
         ))}
       </section>
-      <McpServersPanel storage={storage} t={t} />
+      {CUSTOM_MCP_AVAILABLE && <McpServersPanel storage={storage} t={t} />}
       <button
         type="button"
         className="phone-danger-button"

@@ -58,7 +58,7 @@ export const minLocale = {
     "github": "Bukaklah Sandevistan di GitHub",
     "deviceStatus": "Status parangkat",
     "glasses": "kaco mato G2\nCincin R1",
-    "ring": "R1 ring",
+    "ring": "Cincin R1",
     "battery": "Baterai",
     "sdk": "Malah Pusat SDK .",
     "bilateral": "Pameran duo pihak",

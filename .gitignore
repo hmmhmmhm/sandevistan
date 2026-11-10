@@ -8,3 +8,10 @@ coverage/
 *.ehpk
 implementation-*.png
 comparison-*.png
+
+# Local verification captures and credentials must not enter source control.
+/output/
+.env
+.env.*
+!.env.evenhub
+!.env.example

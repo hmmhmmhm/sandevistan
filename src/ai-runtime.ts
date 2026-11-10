@@ -1,3 +1,4 @@
+import { createRecordingClock } from "./ai-session-clock";
 import type { AudioInputSource, EvenHubEvent } from "@evenrealities/even_hub_sdk";
 import {
   addDailyAiUsage,
@@ -31,6 +32,7 @@ type AiBridge = EvenStorage & {
 
 export type AiRuntime = {
   start(): Promise<boolean>;
+  hold?(pressed: boolean): void;
   interrupt(): Promise<void>;
   stop(): Promise<void>;
   dispose(): void;
@@ -49,21 +51,28 @@ export function createAiRuntime(options: {
 }): AiRuntime {
   let session: ReturnType<typeof createAiRealtimeSession> | undefined;
   let disposed = false;
+  let epoch = 0;
+  let stopping: Promise<void> | undefined;
   const scheduler = createAiRefreshScheduler(options.refresh, 100);
 
+  const clock = createRecordingClock(() => {
+    if (disposed) return;
+    options.onSnapshot({ ...options.getSnapshot(), recording: clock.get() }); scheduler.request();
+  });
   const publish = (
     snapshot: AiHudSnapshot,
     final = false,
     waitForPresentation = false,
   ) => {
     if (disposed) return;
-    options.onSnapshot(snapshot);
+    options.onSnapshot({ ...snapshot, recording: clock.get() });
     if (final || waitForPresentation) return scheduler.final();
     scheduler.request();
   };
   const pacer = createAiPresentationPacer({
     onFrame: publish,
     getIntervalMs: options.getPresentationIntervalMs,
+    graphemesPerTick: Number.MAX_SAFE_INTEGER,
   });
 
   const persist = async (
@@ -114,8 +123,15 @@ export function createAiRuntime(options: {
   };
 
   return {
+    hold(pressed) {
+      const active = session;
+      if (!active?.capture) return;
+      if (pressed) void active.capture.begin(); else active.capture.end();
+    },
     async start() {
-      if (disposed || session) return false;
+      if (disposed || session || stopping) return false;
+      const owner = ++epoch;
+      clock.reset();
       const key = options.getKey();
       if (!key) {
         publish({
@@ -127,14 +143,21 @@ export function createAiRuntime(options: {
         return false;
       }
       const mcpServers = await resolveMcpServers(options.bridge);
-      if (disposed || session) return false;
+      if (disposed || session || stopping || owner !== epoch) return false;
       session = (options.createSession ?? createAiRealtimeSession)({
         bridge: options.bridge,
+        captureMode: "hold",
         key,
         locale: options.getLocale(),
         getLocation: options.getLocation,
         mcpServers,
         onState: (protocol) => {
+          if (disposed || owner !== epoch) return;
+          if (protocol.captureState) {
+            clock.watch();
+            if (protocol.captureState === "recording") clock.resume(); else clock.pause();
+          } else if (protocol.phase === "listening" && !clock.get()) clock.start();
+          if (protocol.phase === "error" || protocol.phase === "idle") clock.stop();
           const snapshot = updateAiHudProtocol(
             options.getSnapshot(),
             protocol,
@@ -152,9 +175,9 @@ export function createAiRuntime(options: {
       });
       try {
         await session.start();
-        return true;
+        return owner === epoch && !disposed;
       } catch {
-        session = undefined;
+        if (owner === epoch) session = undefined;
         return false;
       }
     },
@@ -170,15 +193,27 @@ export function createAiRuntime(options: {
       await pacer.flush();
     },
     async stop() {
+      if (stopping) return stopping;
+      clock.reset();
+      epoch += 1;
+      pacer.reset();
       const active = session;
       session = undefined;
       if (!active) return;
-      const protocol = await active.stop();
-      pacer.reset();
-      await persist(protocol);
+      publish({ ...options.getSnapshot(), phase: "idle", activeTool: undefined,
+        pendingApproval: undefined, responseComplete: false, canRevealFullResponse: false, error: undefined });
+      stopping = Promise.resolve().then(async () => {
+        try {
+          const protocol = await active.stop();
+          await persist(protocol);
+        } finally { stopping = undefined; }
+      });
+      return stopping;
     },
     dispose() {
+      clock.reset();
       disposed = true;
+      epoch += 1;
       pacer.dispose();
       scheduler.dispose();
       const active = session;

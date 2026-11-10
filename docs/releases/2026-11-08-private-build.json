@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "file": "sandevistan.ehpk",
+  "bytes": 2191813,
+  "sha256": "d48365672a9b48e57140583c4ece1390f2627943eac663c93d5ecde1cf2823a0",
+  "apiOrigin": "https://sandevistan-api.hmmhmmhm.workers.dev",
+  "bundleOpenAiKeyPatterns": 0,
+  "status": "uploaded-and-verified",
+  "previousLatestPrivateVersion": "0.1.7",
+  "targetVisibility": "Private",
+  "verifiedVisibility": "Private",
+  "verifiedAt": "2026-11-08T06:36:15.805717+00:00",
+  "changelogApproved": true,
+  "changelogVerified": true,
+  "evidence": "output/private-build-api-2026-11-08/evenhub-private-020.png",
+  "browserSessionsRemaining": 0
+}

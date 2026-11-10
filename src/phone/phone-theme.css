@@ -1,0 +1,54 @@
+.phone-companion {
+  color-scheme:light;
+  --phone-soft-line:#ededed;
+  --phone-input:#fff;
+  --phone-active:#f9f9f9;
+  --phone-preview-surface:#f5f5f5;
+  --phone-preview-line:#bdbdbd;
+  --phone-preview-filter:grayscale(1) invert(1) contrast(.62);
+  --phone-preview-opacity:.22;
+  --phone-button-bg:#202020;
+  --phone-button-text:#fff;
+  --phone-danger:#a52a2a;
+  --phone-danger-line:#d7b8b8;
+  --phone-error:#875050;
+  --phone-code:#f7f7f7;
+}
+.phone-companion[data-theme=dark] {
+  color-scheme:dark;
+  --phone-bg:#212121;
+  --phone-card:#2d2d2d;
+  --phone-preview:#212121;
+  --phone-text:#eee;
+  --phone-muted:#b4b4b4;
+  --phone-line:#484848;
+  --phone-soft-line:#414141;
+  --phone-input:#252525;
+  --phone-active:#383838;
+  --phone-preview-surface:#212121;
+  --phone-preview-line:#484848;
+  --phone-preview-filter:grayscale(1) contrast(.85);
+  --phone-preview-opacity:.72;
+  --phone-button-bg:#eee;
+  --phone-button-text:#202020;
+  --phone-danger:#ffb0ac;
+  --phone-danger-line:#8f5553;
+  --phone-error:#ffb0ac;
+  --phone-code:#252525;
+}
+:root[data-phone-theme=dark],:root[data-phone-theme=dark] body{background:#212121;color-scheme:dark}
+:root[data-phone-theme=light],:root[data-phone-theme=light] body{background:#eee;color-scheme:light}
+.phone-theme-control{border:0;padding:10px 8px 14px;margin:0;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.phone-theme-control legend{float:left;padding:0;margin:0;font-size:12px;color:var(--phone-muted);line-height:44px}
+.phone-theme-control>div{display:flex;background:var(--phone-preview);border:1px solid var(--phone-line);border-radius:8px;padding:2px}
+.phone-theme-control label{position:relative;cursor:pointer}
+.phone-theme-control input{position:absolute;opacity:0;width:1px;height:1px}
+.phone-theme-control span{display:grid;place-items:center;min-height:40px;min-width:54px;padding:0 10px;border-radius:5px;color:var(--phone-muted);font-size:12px}
+.phone-theme-control input:checked+span{background:var(--phone-card);color:var(--phone-text);font-weight:600}
+.phone-theme-control input:focus-visible+span{outline:2px solid var(--phone-text);outline-offset:-2px}
+@media(max-width:350px){.phone-theme-control{gap:5px}.phone-theme-control span{min-width:44px;padding-inline:7px}}
+.phone-key-intro a,.phone-key-intro a:visited{color:var(--phone-text);text-underline-offset:3px}
+.phone-key-intro details{margin-top:10px;color:var(--phone-muted);font-size:13px}
+.phone-key-intro summary{cursor:pointer;color:var(--phone-text);min-height:28px}
+
+.phone-key-intro > small{display:block;margin:6px 0 10px;color:var(--phone-muted);overflow-wrap:anywhere}

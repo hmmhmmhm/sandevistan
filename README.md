@@ -4,18 +4,18 @@
   <strong>A fast, glanceable tactical HUD for Even Realities G2.</strong>
 </p>
 
-> [!WARNING]
-> **Development status:** Sandevistan is still under active development and has not been officially published on Even Hub. Builds from this repository are experimental and intended for local testing on supported G2 hardware.
+> [!NOTE]
+> **Release status:** v0.2.7 was submitted to Even Hub on November 9, 2026 and remains In review as of November 10. It is not publicly approved or published. AI requires a personal paid OpenAI API account, and routing requires an optional OpenRouteService key.
 
 <p align="center">
   <img alt="TypeScript 5.9" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white">
   <img alt="React 19" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111111">
   <img alt="Vite 6" src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white">
-  <img alt="Even Hub SDK 0.0.11" src="https://img.shields.io/badge/Even_Hub_SDK-0.0.11-7CF36A">
-  <img alt="Validated on physical G2 hardware" src="https://img.shields.io/badge/G2-physical_hardware_validated-2EA043">
+  <img alt="Even Hub SDK 0.0.16" src="https://img.shields.io/badge/Even_Hub_SDK-0.0.16-7CF36A">
+  <img alt="SDK 0.0.11 hardware baseline" src="https://img.shields.io/badge/G2-SDK_0.0.11_hardware_baseline-2EA043">
   <img alt="180 bundled languages" src="https://img.shields.io/badge/Languages-180-555555">
-  <img alt="90 live-validated news feeds" src="https://img.shields.io/badge/RSS_feeds-90_live--validated-555555">
-  <img alt="More than 400 Vitest tests passing" src="https://img.shields.io/badge/Vitest-400%2B_passing-6E9F18?logo=vitest&logoColor=white">
+  <img alt="540 configured news feeds" src="https://img.shields.io/badge/RSS_feeds-540_configured-555555">
+  <img alt="Vitest tests" src="https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=white">
   <img alt="MIT License" src="https://img.shields.io/badge/License-MIT-blue.svg">
 </p>
 
@@ -28,8 +28,10 @@ current product candidate is `/hud-canvas-fast`.
 
 The project favors useful information, predictable controls, and hardware-proven
 behavior over browser-only effects. It has been tested on physical G2 glasses
-with the Even Hub SDK pinned to `0.0.11`, Even App `2.2.6`, and updated G2
-firmware.
+with Even Hub SDK `0.0.11`, Even App `2.2.6`, and updated G2
+firmware. The current maintenance candidate uses SDK `0.0.16` and requires
+Even App `2.2.10` or newer; physical G2 regression testing is still pending.
+See the [maintenance audit](docs/maintenance/2026-11-08-sdk-audit.md).
 
 ## Table of contents
 
@@ -67,12 +69,12 @@ around that fact:
 
 ## Phone companion
 
-The same `/hud-canvas-fast` entry point provides a light, touch-friendly
-companion UI around the persistent G2 Canvas. Its home screen follows the Even
+The same `/hud-canvas-fast` entry point provides a touch-friendly companion UI with saved Auto, Light and Dark themes
+and official G2/R1 device imagery around the persistent G2 Canvas. Its home screen follows the Even
 app's compact two-column card rhythm and keeps the live HUD preview mounted
 while settings screens are open.
 
-Nine cards open their settings directly, without an intermediate management
+Focused cards open their settings directly, without an intermediate management
 menu:
 
 | Card | Phone capability |
@@ -84,7 +86,8 @@ menu:
 | Weather | Inspect current conditions and request one immediate refresh |
 | Navigation | Validate and store a user-owned ORS key on the device |
 | Language | Follow the system language or select one of 180 bundled languages |
-| Ask AI | Configure OpenAI BYOK, response pacing, local usage, and MCP servers |
+| Ask AI | Configure OpenAI BYOK, voice input, local history and usage |
+| Conversate | Configure automatic captions, translation, Inform and Copilot |
 | Developer | Inspect, copy, and clear the WebView trace |
 
 The footer identifies the project, app-manifest version, development status,
@@ -121,9 +124,9 @@ The same gestures work from the G2 temple and the R1 ring:
 - **Scroll:** move between dashboard pages.
 - **Single tap:** open the active detail deck or activate its selected item.
 - **Fast double tap:** return from a detail deck to its dashboard page.
-- **Dashboard double tap:** on the production route, replace the image page
-  with one blank event-capture container without sending images; double tap
-  again to rebuild the image page and restore the latest view.
+- **Dashboard double tap:** open the Hide / Exit / Return quick menu. Hide uses
+  the blank event-capture page; Exit invokes the system exit confirmation.
+  Return is initially selected. Detail double tap remains Back.
 
 Within full-screen details:
 
@@ -199,7 +202,7 @@ Core features do not require an API key.
 | Current location | Even Hub SDK | Initial reading, then accepted at `15s / 15m` |
 | Weather | [Open-Meteo](https://open-meteo.com/) | 15-minute cache plus foreground recheck |
 | News | Device-selected HTTPS RSS/Atom through a hardened same-origin proxy | Progressive library up to 100 stories; one-hour refill while idle |
-| Roads and place labels | [OpenStreetMap](https://www.openstreetmap.org/copyright) via Overpass | When the rounded location cell changes |
+| Roads and place labels | [OpenStreetMap](https://www.openstreetmap.org/copyright): packaged builds use OpenFreeMap vector tiles; local/Sites use Overpass | When the rounded location cell changes |
 | Clock | Local device time | Minute boundary, skipped if that minute was already rendered |
 | Battery | Even SDK device-state event | Only when the visible value changes |
 
@@ -210,7 +213,10 @@ presenting it as live. Missing map data renders `NO DATA`; missing GPS renders
 than a directional arrow.
 
 Weather, news, and map failures retain the last successful value as stale data.
-RSS and Overpass access use same-origin server routes. Custom feeds are limited
+RSS and map access use fixed API Worker routes in packaged builds and same-origin
+routes in local/Sites builds. Packaged maps use OpenFreeMap vector tiles; the
+local/Sites map handler retains Overpass. The packaged public API origin is configured in
+`.env.evenhub`, which contains a public URL only. Custom feeds are limited
 to validated public HTTPS URLs, reject credentials, fragments, non-default
 ports, IP literals, local/private host suffixes, redirects, non-feed content,
 responses over 1 MB, and requests over eight seconds.
@@ -248,23 +254,44 @@ most recent conversations and device-local estimates for this week's and this
 month's usage. Merely viewing that page never opens the microphone or creates
 an API session; tapping the page starts a new conversation.
 
-The detail view uses one official Even Hub Text container rather than image
-tiles. OpenAI semantic VAD owns turn detection, user transcription appears in
-the same rolling transcript as the response, and assistant text is presented
-one Unicode grapheme at a time. The default interval is 200 ms and can be
-adjusted from 100–1,000 ms in 50 ms steps on the phone. A single tap reveals an
-already received answer immediately or cancels an active response; a double
-tap exits, closes microphone ownership, and restores the Canvas dashboard.
+The detail view uses the same four-image Canvas surface as the other fast-HUD
+screens, with a prominent readiness band, recording duration and local time.
+Hold the ring or glasses control to capture speech; live captions appear while
+held. Releasing the control stops capture and submits only that held utterance.
+Two transcription models provide provisional captions and final refinement;
+only the final text creates an answer. Received answer text appears in batches.
+Scrolling browses the answer, with a position indicator and remaining-line count.
+Double tap exits immediately and relinquishes microphone/session ownership.
 
-Built-in tools provide current time, current live location, and bounded web
-search. Users may also add bounded HTTPS MCP servers with optional bearer
-authentication and tool allowlists. Every MCP call requires explicit approval
-on the glasses. Active tool state appears in the transcript's trailing status
-line instead of replacing conversation text.
+Conversate automatically shows cumulative captions, paired translation, Inform
+and Copilot without requiring a tap for each utterance. Its fixed transcript
+region stays visible while cues change. Inform and Copilot show countdowns;
+expiry hides the live card while preserving bounded local history. Tap opens
+the directory, scroll selects an earlier cue and tap reopens it. Double tap exits.
+See the [hold and history implementation](docs/maintenance/2026-11-08-hold-and-conversate-history.md).
+
+Built-in tools provide time, location, named-city weather and bounded web search.
+Custom MCP connections are disabled in the publicly packaged build because the
+native network whitelist accepts fixed origins. Developer builds may configure
+bounded HTTPS MCP servers; every tool call requires explicit on-glasses approval.
 
 OpenAI access is BYOK. The key is stored only through the Even local-storage
-bridge and is sent directly to OpenAI solely to mint a short-lived Realtime
-client secret for serverless Private Builds. It is never bundled or logged.
+bridge. Realtime client secrets, Conversate analysis, and web search call
+OpenAI directly, allowing serverless Private Builds to use these features
+without a same-origin API server. The key is never bundled or logged.
+Each new AI session checks the account model catalog and chooses the newest
+compatible role alias: currently `gpt-realtime-2.1` for Ask AI, `gpt-6-luna`
+for Conversate analysis, and `gpt-6.1-sol` for web search. Transcription uses
+`gpt-live-transcribe` and `gpt-transcribe`. An unavailable catalog falls back
+to the reviewed aliases rather than selecting an unrelated API by timestamp.
+
+Conversate streams translation and Inform before Copilot generation finishes.
+An Inform stays visible for its configured duration as new speech continues;
+expired cards remain in the local directory. Optional language hints, terminology,
+and Prep Notes improve domain-specific and mixed-language recognition.
+See the [live AI and simulator audit](docs/maintenance/2026-11-08-ai-simulator-audit.md)
+and the [approved image HUD verification](docs/maintenance/2026-11-08-canvas-ai-implementation.md).
+
 Conversation excerpts, citations, usage, and cost records remain device-local.
 Weekly and monthly estimates include Realtime
 token/audio usage and recorded web-search calls using the versioned local
@@ -298,7 +325,7 @@ app never resumes guidance automatically.
 
 Requirements:
 
-- Node.js 22 or newer.
+- Node.js 22.12+ on the 22.x line; verified with 22.23.2.
 - npm.
 - Even Realities app with Even Hub access for physical G2 transport.
 - Tailscale or another phone-accessible local network when testing on hardware.
@@ -306,7 +333,7 @@ Requirements:
 Install dependencies:
 
 ```bash
-npm install
+npm ci
 ```
 
 Start the development server:
@@ -325,7 +352,7 @@ ORS_API_KEY='<server-only-key>' \
 Open the app through **Even Hub → Scan QR**:
 
 ```text
-http://<PHONE-REACHABLE-IP>:4176/hud-canvas-fast?sdk=0.0.11&build=<BUILD-ID>
+http://<PHONE-REACHABLE-IP>:4176/hud-canvas-fast?sdk=0.0.16&build=<BUILD-ID>
 ```
 
 No performance query is required. The hardware-proven four-call pipeline is the
@@ -333,7 +360,7 @@ production default. For an explicit serial and original-palette comparison,
 use:
 
 ```text
-http://<PHONE-REACHABLE-IP>:4176/hud-canvas-fast?sdk=0.0.11&pipeline=1&levels=original&build=<BUILD-ID>
+http://<PHONE-REACHABLE-IP>:4176/hud-canvas-fast?sdk=0.0.16&pipeline=1&levels=original&build=<BUILD-ID>
 ```
 
 You can generate the configured QR code with:
@@ -384,7 +411,7 @@ npm run pack
 ```
 
 The resulting `sandevistan.ehpk` is a local artifact. The npm package is marked
-`private`, and this repository does not publish to npm or Even Hub.
+`private`; npm publication is disabled. Even Hub distribution is managed separately through reviewed application builds.
 
 ## Project structure
 
@@ -412,7 +439,8 @@ Preserved diagnostic routes include:
 
 | SDK | Physical G2 result | Status |
 | --- | --- | --- |
-| `0.0.11` | Four-tile bounded image transport works | Current pinned fallback |
+| `0.0.16` | Not yet tested on physical G2 | Current maintenance candidate; Even App >=2.2.10 |
+| `0.0.11` | Four-tile bounded image transport works | Historical fallback at `7d68cb9` |
 | `0.0.12` | The old host failed immediately on its compressed image path | Historical reproduction only |
 | `0.0.13` | Passed bilateral transport checkpoints but later showed intermittent compression instability | Held for comparison |
 
@@ -420,7 +448,10 @@ SDK `0.0.12` introduced the `compressMode: 2` path that failed on the earlier
 Even app and glasses combination. After the Even App and G2 firmware update,
 the same compressed-image contract passed checkpoints through SDK `0.0.13`,
 but later intermittent behavior justified returning the active build to
-`0.0.11`. The minimal
+`0.0.11`. The current `0.0.16` candidate retains SDK-managed compression,
+the four-call pipeline, typed bytes, and all existing page-transition barriers.
+It does not establish that the earlier intermittent hardware issue is fixed.
+The minimal
 historical failure remains available on the unchanged
 [`0.0.12-reproduce`](https://github.com/hmmhmmhm/sandevistan/tree/0.0.12-reproduce)
 branch for the Even Realities team.
@@ -477,3 +508,13 @@ or sponsored by CD PROJEKT RED, the Cyberpunk franchise, Even Realities, or thei
 respective owners. “Cyberpunk 2077,” “Sandevistan,” “Even Realities,” and related
 names and marks belong to their respective owners. This repository includes no
 game logo, extracted game UI, or proprietary game asset.
+
+## Release evidence
+
+The v0.2.7 candidate, public review state and API deployment are recorded in
+[release metadata](docs/releases/2026-11-09-public-candidate-027.json) and
+[API operations](docs/maintenance/2026-11-09-public-api-operations.md).
+Source and verification harnesses are versioned. Paths under `output/` in
+maintenance records refer to local evidence captures, intentionally excluded
+from Git to avoid publishing private sessions, credentials or personal data.
+Physical G2 regression checks for the current SDK remain pending.

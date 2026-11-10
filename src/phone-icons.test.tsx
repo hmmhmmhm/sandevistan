@@ -12,12 +12,12 @@ describe("PhoneIcon", () => {
     const checkedPath = screen.getByRole("img", { hidden: true })
       .querySelector("path")?.getAttribute("d") ?? "";
 
-    expect(checkedPath).toContain("H7v2h2v2h2");
+    expect(checkedPath).toContain("M7 12h2v2H7");
 
     rerender(<PhoneIcon name="checkbox" />);
     const emptyPath = screen.getByRole("img", { hidden: true })
       .querySelector("path")?.getAttribute("d") ?? "";
 
-    expect(emptyPath).not.toContain("H7v2h2v2h2");
+    expect(emptyPath).not.toContain("M7 12h2v2H7");
   });
 });

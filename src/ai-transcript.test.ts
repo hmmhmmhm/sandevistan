@@ -32,11 +32,11 @@ describe("Ask AI transcript lines", () => {
     expect(lines.every((line) => !line.includes("\n"))).toBe(true);
   });
 
-  it("uses the full text-container width before wrapping", () => {
+  it("wraps conservatively for the Canvas body width", () => {
     const assistant = "x".repeat(48);
     const lines = createAiTranscriptLines([], { user: "", assistant });
 
-    expect(lines).toEqual([`AI // ${assistant}`]);
+    expect(lines).toEqual([`AI // ${"x".repeat(40)}`, `      ${"x".repeat(8)}`]);
   });
 
   it("adds one display-only row between speakers", () => {

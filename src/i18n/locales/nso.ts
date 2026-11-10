@@ -14,7 +14,7 @@ export const nsoLocale = {
     "devices": "Disebediswa",
     "hudLayout": "Peakanyo ya HUD",
     "news": "Ditaba",
-    "todo": "TODO",
+    "todo": "Dilo tše di swanetšego go dirwa",
     "weather": "Boemo bja leratadima",
     "navigation": "Go sepelasepela",
     "language": "Polelo",

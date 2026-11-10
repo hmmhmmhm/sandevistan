@@ -1,3 +1,5 @@
+import type { ConversateCopilotRecord, ConversateDirectory } from "./conversate-history";
+import type { RecordingTime } from "./ai-session-clock";
 import { clearCache, readCache, writeCache, type EvenStorage } from "./live-cache";
 
 export type ConversateSettings = {
@@ -22,6 +24,7 @@ export type ConversateSegment = {
 };
 
 export type ConversateInform = {
+  readonly expiresAt?: number;
   readonly id: string;
   readonly text: string;
   readonly at: string;
@@ -35,6 +38,7 @@ export type ConversateSuggestion = {
 };
 
 export type ConversateRecord = {
+  readonly copilotHistory?: readonly ConversateCopilotRecord[];
   readonly id: string;
   readonly startedAt: string;
   readonly endedAt: string;
@@ -43,6 +47,13 @@ export type ConversateRecord = {
 };
 
 export type ConversateSnapshot = {
+  readonly copilotHistory?: readonly ConversateCopilotRecord[];
+  readonly directory?: ConversateDirectory;
+  readonly activeCopilotId?: string;
+  readonly copilotExpiresAt?: number;
+  readonly partialItemId?: string;
+  readonly transcriptAnchor?: string;
+  readonly recording?: RecordingTime;
   readonly phase: "idle" | "connecting" | "listening" | "error";
   readonly partial: string;
   readonly segments: readonly ConversateSegment[];
@@ -105,13 +116,20 @@ function isSettings(value: unknown): value is ConversateSettings {
     && typeof value.informSeconds === "number";
 }
 
+function validCopilotHistory(value: unknown): boolean {
+  return value === undefined || (Array.isArray(value) && value.every(item => record(item)
+    && typeof item.id === "string" && typeof item.at === "string"
+    && Array.isArray(item.suggestions) && item.suggestions.every(suggestion => record(suggestion)
+      && ["original","pronunciation","meaning","style"].every(key => typeof suggestion[key] === "string"))));
+}
+
 function isHistory(value: unknown): value is readonly ConversateRecord[] {
   return Array.isArray(value) && value.every((item) => record(item)
     && typeof item.id === "string"
     && typeof item.startedAt === "string"
     && typeof item.endedAt === "string"
     && Array.isArray(item.segments)
-    && Array.isArray(item.informs));
+    && Array.isArray(item.informs) && validCopilotHistory(item.copilotHistory));
 }
 
 export function createConversateSnapshot(

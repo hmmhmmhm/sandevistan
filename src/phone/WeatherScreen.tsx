@@ -1,3 +1,4 @@
+import { getReleaseCopy } from "../release-i18n";
 import { useState } from "react";
 import type { PhoneStringKey } from "../phone-i18n";
 import type { LiveDashboardState } from "../live-state";
@@ -102,6 +103,7 @@ export function WeatherScreen({
         <PhoneIcon name="reload" size={22} />
         {busy ? t("refreshing") : t("refresh")}
       </button>
+      <p className="phone-form-message"><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">{getReleaseCopy(locale, "sourceWeather")}</a></p>
       {message && (
         <p
           role={messageIsError ? "alert" : "status"}

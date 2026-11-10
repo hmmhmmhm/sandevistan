@@ -101,7 +101,7 @@ export const viLocale = {
     "feels": "CÁC CẢM NHẬN",
     "feelsLike": "CẢM NHẬN THÍCH",
     "humidity": "ĐỘ ẨM",
-    "rain": "RAIN",
+    "rain": "MƯA",
     "precipitation": "MƯỢT MƯA",
     "wind": "GIÓ",
     "weatherLoading": "Đang tải thời tiết",

@@ -1,0 +1,26 @@
+{
+  "name": "sandevistan-api",
+  "main": "worker/api.js",
+  "compatibility_date": "2026-11-08",
+  "workers_dev": true,
+  "vars": {
+    "PUBLIC_API_ENABLED": "true",
+    "REQUIRE_PUBLIC_API_LIMITER": "true"
+  },
+  "ratelimits": [
+    {
+      "name": "PUBLIC_API_RATE_LIMITER",
+      "namespace_id": "2026110901",
+      "simple": {
+        "limit": 120,
+        "period": 60
+      }
+    }
+  ],
+  "analytics_engine_datasets": [
+    {
+      "binding": "PUBLIC_API_EVENTS",
+      "dataset": "sandevistan_public_api"
+    }
+  ]
+}

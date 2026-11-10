@@ -1,0 +1,6 @@
+import policy from './privacy-policy.json' with { type: 'json' };
+const escape = value => value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+export function privacyResponse() {
+  const content = policy.sections.map(section=>`<section><h2>${escape(section.heading)}</h2>${section.paragraphs.map(text=>`<p>${escape(text).replace(/https:\/\/github\.com\/hmmhmmhm\/sandevistan(?:\/issues)?/g,url=>`<a href="${url}" rel="noreferrer">${url}</a>`)}</p>`).join('')}</section>`).join('');
+  return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(policy.title)}</title><style>body{font:17px/1.65 system-ui,sans-serif;max-width:760px;margin:48px auto;padding:0 24px;color:#222;background:#fafafa}h1{font-size:30px}h2{font-size:21px;margin-top:32px}p{overflow-wrap:anywhere}</style><main><h1>${escape(policy.title)}</h1><p>Updated ${escape(policy.updated)}</p>${content}</main></html>`,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'public, max-age=3600','content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'",'x-content-type-options':'nosniff'}});
+}

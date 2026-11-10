@@ -55,7 +55,7 @@ export const krLocale = {
     "keyLocalOnly": "Gənatəna bas suro gənatəram fatobe Evenben kəla naura adəben.",
     "developmentBuild": "Futu gartəye · Even Hub lan baktənyi",
     "project": "Sandibe\nSandevistan GitHub lan katə",
-    "github": "Open Sandevistan on GitHub",
+    "github": "Sandevistan GitHub-da foye",
     "deviceStatus": "Kəndaramma naurabe",
     "glasses": "G2 manzar",
     "ring": "R1 kulum",

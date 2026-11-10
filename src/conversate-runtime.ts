@@ -1,3 +1,9 @@
+import { createConversateCues } from "./conversate-cues";
+import { tapConversateDirectory, scrollConversateDirectory } from "./conversate-history";
+import { conversateTranscriptRows, scrollConversateTranscript, type ConversateTranscriptRow } from "./conversate-transcript-layout";
+import { createRecordingClock } from "./ai-session-clock";
+import { createConversateTranslations } from "./conversate-translations";
+import { DEFAULT_OPENAI_MODELS } from "./openai-models";
 import type { AudioInputSource, EvenHubEvent } from "@evenrealities/even_hub_sdk";
 import { requestConversateAnalysis } from "./conversate-analysis";
 import { createConversateRealtimeSession } from "./conversate-realtime-session";
@@ -39,7 +45,7 @@ function transcriptionHints(settings: ConversateSettings) {
   const keywords = settings.transcriptionKeywords
     .split(/[,;\n]+/).map((value) => value.trim()).filter(Boolean).slice(0, 50);
   const prompt = [
-    "Live human conversation.",
+    "Live human conversation. Transcribe faithfully in the languages spoken. Preserve code-switching, names, numbers, and dates. Do not translate.",
     settings.goal.trim() ? `Conversation goal: ${settings.goal.trim()}.` : "",
     settings.prepNote && settings.inform && settings.prepNoteText.trim()
       ? `Context: ${settings.prepNoteText.trim()}` : "",
@@ -55,111 +61,143 @@ export function createConversateRuntime(options: {
   readonly getSnapshot: () => ConversateSnapshot;
   readonly onSnapshot: (snapshot: ConversateSnapshot) => void;
   readonly refresh: () => void | Promise<void>;
+  readonly informLineCount?: (text: string) => number;
+  readonly transcriptRows?: (snapshot: ConversateSnapshot) => readonly ConversateTranscriptRow[];
   readonly createSession?: typeof createConversateRealtimeSession;
 }) : ConversateRuntime {
   let session: ReturnType<typeof createConversateRealtimeSession> | undefined;
+  let models = DEFAULT_OPENAI_MODELS;
   let disposed = false;
+  let epoch = 0;
+  let stopping: Promise<void> | undefined;
   let startedAt = "";
-  let hideTimer: ReturnType<typeof setTimeout> | undefined;
   let analysisAbort: AbortController | undefined;
   let pendingAnalysis = false;
+  let translations: ReturnType<typeof createConversateTranslations> | undefined;
 
+  const clock = createRecordingClock(() => {
+    if (!disposed) { options.onSnapshot({ ...options.getSnapshot(), recording: clock.get() }); void options.refresh(); }
+  });
   const publish = (patch: Partial<ConversateSnapshot>) => {
     if (disposed) return;
-    options.onSnapshot({ ...options.getSnapshot(), ...patch });
+    options.onSnapshot({ ...options.getSnapshot(), ...patch, recording: clock.get() });
     void options.refresh();
   };
 
-  const scheduleInformHide = () => {
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => publish({ activeInform: undefined }),
-      options.getSettings().informSeconds * 1_000);
-  };
-
+  const cues = createConversateCues({ snapshot: options.getSnapshot, publish, seconds: () => options.getSettings().informSeconds });
   const analyzeLatest = async () => {
+    if (disposed || !session) return;
     if (analysisAbort) {
       pendingAnalysis = true;
       return;
     }
     const key = options.getKey();
     if (!key) return;
-    const settings = options.getSettings();
-    if (!settings.translation && !settings.inform && !settings.copilot) return;
+    const settings = { ...options.getSettings(), translation: false };
+    if (!settings.inform && !settings.copilot) return;
     const snapshot = options.getSnapshot();
     if (!snapshot.segments.length) return;
     const targetId = snapshot.segments.at(-1)?.id;
     if (!targetId) return;
+    const targetText = snapshot.segments.at(-1)?.text;
+    const informId = `${targetId}-inform`;
     logDiagnostic("LIVE", "Conversate analysis start");
-    analysisAbort = new AbortController();
+    const controller = new AbortController();
+    const owner = epoch;
+    analysisAbort = controller;
     try {
       const result = await requestConversateAnalysis({
         key,
         locale: options.getLocale(),
+        model: models.analysis,
         settings,
         segments: snapshot.segments,
-        signal: analysisAbort.signal,
+        signal: controller.signal,
+        onPartial: (partial) => {
+          if (disposed || owner !== epoch || controller.signal.aborted) return;
+          const current = options.getSnapshot();
+          if (current.segments.find(s => s.id === targetId)?.text !== targetText) return;
+          const segments = current.segments.map((segment) => segment.id === targetId
+            ? { ...segment, ...(settings.translation && partial.translation
+                ? { translation: partial.translation.slice(0, 500) } : {}) }
+            : segment);
+          const inform = settings.inform && partial.inform
+            && current.segments.at(-1)?.id === targetId
+            ? { id: informId, text: partial.inform.slice(0, 180), at: new Date().toISOString() }
+            : undefined;
+          publish({ segments });
+          if (inform) cues.inform(inform, true);
+        },
       });
+      if (disposed || owner !== epoch || controller.signal.aborted) return;
       const current = options.getSnapshot();
+      if (current.segments.find(s => s.id === targetId)?.text !== targetText) return;
       const segments = [...current.segments];
       const targetIndex = segments.findIndex(({ id }) => id === targetId);
       const target = segments[targetIndex];
       if (target) segments[targetIndex] = {
         ...target,
         language: result.language.slice(0, 24),
-        translation: settings.translation && result.translation?.trim()
-          ? result.translation.trim().slice(0, 500)
-          : undefined,
       };
       const inform: ConversateInform | undefined = settings.inform && result.inform?.trim()
         ? {
-            id: `${Date.now()}-inform`,
+            id: informId,
             text: result.inform.trim().slice(0, 180),
             at: new Date().toISOString(),
           }
         : undefined;
-      const isLatest = current.segments.at(-1)?.id === targetId && !current.partial;
-      publish({
-        segments,
-        ...(isLatest ? {
-          suggestions: settings.copilot ? result.suggestions.slice(0, 3) : [],
-          selectedSuggestion: 0,
-          copilotOpen: false,
-        } : {}),
-        ...(inform ? {
-          informs: [inform, ...current.informs].slice(0, 20),
-          ...(isLatest ? {
-            activeInform: inform,
-            informHistoryOpen: false,
-            selectedInform: 0,
-          } : {}),
-        } : {}),
-      });
-      if (inform && isLatest) scheduleInformHide();
+      const isLatestTurn = current.segments.at(-1)?.id === targetId;
+      const isLatest = isLatestTurn && !current.partial;
+      publish({ segments });
+      if (inform) cues.inform(inform, isLatestTurn);
+      if (settings.copilot) cues.copilot(`${targetId}-copilot`, result.suggestions, isLatest);
       logDiagnostic("LIVE", `Conversate analysis complete · Inform ${inform ? "ready" : "empty"}`);
     } catch (error) {
-      if ((error as Error).name !== "AbortError") {
+      if (!controller.signal.aborted && !(error instanceof Error && error.name === "AbortError")) {
         logDiagnostic("ERROR", "Conversate analysis failed");
       }
     } finally {
-      analysisAbort = undefined;
-      if (pendingAnalysis) {
-        pendingAnalysis = false;
-        void analyzeLatest();
+      if (analysisAbort === controller) {
+        analysisAbort = undefined;
+        if (pendingAnalysis) {
+          pendingAnalysis = false;
+          void analyzeLatest();
+        }
       }
     }
   };
 
   return {
     async start() {
-      if (disposed || session) return false;
+      if (disposed || session || stopping) return false;
+      const owner = ++epoch;
+      const isCurrent = () => !disposed && owner === epoch;
       const key = options.getKey();
       if (!key) {
         publish({ phase: "error", error: "OpenAI key required" });
         return false;
       }
+      translations?.dispose();
+      translations = createConversateTranslations({
+        segments: () => options.getSnapshot().segments,
+        request: (_segment, context, signal, partial) => requestConversateAnalysis({
+          key, model: models.analysis, locale: options.getLocale(), segments: context, signal,
+          settings: { ...options.getSettings(), inform: false, copilot: false },
+          onPartial: value => { if (value.translation) partial(value.translation); },
+        }),
+        apply: (source, translation, language) => {
+          if (!isCurrent() || !options.getSettings().translation) return;
+          publish({ segments: options.getSnapshot().segments.map(segment => segment.id === source.id && segment.text === source.text
+            ? { ...segment, ...(translation ? { translation: translation.slice(0, 500) } : {}), ...(language ? { language } : {}) } : segment) });
+        },
+        failed: () => logDiagnostic("ERROR", "Conversate translation failed"),
+      });
+      cues.dispose();
+      clock.reset();
       startedAt = new Date().toISOString();
       publish({
-        phase: "connecting", partial: "", segments: [], informs: [],
+        phase: "connecting", partial: "", partialItemId: undefined, segments: [], informs: [],
+        copilotHistory: [], activeCopilotId: undefined, copilotExpiresAt: undefined, directory: undefined, transcriptAnchor: undefined,
         activeInform: undefined, suggestions: [], selectedSuggestion: 0,
         copilotOpen: false, transcriptOffset: 0, error: undefined,
       });
@@ -170,14 +208,15 @@ export function createConversateRuntime(options: {
         key,
         locale: options.getLocale(),
         ...hints,
-        onPartial: (_itemId, text) => {
-          clearTimeout(hideTimer);
+        onModels: (selected) => { if (isCurrent()) models = selected; },
+        onPartial: (itemId, text) => {
+          if (!isCurrent()) return;
           publish({
-            partial: text.slice(-500), activeInform: undefined,
-            suggestions: [], selectedSuggestion: 0, copilotOpen: false,
+            partial: text.slice(-500), partialItemId: itemId,
           });
         },
         onCompleted: (itemId, text) => {
+          if (!isCurrent()) return;
           const current = options.getSnapshot();
           const segment: ConversateSegment = {
             id: itemId,
@@ -185,31 +224,39 @@ export function createConversateRuntime(options: {
             at: new Date().toISOString(),
           };
           publish({
-            partial: "",
-            segments: [...current.segments, segment].slice(-200),
-            suggestions: [], selectedSuggestion: 0, copilotOpen: false,
+            ...(current.partialItemId && current.partialItemId !== itemId ? {} : { partial: "", partialItemId: undefined }),
+            segments: current.segments.some(s => s.id === itemId) ? current.segments.map(s => s.id === itemId ? segment : s) : [...current.segments, segment].slice(-200),
             phase: "listening",
           });
+          if (settings.translation) translations?.enqueue(segment);
           void analyzeLatest();
         },
         onRefined: (itemId, text) => {
+          if (!isCurrent()) return;
           const current = options.getSnapshot();
           const index = current.segments.findIndex(({ id }) => id === itemId);
           if (index < 0 || current.segments[index]?.text === text) return;
           const segments = [...current.segments];
           const segment = segments[index];
           if (!segment) return;
-          segments[index] = { ...segment, text: text.slice(0, 500) };
+          const refined = { ...segment, text: text.slice(0, 500), translation: undefined };
+          segments[index] = refined;
           publish({ segments });
+          if (settings.translation) translations?.enqueue(refined);
           void analyzeLatest();
         },
-        onError: (error) => publish({ phase: "error", error }),
+        onError: (error) => {
+          if (isCurrent()) { clock.stop(); publish({ phase: "error", error }); }
+        },
       });
       try {
         await session.start();
+        if (!isCurrent()) return false;
+        clock.start();
         publish({ phase: "listening", error: undefined });
         return true;
       } catch (error) {
+        if (!isCurrent()) return false;
         const failed = session;
         session = undefined;
         await failed?.stop();
@@ -221,68 +268,61 @@ export function createConversateRuntime(options: {
       }
     },
     async stop() {
+      if (stopping) return stopping;
+      clock.reset();
       const active = session;
+      if (!active) return;
+      epoch += 1;
       session = undefined;
-      clearTimeout(hideTimer);
+      pendingAnalysis = false;
+      cues.dispose();
+      translations?.dispose();
       analysisAbort?.abort();
       analysisAbort = undefined;
-      await active?.stop();
-      const snapshot = options.getSnapshot();
-      const history = await resolveConversateHistory(options.bridge);
-      const nextHistory = options.getSettings().transcription && snapshot.segments.length
-        ? [{
-            id: `${Date.now()}-conversation`,
-            startedAt: startedAt || new Date().toISOString(),
-            endedAt: new Date().toISOString(),
-            segments: snapshot.segments,
-            informs: snapshot.informs,
-          }, ...history].slice(0, 20)
-        : history;
-      await writeConversateHistory(options.bridge, nextHistory);
-      publish({
-        phase: "idle", partial: "", history: nextHistory,
-        activeInform: undefined, suggestions: [], copilotOpen: false,
-        transcriptOffset: 0, informHistoryOpen: false, error: undefined,
+      stopping = Promise.resolve().then(async () => {
+        try {
+          await active.stop();
+          const snapshot = options.getSnapshot();
+          const history = await resolveConversateHistory(options.bridge);
+          const nextHistory = options.getSettings().transcription && snapshot.segments.length
+            ? [{
+                id: `${Date.now()}-conversation`,
+                startedAt: startedAt || new Date().toISOString(),
+                endedAt: new Date().toISOString(),
+                segments: snapshot.segments,
+                informs: snapshot.informs,
+                copilotHistory: snapshot.copilotHistory,
+              }, ...history].slice(0, 20)
+            : history;
+          await writeConversateHistory(options.bridge, nextHistory);
+          publish({
+            phase: "idle", partial: "", history: nextHistory,
+            activeInform: undefined, suggestions: [], copilotOpen: false,
+            transcriptOffset: 0, informHistoryOpen: false, error: undefined,
+          });
+        } finally {
+          stopping = undefined;
+        }
       });
+      return stopping;
     },
-    tap() {
-      const current = options.getSnapshot();
-      if (current.activeInform) {
-        clearTimeout(hideTimer);
-        publish({ activeInform: undefined });
-      } else if (current.informHistoryOpen && current.informs.length) {
-        publish({ activeInform: current.informs[current.selectedInform], informHistoryOpen: false });
-        scheduleInformHide();
-      } else if (current.copilotOpen) {
-        publish(current.informs.length
-          ? { copilotOpen: false, informHistoryOpen: true, selectedInform: 0 }
-          : { copilotOpen: false });
-      } else if (current.suggestions.length) {
-        publish({ copilotOpen: true, transcriptOffset: 0 });
-      } else if (current.informs.length) {
-        publish({ informHistoryOpen: true, selectedInform: 0 });
-      }
-    },
+    tap() { publish(tapConversateDirectory(options.getSnapshot(),options.getSettings())); },
     scroll(delta) {
-      const current = options.getSnapshot();
-      if (current.informHistoryOpen) {
-        publish({ selectedInform: clamp(current.selectedInform + delta, current.informs.length) });
-      } else if (current.copilotOpen) {
-        publish({ selectedSuggestion: clamp(
-          current.selectedSuggestion + delta,
-          current.suggestions.length,
-        ) });
-      } else {
-        publish({ transcriptOffset: clamp(
-          current.transcriptOffset - delta,
-          current.segments.length,
-        ) });
-      }
+      const current = options.getSnapshot(), directory = current.directory;
+      publish(directory ? scrollConversateDirectory(current, delta, options.getSettings(), directory.mode === "inform"
+          ? options.informLineCount?.(current.informs.find(i => i.id === directory.id)?.text ?? "") : undefined)
+        : scrollConversateTranscript(current, options.transcriptRows?.(current)
+          ?? conversateTranscriptRows(current, options.getSettings().translation), delta));
     },
     dispose() {
+      clock.reset();
       disposed = true;
-      clearTimeout(hideTimer);
+      epoch += 1;
+      pendingAnalysis = false;
+      cues.dispose();
+      translations?.dispose();
       analysisAbort?.abort();
+      analysisAbort = undefined;
       void session?.stop();
       session = undefined;
     },

@@ -42,6 +42,7 @@ export type DisplayToggle = {
 };
 
 export type ExternalRefresh = {
+  readonly canHandleBusyInput?: (input: FastCanvasInput) => boolean;
   readonly beforeExternalRefresh?: () => void | Promise<void>;
   readonly onRefreshReady?: (request: FastCanvasRefreshRequest) => void;
   readonly onNativeTextReady?: (
@@ -55,10 +56,12 @@ export type ExternalRefresh = {
 export type PageDirection = "next" | "previous";
 export type FastCanvasInput =
   | "tap"
+  | "hold-start"
+  | "hold-end"
   | "double-tap"
   | "scroll-next"
   | "scroll-previous";
-export type FastCanvasInputResult = "unhandled" | "consume" | "redraw";
+export type FastCanvasInputResult = "unhandled" | "consume" | "redraw" | "hide" | "exit";
 
 export type FastCanvasRawEvent = {
   readonly count: number;
@@ -81,7 +84,7 @@ export type FastCanvasRefreshTarget =
   | "all";
 export type FastCanvasRefreshRequest = (
   target: FastCanvasRefreshTarget,
-) => void;
+) => void | Promise<void>;
 
 export type FastCanvasNativeTextController = {
   active(): boolean;
@@ -93,6 +96,7 @@ export type FastCanvasNativeTextController = {
 };
 
 export type FastCanvasOptions = {
+  readonly canHandleBusyInput?: (input: FastCanvasInput) => boolean;
   readonly beforeExternalRefresh?: () => void | Promise<void>;
   readonly beforeRestore?: () => void | Promise<void>;
   readonly createHiddenSource?: () => HTMLCanvasElement;

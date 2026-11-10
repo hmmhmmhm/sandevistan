@@ -1,7 +1,6 @@
 import type { AiHudSnapshot } from "./ai-hud-state";
 import {
   aiHudStatusLabel,
-  localizeAiTranscriptLines,
   translateAiHud,
 } from "./ai-hud-i18n";
 import {
@@ -9,10 +8,6 @@ import {
   FAST_CANVAS_COLOR as COLOR,
 } from "./fast-canvas-style";
 import { wrapHudText } from "./fast-detail-text";
-import {
-  AI_TRANSCRIPT_VISIBLE_LINES,
-  selectAiTranscriptDisplayRows,
-} from "./ai-transcript";
 import { translatePhone } from "./phone-i18n";
 import type { PhoneLocale } from "./phone-types";
 
@@ -123,76 +118,4 @@ export function drawFastAiPanel(
   );
 }
 
-export function drawFastAiDetail(
-  context: CanvasRenderingContext2D,
-  snapshot: AiHudSnapshot,
-  selectedLine: number,
-  locale: PhoneLocale,
-) {
-  const trailingListening = snapshot.phase === "listening"
-    && !snapshot.activeTool;
-  const leadingStatus = snapshot.activeTool
-    || (snapshot.phase !== "listening" && snapshot.phase !== "displaying")
-    ? aiHudStatusLabel(snapshot, locale)
-    : undefined;
-  if (leadingStatus) {
-    drawText(
-      context,
-      leadingStatus,
-      8,
-      14,
-      14,
-      COLOR.secondary,
-      "bold",
-    );
-  }
-  const revealRows = snapshot.canRevealFullResponse ? 2 : 0;
-  const statusRows = leadingStatus || trailingListening ? 2 : 0;
-  const lines = [...localizeAiTranscriptLines(
-    selectAiTranscriptDisplayRows(
-      snapshot.transcriptLines,
-      selectedLine,
-      Math.max(1, AI_TRANSCRIPT_VISIBLE_LINES - statusRows - revealRows),
-    ),
-    locale,
-  )];
-  if (snapshot.error?.trim()) lines.push(snapshot.error.trim());
-  if (lines.length === 0 && !snapshot.configured) {
-    lines.push(snapshot.configured
-      ? translateAiHud(locale, "listening")
-      : translatePhone(locale, "aiKeyRequired"));
-  }
-  lines.forEach((line, lineIndex) => {
-    drawText(
-      context,
-      line,
-      8,
-      (leadingStatus ? 52 : 14) + lineIndex * 29,
-      21,
-      snapshot.phase === "error" ? COLOR.secondary : COLOR.primary,
-      "bold",
-    );
-  });
-  if (trailingListening) {
-    drawText(
-      context,
-      translateAiHud(locale, "listening"),
-      8,
-      274,
-      13,
-      COLOR.secondary,
-      "bold",
-    );
-  }
-  if (snapshot.canRevealFullResponse) {
-    drawText(
-      context,
-      translateAiHud(locale, "tapReveal"),
-      8,
-      274,
-      13,
-      COLOR.secondary,
-      "bold",
-    );
-  }
-}
+export { drawFastAiDetail } from "./fast-ai-detail";

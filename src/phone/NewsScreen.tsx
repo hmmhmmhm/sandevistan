@@ -1,3 +1,4 @@
+import { apiEndpoint } from "../api-endpoint";
 import { useEffect, useState, type FormEvent } from "react";
 import type { EvenStorage } from "../live-cache";
 import type { PhoneStringKey } from "../phone-i18n";
@@ -65,7 +66,7 @@ export function NewsScreen({
     try {
       const candidate = addRssSource(sources, name, url);
       const response = await fetchImpl(
-        `/api/news?url=${encodeURIComponent(candidate.at(-1)!.url)}`,
+        apiEndpoint(`/api/news?url=${encodeURIComponent(candidate.at(-1)!.url)}`),
         { headers: { accept: "application/xml,text/xml" } },
       );
       if (!response.ok) throw new Error("feed_validation");

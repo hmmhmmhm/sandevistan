@@ -13,7 +13,7 @@ type FunctionCall = {
   readonly arguments: string;
 };
 
-export type AiToolKind = "time" | "location" | "web-search" | "mcp" | "generic";
+export type AiToolKind = "time" | "location" | "weather" | "web-search" | "mcp" | "generic";
 
 export type AiActiveTool = {
   readonly id: string;
@@ -46,6 +46,7 @@ function boundedIdentifier(value: unknown, maximum = 128): string | undefined {
 }
 
 function builtinToolKind(name: string): AiToolKind {
+  if (name === "get_weather") return "weather";
   if (name === "get_current_time") return "time";
   if (name === "get_current_location") return "location";
   if (name === "search_web") return "web-search";
@@ -138,6 +139,7 @@ export function mcpApprovalResponse(id: string, approve: boolean) {
 }
 
 export function createAiRealtimeToolRunner(options: {
+  readonly fetchImpl?: typeof fetch;
   readonly locale: PhoneLocale;
   readonly now: () => Date;
   readonly getLocation: () => DataState<LocationValue>;
@@ -184,6 +186,7 @@ export function createAiRealtimeToolRunner(options: {
         try {
           const result = await executeBuiltinAiTool(call.name, call.arguments, {
             locale: options.locale,
+            fetchImpl: options.fetchImpl, signal: controller.signal,
             now: options.now,
             getLocation: options.getLocation,
             searchWeb: (query, locale) => options.searchWeb(

@@ -1,3 +1,8 @@
+import { getReleaseCopy } from "./release-i18n";
+import { aiDetailLines } from "./fast-ai-detail-style";
+import { translateHud } from "./hud-i18n";
+import { fixedHud } from "./fixed-hud-i18n";
+import { translatePhone } from "./phone-i18n";
 import type {
   Coordinate,
   DataState,
@@ -108,6 +113,7 @@ function projected(
 function mapDescriptor(
   location: DataState<LocationValue>,
   map: DataState<MapValue>,
+  locale: PhoneLocale,
 ) {
   const source = !location.value || location.value.source === "demo"
     ? "NO GPS"
@@ -125,15 +131,16 @@ function mapDescriptor(
   const layer = hasMapData
     ? map.status === "stale" ? "OSM LAST" : "OSM"
     : "NO DATA";
-  return { source, layer };
+  return { source: fixedHud(locale, source), layer: fixedHud(locale, layer) };
 }
 
 function mapHeader(
   location: DataState<LocationValue>,
   map: DataState<MapValue>,
+  locale: PhoneLocale,
 ) {
-  const { source, layer } = mapDescriptor(location, map);
-  return `LOC // ${source} · ${layer}`;
+  const { source, layer } = mapDescriptor(location, map, locale);
+  return `${translatePhone(locale, "location")} // ${source} · ${layer}`;
 }
 
 function drawRoads(
@@ -263,6 +270,7 @@ function drawFooter(
   route: DataState<RouteValue>,
   radiusMeters: number,
   mapStatus: "ready" | "NO GPS DATA" | "NO DATA",
+  locale: PhoneLocale,
 ) {
   context.fillStyle = COLOR.background;
   context.fillRect(12, 250, 264, 25);
@@ -272,13 +280,13 @@ function drawFooter(
   const status = mapStatus !== "ready"
     ? mapStatus
     : active
-    ? `ROUTE ${(active.remainingDistance / 1_000).toFixed(1)}km`
+    ? `${translatePhone(locale, "navigation")} ${(active.remainingDistance / 1_000).toFixed(1)}km`
     : map.status === "fresh"
       ? "OSM LIVE"
       : map.status === "stale"
         ? "OSM LAST"
         : "NO DATA";
-  drawText(context, status, 18, 256, 10, COLOR.primary, "bold");
+  drawText(context, fixedHud(locale, status), 18, 256, 10, COLOR.primary, "bold");
   drawText(
     context,
     `Z // ${radiusMeters}m`,
@@ -288,6 +296,10 @@ function drawFooter(
     COLOR.secondary,
     "bold",
   );
+  if (map.value?.tileSource === "openmaptiles") {
+    drawText(context, "© OPENMAPTILES · © OSM CONTRIBUTORS", 18, 268, 8, COLOR.secondary, "bold");
+    return;
+  }
   drawText(
     context,
     "© OSM CONTRIBUTORS",
@@ -329,12 +341,17 @@ function drawMapStatus(
   context: CanvasRenderingContext2D,
   viewport: MapLabelViewport,
   status: "NO GPS DATA" | "NO DATA",
+  locale: PhoneLocale,
 ) {
   context.fillStyle = COLOR.primary;
   context.font = 'bold 18px "SFMono-Regular", Consolas, monospace';
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(status, viewport.centerX, viewport.centerY);
+  context.fillText(fixedHud(locale, status), viewport.centerX, viewport.centerY);
+  const hint = status === "NO GPS DATA" ? getReleaseCopy(locale, "locationSetupHint") : translateHud(locale, "retryConnected");
+  const lines = aiDetailLines(context, hint, 11, viewport.maxX - viewport.minX - 20, 3);
+  context.font = '11px "SFMono-Regular", Consolas, monospace';
+  lines.forEach((line, index) => context.fillText(line, viewport.centerX, viewport.centerY + 27 + index * 14));
 }
 
 function drawMapLayers(
@@ -347,7 +364,7 @@ function drawMapLayers(
 ): MapAreaState {
   const area = mapAreaState(live);
   if (area.status !== "ready") {
-    drawMapStatus(context, viewport, area.status);
+    drawMapStatus(context, viewport, area.status, locale);
     return area;
   }
 
@@ -379,7 +396,7 @@ export function drawFastMap(
   drawFrame(context);
   drawText(
     context,
-    mapHeader(live.location, live.map),
+    mapHeader(live.location, live.map, locale),
     18,
     16,
     11,
@@ -394,7 +411,7 @@ export function drawFastMap(
     10,
     locale,
   );
-  drawFooter(context, live.map, live.route, radiusMeters, area.status);
+  drawFooter(context, live.map, live.route, radiusMeters, area.status, locale);
 }
 
 export function drawFastFullscreenMap(
@@ -418,7 +435,7 @@ export function drawFastFullscreenMap(
     18,
     locale,
   );
-  const { source, layer } = mapDescriptor(live.location, live.map);
-  drawFullscreenMapHeader(context, source, layer, radiusMeters);
-  drawFullscreenMapFooter(context);
+  const { source, layer } = mapDescriptor(live.location, live.map, locale);
+  drawFullscreenMapHeader(context, source, layer, radiusMeters, locale);
+  drawFullscreenMapFooter(context, live.map.value?.tileSource, locale);
 }

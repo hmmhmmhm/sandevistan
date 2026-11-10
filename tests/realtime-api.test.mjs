@@ -64,13 +64,13 @@ test("mints and returns only a bounded ephemeral secret", async () => {
   assert.deepEqual(await response.json(), {
     value: "ek_test_safe_ephemeral",
     expiresAt: 1_786_000_000,
-    model: "gpt-realtime",
+    model: "gpt-realtime-2.1",
   });
   assert.equal(upstreamRequest.url,
     "https://api.openai.com/v1/realtime/client_secrets");
   assert.equal(upstreamRequest.init.headers.Authorization, `Bearer ${KEY}`);
   assert.deepEqual(JSON.parse(upstreamRequest.init.body), {
-    session: { type: "realtime", model: "gpt-realtime" },
+    session: { type: "realtime", model: "gpt-realtime-2.1" },
   });
 });
 
@@ -103,4 +103,12 @@ test("returns a generic timeout without retrying", async () => {
   assert.equal(response.status, 504);
   assert.equal(calls, 1);
   assert.equal((await response.json()).error.code, "OPENAI_TOKEN_TIMEOUT");
+});
+
+test("rejects oversized token request bodies before contacting OpenAI", async () => {
+  const response = await handleRealtimeTokenRequest(new Request(request(), {
+    body: JSON.stringify({ purpose: "transcription", padding: "x".repeat(5_000) }),
+  }), {}, { fetchImpl: () => assert.fail("must reject before upstream") });
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error.code, "OPENAI_TOKEN_REQUEST_INVALID");
 });

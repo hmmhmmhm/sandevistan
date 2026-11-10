@@ -10,7 +10,7 @@ export const soLocale = {
   "phone": {
     "back": "Dib u noqo",
     "backToDashboard": "Ku laabo Dashboard-ka",
-    "dashboard": "Dashboard",
+    "dashboard": "Guddi",
     "devices": "Aaladaha",
     "hudLayout": "HUD qaabeynta",
     "news": "Wararka",
@@ -48,7 +48,7 @@ export const soLocale = {
     "taskTitle": "Cuqaal Hawsha",
     "addSource": "Ku dar isha RSS",
     "sourceName": "Magaca xiga",
-    "sourceUrl": "HTTPS RSS URL",
+    "sourceUrl": "URL-ka HTTPS RSS",
     "orsKey": "OpenRoute Service Furaha",
     "validateKey": "xaqiiji furaha",
     "deleteKey": "furaha tirtir",
@@ -164,7 +164,7 @@ export const soLocale = {
     "drizzle": "Dhulka",
     "rain": "Roob",
     "snow": "Baraf",
-    "showers": "Showers",
+    "showers": "Roob goos-goos ah",
     "snowShowers": "Roob baraf ah",
     "thunderstorm": "Duufaanta onkod"
   },

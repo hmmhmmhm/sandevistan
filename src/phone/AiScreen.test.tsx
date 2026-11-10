@@ -71,27 +71,18 @@ describe("AiScreen", () => {
     expect(screen.getAllByText(/Answer [1-3]/)).toHaveLength(3);
   });
 
-  it("changes the live response interval and warns about unpriced usage", () => {
-    const onTextIntervalChange = vi.fn();
+  it("omits the obsolete character-speed control and warns about unpriced usage", () => {
     render(
       <AiScreen
         snapshot={{
           ...createAiHudSnapshot(true, [], 0.01, 0.03),
           hasUnpricedUsage: true,
         }}
-        textIntervalMs={200}
         t={(name) => translatePhone("en", name)}
-        onTextIntervalChange={onTextIntervalChange}
       />,
     );
 
-    const slider = screen.getByLabelText("Response display speed");
-    expect(slider.getAttribute("min")).toBe("100");
-    expect(slider.getAttribute("max")).toBe("1000");
-    expect(slider.getAttribute("step")).toBe("50");
-    fireEvent.change(slider, { target: { value: "350" } });
-    expect(onTextIntervalChange).toHaveBeenCalledWith(350);
-    expect(screen.getByText("350 ms per character")).toBeTruthy();
+    expect(screen.queryByLabelText("Response display speed")).toBeNull();
     expect(screen.getByText("Some usage could not be priced.")).toBeTruthy();
   });
 

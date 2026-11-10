@@ -1,5 +1,11 @@
 # Prototype Instructions
 
+## Repository workflow
+
+- The owner requires all development on `main` (2026-11-08). Do not create
+  feature branches or worktrees. Keep changes local until publication is
+  separately authorized.
+
 Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.
 
 Before making substantial visual changes, use the Product Design plugin's `get-context` skill when the visual source is unclear or no longer matches the current goal. When the user gives durable prototype-specific design feedback, preferences, or decisions, record them in `AGENTS.md`.
@@ -9,6 +15,11 @@ When implementing from a selected generated mock, treat that image as the source
 Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts/prepare-sites-build.mjs`, and `tests/sites-worker.test.mjs` intact so the same local prototype can be handed to Sites. Before a Sites handoff, run `npm run build` and `npm run test:sites`; the build must leave `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
 
 ## Sandevistan design direction
+
+- Before implementing a UI redesign, present the visual design to the owner
+  and obtain explicit approval (2026-11-08). A request to explore a direction
+  is not approval of a specific layout. Keep unapproved previews separate
+  from completed product changes.
 
 - The selected visual target is `docs/design/selected-peripheral-focus.png`.
 - Preserve a mostly empty center so the real world remains readable.
@@ -75,11 +86,13 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
   language plus up to six validated user-added HTTPS feeds through the
   Sandevistan Worker, and OSM-derived road geometry rendered by Sandevistan's
   own Canvas code.
-- SDK `0.0.13` with Even App `2.2.6` and updated firmware passed bilateral
-  startup, paging, detail, and hide/restore checkpoints, but later hardware
-  use raised intermittent compression-stability concerns. Pin active builds to
-  the proven SDK `0.0.11` fallback while retaining commit `1a364bd` as the
-  pre-fallback `0.0.13` comparison point.
+- Historical SDK `0.0.13` hardware testing raised intermittent compression
+  concerns, leading to the `0.0.11` fallback. At the owner's 2026-11-08 request,
+  the maintenance candidate now pins SDK `0.0.16`, CLI `0.2.0`, and minimum
+  Even App `2.2.10`. Keep SDK-managed compression and the existing four-call
+  pipeline; do not claim physical validation until a new G2 pass. Preserve
+  `7d68cb9` as the pre-upgrade fallback and `1a364bd` as the older `0.0.13`
+  comparison point. See `docs/maintenance/2026-11-08-sdk-audit.md`.
 - Preserve the unchanged
   `0.0.12-reproduce` branch as the historical compressed-image failure sent to
   Even Realities. Do not describe the reproduction branch as the current host
@@ -229,42 +242,27 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
   turn detection to semantic VAD, render user transcription and streamed AI
   text on the glasses, and stop the microphone and session immediately when
   leaving the detail deck.
-- Render the Ask AI detail deck with one full-screen official Even Hub Text
-  container. Rebuild once on entry, use `textContainerUpgrade` for combined
-  user/listening updates at a queue-free 100 ms sampling cadence, acknowledge
-  each assistant-grapheme update before starting its next 200 ms default delay,
-  suppress image refreshes while the native page is active, and rebuild/send
-  the established four-tile Canvas dashboard once on exit. Before that image
-  rebuild, neutralize the frequently updated AI Text page with the proven
-  blank event page. Wait a fixed 1 s for that neutral page before rebuilding
-  the five-container image page, then wait another fixed 200 ms before encoding
-  and sending IDs 3/5/2/4. Apply these two page-installation barriers only to
-  Ask AI exit, keep dropping late Text upgrades throughout them, and do not add
-  retries, queued refreshes, or forced tile resends.
-- Keep Ask AI microphone ownership session-scoped: a normal detail tap flushes
-  an already-complete answer or cancels an active Realtime response, reveals
-  its received partial text, and resumes listening without closing the
-  microphone. Double tap is the only exit and performs best-effort microphone
-  cleanup without blocking Canvas restoration. Pace assistant presentation at
-  one Unicode grapheme every 200 ms by default, keep authoritative Realtime state and
-  persistence unthrottled, preserve the visible grapheme cursor when Realtime
-  archives a completed response into conversation history or expands that
-  archived response with late final text. Serialize a tap flush behind any SDK
-  text update already in flight, emit only the newest complete target, ignore
-  late deltas from the cancelled response, and localize every visible native
-  detail string across all 180 locales.
-- Keep the Ask AI detail view deliberately plain: no title, frame, phase
-  header, page counter, or footer instructions. Show only the rolling
-  localized conversation and a short localized `Listening…` line when
-  applicable. Never show the response-pacing `Displaying response…` phase;
-  append `Thinking…`, active tool status such as `Web search…`, and
-  `Listening…` after the conversation instead of above it. Use one trailing
-  activity slot, the full native text width for wrapping, and add exactly one
-  blank display row whenever the speaker changes and immediately before a
-  trailing `Listening…` status, without making either spacer a scroll target.
-  Follow the newest line by default and move exactly one
-  conversation line per glasses scroll gesture; never reintroduce transcript
-  pages.
+- The owner approved the revision-02 image design on 2026-11-08. Render Ask AI
+  and Conversate details on the existing 576 x 288 Canvas, split into the same
+  four 288 x 144 image tiles, using IDs 3/5/2/4 and unchanged-payload skipping.
+  Keep the image page installed on entry, updates, and exit; the native-text
+  page transition and its neutral-page delays are historical diagnostics.
+- Match `output/canvas-ai-design-2026-11-08/revision-02/`: open-corner speaker
+  blocks, compact localized header/status, 18 px Ask AI body, 17 px Conversate
+  caption, 16 px translation/reply, and 15 px Inform with up to four lines.
+  Keep smaller 9–12 px labels/status/meaning. Inform must leave room for the
+  caption, translation, and Copilot preview without overlapping them.
+- Keep authoritative AI state and persistence unthrottled. Present one Unicode
+  grapheme every 200 ms by default, awaiting image transmission before the next
+  delay. Refresh all four tile candidates in AI detail modes; unchanged images
+  are skipped. Do not add image retries, queued image payloads, or forced resends.
+- Follow the newest conversation line automatically. A manual history scroll
+  moves one line and pins that position until the newest line is reached.
+  Keep microphone ownership session-scoped. Tap flushes a completed answer or
+  cancels active generation while keeping the microphone open; double tap exits
+  and stops it. Preserve MCP approval and localized errors in the image layout.
+- Keep map/weather/news background updates from redrawing AI detail screens.
+  Dashboard and navigation retain their existing image refresh contracts.
 - Treat the OpenAI key as BYOK. Accept it only in the phone companion, persist
   it only in Even local storage, and use it from the packaged WebView only to
   mint a short-lived Realtime client secret directly from OpenAI. This
@@ -277,3 +275,161 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
   approval for every MCP call. While approval is pending, one glasses tap
   approves; double tap rejects before leaving Ask AI. Never auto-approve,
   proxy, log, or server-persist user MCP credentials or traffic.
+
+## AI verification and model policy (2026-11-08)
+
+- The owner explicitly authorized live OpenAI checks with their supplied key,
+  latest compatible models, and TTS audio injection. Never commit, print, or
+  persist that supplied test key; the live verifier reads stdin into memory.
+- Use current account model discovery at each new AI session, selecting the
+  latest compatible role family (Luna analysis, Sol search, Realtime speech).
+  Keep transcription on current undated aliases. Do not select dated snapshots
+  or incompatible APIs just because their creation timestamp is newer.
+- For serverless Private Builds, BYOK search and Conversate analysis call
+  OpenAI Responses directly using the shared bounded request handlers. This
+  expands the older client-secret-only flow for these owner-requested features.
+- Verify synthetic audio through the SDK PCM event boundary, including
+  translation and automatic Cues while speech continues. Preserve the transcript
+  as the main display, with one timed Inform and a compact Copilot preview.
+
+## Ask AI voice input verification
+
+- Ground Ask AI replies in the final caption: keep semantic VAD, wait for
+  transcription completion, replace the raw audio conversation item in place
+  with its text, and request one response for the active, uncancelled turn.
+  Do not restore automatic raw-audio answers without comparing caption and
+  answer meaning on the same synthetic input.
+- Wait for the Realtime configuration acknowledgement before enabling audio.
+  Exit must invalidate pending startup and late callbacks. Show transcription
+  and generation failures as errors rather than a completed empty answer.
+- Synthetic microphone tests must keep silence frames flowing after speech;
+  the current fixture supplies six seconds for semantic VAD's default maximum
+  wait. A stream halted after two seconds reproduced a missing endpoint.
+- Use account-selected current refinement models for Ask AI final captions.
+  The `gpt-live-transcribe` comparison degraded Korean name/follow-up samples;
+  keep that experiment distinct from Conversate's streaming caption model.
+- See `docs/maintenance/2026-11-08-ask-ai-focus.md` for actual native captures,
+  semantic test results, and the remaining Korean proper-name limitation.
+
+Approved image HUD verification (2026-11-08): see
+`docs/maintenance/2026-11-08-canvas-ai-implementation.md`. The final voice run
+used all four image IDs with no native Text updates or page rebuilds. Do not
+interpret simulator acknowledgement or synthetic audio as physical G2 approval.
+
+Ask AI usability correction approved (2026-11-08): the owner selected displayed
+option 2 in `output/ask-ai-readiness-design-2026-11-08/option-2.png`.
+Use a prominent persistent top status band and the existing dialogue below it.
+Listening must mean microphone activation succeeded. Replace character-by-
+character presentation with received-text batches. Keep logical double-tap exit
+responsive during image sends; wait only for the active transfer before painting
+the latest dashboard, without queuing encoded images. Stop session ownership
+immediately and let microphone acknowledgements/persistence finish independently.
+Bound stalled post-speech/response waits, preserving explicit MCP approval time.
+This supersedes the earlier one-grapheme-per-200ms production rule for Ask AI.
+
+
+## Dual transcription and session clocks (2026-11-08)
+
+The owner explicitly requested Conversate-style dual voice models for Ask AI.
+This supersedes the earlier instruction to keep its live-model experiment separate.
+Keep gpt-live-transcribe for provisional captions and gpt-transcribe for final
+refinement. Share the same PCM and semantic-VAD commit boundaries. Only final
+refinement may create the user text input and one answer; late provisional
+captions must not overwrite final or newer turns. Acknowledge both configurations
+before opening the microphone, close both on exit, and surface secondary failures.
+Mark any unpriced secondary transcription in the local cost estimate.
+
+Show elapsed microphone session time and current local time in both AI headers.
+Start elapsed time after successful activation, count silence and response waits,
+exclude connection setup, and reset on exit. Use monotonic elapsed time and a
+one-second refresh without image queues. Conversate shows prominent initial
+readiness until its first caption, then restores the existing primary transcript.
+
+## Hold-to-speak Ask AI (2026-11-08)
+
+The owner explicitly replaced continuous Ask AI listening with SDK long press
+and release (event types 9/10) from ring or glasses. This supersedes automatic
+semantic-VAD turn boundaries in production Ask AI. Keep the microphone closed
+before a hold and after release, show provisional captions only from held PCM,
+commit once on release, and answer only from final refinement. Wait for both
+model configurations before capture. Never drop either hold edge during an image
+send. Guard release-before-activation and a new hold before the prior microphone
+close acknowledgement. Discard empty holds. A hold timeout discards rather than
+auto-sends. Keep double-tap exit and explicit MCP approval. The elapsed recording
+clock accumulates only held microphone time; the local clock continues while idle.
+
+Conversate follow-up investigation: current rendering shows only the latest turn,
+new speech clears Copilot, and Inform duration is separate from record retention.
+The owner requested cumulative per-line transcript scrolling, cue countdowns and
+a directory for prior Inform and Copilot. Preserve transcription during cue and
+history navigation. The owner approved the fixed-region preview and directory interaction on
+2026-11-08. Match output/conversate-history-design-2026-11-08/live.png, keeping
+four transcript rows fixed while cues and history change. Preserve both cue
+histories after automatic expiry and show remaining time on live cards. See docs/superpowers/specs/2026-11-08-ask-hold-conversate-history.md.
+
+
+Conversate directory completion (2026-11-08): this supersedes the earlier rule to
+clear Copilot whenever new speech begins. Keep fixed four-row caption geometry,
+one-wrapped-row scrolling and stable historical anchors. Live cue expiry only
+hides cards; keep bounded Inform and Copilot records for directory reopening and
+local persistence. Use the existing cue duration for both countdowns. Preserve
+current captions while opening a record and while new audio arrives. Historical
+cards do not auto-expire. A click opens the directory, scroll selects, click opens,
+and click again returns to live; double tap exits. Framebuffer PNGs encode the
+foreground in alpha against green RGB, so inspect alpha before diagnosing a blank
+simulator display. See docs/maintenance/2026-11-08-conversate-history-complete.md.
+
+Ask AI follow-up correction (2026-11-08): do not cancel a completed retained
+response when a new hold begins. Ignore a no-active-response cancellation error
+only when it matches this session's own cancellation event. Preserve every received
+AI detail scroll step during image/encoding work while coalescing only repaint.
+Use the bounded named-city weather tool for weather requests and keep current
+modeled precipitation separate from future rain probability. Conversate cue analysis
+retains 24 turns, translation-only analysis eight; resolve references and latest
+corrections while translating only the current utterance. The answer-position
+scrollbar/footer is preview-only until separately approved. See
+`docs/maintenance/2026-11-08-ask-followup-context.md`.
+
+Answer-position design approved (2026-11-09): the owner approved the displayed
+Ask AI scrollbar and footer and requested deployment. This supersedes the prior
+preview-only restriction. Match the right-edge track and show the actual visible
+source-line range, total, and counts above/below after speaker-block cropping.
+Display the localized end label at the bottom and retain the existing Back hint.
+
+Phone theme and device imagery approved (2026-11-09): the owner approved the
+charcoal dark/light theme and official G2/R1 image direction, requesting smaller,
+non-overlapping product images on Home. Keep the large device-detail imagery.
+Offer Auto/Light/Dark, persist the selection in Even local storage, and follow
+prefers-color-scheme in Auto. Theme changes affect the phone companion only;
+keep the glasses canvas and transport unchanged. Show only received per-device
+battery/charging telemetry; unknown readings are unavailable, not zero or copied
+from the other device. The SDK's OS-owned global brightness is unavailable to
+app control, so omit an app brightness slider as requested. See
+`docs/maintenance/2026-11-09-phone-theme-implementation.md`.
+
+Public-release assessment (2026-11-09): Private 0.2.6 is uploaded and verified,
+but Public submission is not approved by the readiness review. Dashboard double
+tap currently hides/restores the image page; the current official reviewer guide
+requires a root exit path to shutDownPageContainer(1). Preserve detail Back behavior
+and do not silently replace the hardware-proven hide interaction without designing
+the release exit flow. Latest physical Beta lock/background and exit-cancel checks
+remain outstanding; a simulator pass is not their substitute. See
+`docs/maintenance/2026-11-09-public-release-readiness.md` for the current assessment,
+including privacy/onboarding, provider operations and listing gates. Historical
+hardware readiness records retain their original SDK/version scope.
+
+Public submission preparation approved (2026-11-09): the owner selected icon
+option 2 (peripheral-focus corners), approved the shown missing-key guidance and
+root quick menu, excluded X/Twitter, and requested Public submission. Root double
+tap now opens Hide / Exit / Return with Return selected; Exit must invoke the
+system confirmation via shutDownPageContainer(1). Detail double tap remains Back.
+This supersedes dashboard double-tap display-toggle-only behavior. Preserve the
+separate Hide action and four-tile transport. Do not include reviewer model labels
+in owner-facing handoffs. External posting copy still needs its final draft approval.
+
+Packaged network capability (2026-11-09): the official networking guide enforces
+exact origins and does not allow wildcard whitelist entries. Custom MCP settings
+are development-only until a reviewed fixed-origin integration exists. Production
+builds must neither show the custom-server editor nor read/use saved MCP server
+credentials. Preserve local settings rather than deleting them. See
+https://hub.evenrealities.com/docs/build/networking .

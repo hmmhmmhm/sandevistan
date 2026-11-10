@@ -85,7 +85,7 @@ function normalizedName(raw) {
     .replace(/\s+/g, " ")
     .trim();
   if (!clean) return null;
-  return [...clean].slice(0, MAX_LABEL_CODE_POINTS).join("");
+  return [...clean].slice(0, MAX_LABEL_CODE_POINTS).join("").trimEnd();
 }
 
 function normalizedNames(tags) {
@@ -196,7 +196,7 @@ function normalizedLabels(elements) {
   return labels;
 }
 
-function normalizeMapPayload(payload, cell) {
+export function normalizeMapPayload(payload, cell) {
   const elements = Array.isArray(payload?.elements) ? payload.elements : [];
   const candidates = elements.map(normalizedRoad).filter(Boolean);
   candidates.sort((left, right) => {
@@ -284,7 +284,7 @@ export async function handleMapRequest(
       body: new URLSearchParams({
         data: buildOverpassQuery(latitude, longitude),
       }),
-      redirect: "error",
+      redirect: "manual",
       signal: timeout.signal,
     });
     if (!upstream.ok) {

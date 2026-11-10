@@ -1,0 +1,14 @@
+{
+  "version": "0.2.2",
+  "bytes": 2193110,
+  "sha256": "d812fa96a3538e94154994a2e7d10fffe2656b03e6881e718547812c0cd68181",
+  "status": "uploaded-and-verified",
+  "liveVerification": "output/ask-ai-live-2026-11-08/result.json",
+  "bundleKeyPatterns": 0,
+  "visibility": "Private",
+  "changelogApproved": true,
+  "changelogVerified": true,
+  "verifiedAt": "2026-11-08T07:51:03.040371+00:00",
+  "evidence": "output/ask-ai-live-2026-11-08/evenhub-022-confirmed.txt",
+  "browserSessionsRemaining": 0
+}

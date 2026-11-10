@@ -1,0 +1,74 @@
+{
+  "version": "0.2.7",
+  "package_id": "com.hmmhmmhm.sandevistan",
+  "status": "public-review-submitted-in-review",
+  "package": {
+    "version": "0.2.7",
+    "sdk": "0.0.16",
+    "path": "sandevistan.ehpk",
+    "bytes": 2695139,
+    "sha256": "622a1c8fb81b162dd8186a5467b8fb4350a61d9224bedfdc6aff3c9c721f2f55",
+    "credentialPatternScan": "passed",
+    "testFixturesInPackage": false,
+    "status": "uploaded-and-verified-private",
+    "clientFiles": 9,
+    "portalEvidence": "output/public-release-prep-2026-11-09/work/portal-build-027-uploaded.txt"
+  },
+  "store": {
+    "screenshots": [
+      "new-york-overview-native-raw.png",
+      "new-york-news-native-raw.png"
+    ],
+    "screenshotSize": [
+      576,
+      288
+    ],
+    "alphaPreserved": true,
+    "coverEnvironment": "Exterior / City",
+    "icon": "approved direction 2 / 24x24",
+    "tagline": "Maps, news, tasks and optional AI on your glasses.",
+    "descriptionLocale": "en",
+    "category": "Productivity"
+  },
+  "publicReviewSubmitted": true,
+  "published": false,
+  "pending": [
+    "Even Hub review decision"
+  ],
+  "chromeUseAuthorizedForThisPublicSubmission": true,
+  "storeReadbackEvidence": [
+    "output/public-release-prep-2026-11-09/work/portal-store-saved.txt",
+    "output/public-release-prep-2026-11-09/work/portal-store-saved.png"
+  ],
+  "cloudflareLogin": "Authenticated; API deployed and live verification completed; owned window closed",
+  "ownedBrowserClosed": true,
+  "newsCarouselTransitionCapture": "output/public-release-prep-2026-11-09/work/portal-news-transition.png",
+  "newsCarouselTransitionNote": "Captured during carousel animation; evidence of the second stored item, not a stable full news composition.",
+  "ownerApprovedPublicContact": {
+    "developerName": "arasaka",
+    "email": "hmmhmhmmhmhmm@gmail.com"
+  },
+  "publicContactSaved": true,
+  "additionalContactRequirements": [],
+  "contactAddressVisibility": "unconfirmed: neither public exposure nor internal-only handling established",
+  "addressVisibilityEvidence": "output/public-release-prep-2026-11-09/work/address-visibility-evidence.json",
+  "addressSubmitted": true,
+  "supportInquirySent": false,
+  "addressProvided": true,
+  "addressStoredInReleaseRecord": false,
+  "privacyDocumentGenerated": true,
+  "portalRequiredChecklistComplete": true,
+  "selectedReviewBuild": "0.2.7",
+  "contactReadbackEvidence": "output/public-release-prep-2026-11-09/work/contact-saved-verification.json",
+  "portalReadbackEvidence": "output/public-release-prep-2026-11-09/work/portal-public-in-review.txt",
+  "blockingRequirements": [],
+  "apiDeployed": true,
+  "latestApiBaseline": "output/public-release-prep-2026-11-09/work/api-baseline-client-validation.json",
+  "postDeploymentVerifier": "scripts/verify-public-api-live.mjs",
+  "apiDeploymentVersion": "579dc215-137c-438c-b6ce-62fc97c3f722",
+  "apiLiveEvidence": "output/public-release-prep-2026-11-09/work/api-after-refresh.json",
+  "apiRateLimitEvidence": "output/public-release-prep-2026-11-09/work/api-rate-preview-result.json",
+  "submittedAtPortal": "Nov 9, 2026 at 7:51 PM",
+  "reviewStatus": "In review",
+  "telephoneSavedInPortal": true
+}

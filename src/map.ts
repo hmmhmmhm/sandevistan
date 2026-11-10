@@ -1,3 +1,4 @@
+import { apiEndpoint } from "./api-endpoint";
 import { readCache, writeCache, type EvenStorage } from "./live-cache";
 import type {
   Coordinate,
@@ -98,6 +99,7 @@ function isMapValue(value: unknown): value is MapValue {
   if (
     !isRecord(value)
     || value.attribution !== "© OSM CONTRIBUTORS"
+    || (value.tileSource !== undefined && value.tileSource !== "openmaptiles")
     || typeof value.cell !== "string"
     || !Array.isArray(value.roads)
     || value.roads.length > MAP_MAX_ROADS
@@ -126,6 +128,7 @@ function isMapCache(value: unknown): value is MapCache {
 function cloneMapValue(value: MapValue): MapValue {
   return {
     cell: value.cell,
+    ...(value.tileSource && { tileSource: value.tileSource }),
     attribution: "© OSM CONTRIBUTORS",
     roads: value.roads.map((road) => ({
       kind: road.kind,
@@ -167,6 +170,7 @@ export function parseMapResponse(input: unknown): MapValue {
   if (
     !isRecord(input)
     || input.attribution !== "© OSM CONTRIBUTORS"
+    || (input.tileSource !== undefined && input.tileSource !== "openmaptiles")
     || typeof input.cell !== "string"
     || !Array.isArray(input.roads)
     || input.roads.length > MAP_MAX_ROADS
@@ -239,6 +243,7 @@ export function parseMapResponse(input: unknown): MapValue {
 
   return {
     cell: input.cell,
+    ...(input.tileSource === "openmaptiles" && { tileSource: input.tileSource }),
     attribution: "© OSM CONTRIBUTORS",
     roads,
     labels,
@@ -319,8 +324,8 @@ export async function resolveMap(
   );
   try {
     const response = await fetchImpl(
-      `/api/map?lat=${encodeURIComponent(requestCoordinate.latitude)}` +
-      `&lng=${encodeURIComponent(requestCoordinate.longitude)}`,
+      apiEndpoint(`/api/map?lat=${encodeURIComponent(requestCoordinate.latitude)}` +
+      `&lng=${encodeURIComponent(requestCoordinate.longitude)}`),
       {
         headers: { accept: "application/json" },
         signal: controller.signal,

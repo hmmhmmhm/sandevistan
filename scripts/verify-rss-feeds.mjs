@@ -1,3 +1,4 @@
+import { writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { BUILT_IN_RSS_FEEDS } from "../server/news-feeds.js";
 
@@ -135,6 +136,8 @@ async function main() {
       );
     }
   }
+  const report=process.argv.find(value=>value.startsWith("--json-report="))?.slice("--json-report=".length);
+  if(report) await writeFile(report,JSON.stringify(results,null,2));
   const passed = results.filter(({ ok }) => ok).length;
   const failed = results.length - passed;
   console.log(`${passed} passed, ${failed} failed`);

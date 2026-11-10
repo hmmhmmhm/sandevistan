@@ -1,0 +1,40 @@
+{
+  "status": "draft-owner-review-required",
+  "name": "SANDEVISTAN",
+  "locales": {
+    "ko": {
+      "shortDescription": "안경에서 지도·뉴스·할 일과 선택형 AI를 확인하세요.",
+      "description": "SANDEVISTAN은 일상 정보를 한눈에 보여주는 안경 대시보드입니다. 지도, 날씨, RSS 뉴스와 할 일을 확인하고, 원하는 경우 개인 API 키로 AI에게 묻기와 Conversate의 자막·번역·대화 힌트를 사용할 수 있습니다. AI 사용료는 본인 OpenAI 계정에 청구되며, 길찾기는 별도 OpenRouteService 키가 필요합니다. 기본 지도·날씨·뉴스·할 일은 OpenAI 키 없이 사용할 수 있습니다."
+    },
+    "en": {
+      "shortDescription": "Maps, news, tasks and optional AI on your glasses.",
+      "description": "SANDEVISTAN puts everyday information in a glanceable glasses dashboard. Check maps, weather, RSS news and tasks. With your own API key, Ask AI and Conversate add captions, translation and conversation hints. AI usage is billed to your OpenAI account. Turn-by-turn routing requires a separate OpenRouteService key. Basic maps, weather, news and tasks need no OpenAI key."
+    },
+    "de": {
+      "shortDescription": "Karten, News, Aufgaben und KI auf Ihrer Brille.",
+      "description": "SANDEVISTAN zeigt Karten, Wetter, RSS-Nachrichten und Aufgaben auf der Brille. Mit einem eigenen API-Schlüssel bieten Ask AI und Conversate Untertitel, Übersetzungen und Gesprächshinweise. KI-Nutzung wird Ihrem OpenAI-Konto berechnet. Die Routenführung benötigt einen separaten OpenRouteService-Schlüssel. Grundfunktionen benötigen keinen OpenAI-Schlüssel."
+    },
+    "fr": {
+      "shortDescription": "Cartes, actualités, tâches et IA sur vos lunettes.",
+      "description": "SANDEVISTAN affiche cartes, météo, actualités RSS et tâches sur vos lunettes. Avec votre clé API, Ask AI et Conversate proposent sous-titres, traductions et conseils de conversation. L'utilisation de l'IA est facturée sur votre compte OpenAI. Le guidage nécessite une clé OpenRouteService distincte. Les fonctions de base ne nécessitent pas de clé OpenAI."
+    },
+    "es": {
+      "shortDescription": "Mapas, noticias, tareas e IA en tus gafas.",
+      "description": "SANDEVISTAN muestra mapas, tiempo, noticias RSS y tareas en tus gafas. Con tu propia clave API, Ask AI y Conversate ofrecen subtítulos, traducciones y sugerencias para conversar. El uso de IA se cobra en tu cuenta de OpenAI. La navegación requiere una clave independiente de OpenRouteService. Las funciones básicas no requieren una clave de OpenAI."
+    },
+    "it": {
+      "shortDescription": "Mappe, notizie, attività e IA sugli occhiali.",
+      "description": "SANDEVISTAN mostra mappe, meteo, notizie RSS e attività sugli occhiali. Con una chiave API personale, Ask AI e Conversate offrono sottotitoli, traduzioni e suggerimenti per le conversazioni. L'uso dell'IA viene addebitato al proprio account OpenAI. La navigazione richiede una chiave OpenRouteService separata. Le funzioni di base non richiedono una chiave OpenAI."
+    },
+    "ja": {
+      "shortDescription": "地図・ニュース・タスクと任意のAI支援をメガネで確認。",
+      "description": "SANDEVISTANは地図、天気、RSSニュース、タスクを表示する メガネ用ダッシュボードです。個人のAPIキーを登録すると、Ask AIと Conversateで字幕、翻訳、会話のヒントを利用できます。AIの利用料は ご自身のOpenAIアカウントに請求されます。経路案内には別途 OpenRouteServiceのキーが必要です。基本機能にOpenAIキーは不要です。"
+    },
+    "zh": {
+      "shortDescription": "在眼镜上查看地图、新闻、待办事项及可选AI辅助。",
+      "description": "SANDEVISTAN在眼镜上集中显示地图、天气、RSS新闻和待办事项。 注册个人API密钥后，可通过Ask AI和Conversate使用字幕、翻译及对话提示。 AI费用由您自己的OpenAI账户承担。路线导航需要单独的OpenRouteService密钥。 基本地图、天气、新闻和待办功能不需要OpenAI密钥。"
+    }
+  },
+  "version": "0.2.7",
+  "changelog": "Add on-glasses key setup and phone issuance links. Add Hide/Exit/Return menu and the approved monochrome icon. Fix key registration, deletion and shutdown races. Localize missing interface copy, preserve RSS selections during feed migration, and clarify AI data use and provider attribution. Custom MCP is disabled in the public build."
+}

@@ -1,7 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import type { EvenHubEvent } from "@evenrealities/even_hub_sdk";
-import { AudioInputSource } from "@evenrealities/even_hub_sdk";
-import { createAiRealtimeSession } from "./ai-realtime-session";
+import { AudioEvent, AudioInputSource, AudioSpeakerRole } from "@evenrealities/even_hub_sdk";
+import { createAiRealtimeSession as createRealSession } from "./ai-realtime-session";
+import type { AiRealtimeSessionOptions } from "./ai-realtime-session-types";
+function createAiRealtimeSession(options: AiRealtimeSessionOptions) {
+  return createRealSession({ ...options, createSocket: (url, protocols) => {
+    if (url.includes("intent=transcription")) {
+      const next = new FakeSocket(protocols); queueMicrotask(() => next.open()); return next;
+    }
+    if (!options.createSocket) throw new Error("Test socket missing");
+    return options.createSocket(url, protocols);
+  } });
+}
 import type { AiWebSearchResult } from "./ai-tools";
 
 class FakeSocket {
@@ -12,7 +22,7 @@ class FakeSocket {
   onmessage: ((event: MessageEvent<string>) => void) | null = null;
   onerror: (() => void) | null = null;
   onclose: (() => void) | null = null;
-  constructor(protocols: string[]) {
+  constructor(protocols: string[], readonly acknowledge = true) {
     this.protocols = protocols;
   }
   open() {
@@ -27,6 +37,9 @@ class FakeSocket {
   }
   send(value: string) {
     this.sent.push(value);
+    if (this.acknowledge && JSON.parse(value).type === "session.update") {
+      queueMicrotask(() => this.server({ type: "session.updated" }));
+    }
   }
   close() {
     this.readyState = 3;
@@ -66,20 +79,21 @@ describe("G2 Realtime session", () => {
 
     try {
       await expect(session.start()).resolves.toBeUndefined();
-      expect(windowFetch).toHaveBeenCalledOnce();
-      expect(windowFetch.mock.calls[0]?.[0]).toBe(
+      expect(windowFetch).toHaveBeenCalledTimes(3);
+      expect(windowFetch.mock.calls[0]?.[0]).toBe("https://api.openai.com/v1/models");
+      expect(windowFetch.mock.calls[1]?.[0]).toBe(
         "https://api.openai.com/v1/realtime/client_secrets",
       );
-      expect(windowFetch.mock.calls[0]?.[1]).toMatchObject({
+      expect(windowFetch.mock.calls[1]?.[1]).toMatchObject({
         method: "POST",
         headers: {
           Authorization: "Bearer sk-test-1234567890abcdefghijklmnop",
           "Content-Type": "application/json",
         },
       });
-      expect(JSON.parse(String(windowFetch.mock.calls[0]?.[1]?.body)))
+      expect(JSON.parse(String(windowFetch.mock.calls[1]?.[1]?.body)))
         .toEqual({
-          session: { type: "realtime", model: "gpt-realtime" },
+          session: { type: "realtime", model: "gpt-realtime-2.1" },
         });
     } finally {
       await session.stop();
@@ -149,7 +163,7 @@ describe("G2 Realtime session", () => {
       assistantText: "부분 답변",
       retiredResponseIds: ["r1"],
     });
-    expect(JSON.parse(socket?.sent.at(-1) ?? "{}")).toEqual({
+    expect(JSON.parse(socket?.sent.at(-1) ?? "{}")).toMatchObject({
       type: "response.cancel",
       response_id: "r1",
     });
@@ -193,7 +207,7 @@ describe("G2 Realtime session", () => {
     expect(session.cancelResponse()).toMatchObject({ phase: "listening" });
     expect(socket?.sent).toHaveLength(sentBeforeCancel);
     socket?.server({ type: "response.created", response: { id: "late-r1" } });
-    expect(JSON.parse(socket?.sent.at(-1) ?? "{}")).toEqual({
+    expect(JSON.parse(socket?.sent.at(-1) ?? "{}")).toMatchObject({
       type: "response.cancel",
       response_id: "late-r1",
     });
@@ -309,6 +323,8 @@ describe("G2 Realtime session", () => {
       audioEvent: {
         audioPcm: new Uint8Array([0, 0, 232, 3]),
         source: AudioInputSource.Glasses,
+        direction: null,
+        speakerRole: AudioSpeakerRole.Unknown,
       },
     });
     const append = JSON.parse(socket?.sent.at(-1) ?? "{}") as {
@@ -749,4 +765,232 @@ describe("G2 Realtime session", () => {
         && sent.item?.approve === false;
     })).toBe(true);
   });
+});
+
+it("ignores a socket close notification delivered after explicit stop completes", async () => {
+  let socket: FakeSocket | undefined;
+  const session = createAiRealtimeSession({
+    key: "sk-test-1234567890abcdefghijklmnop", locale: "ko",
+    bridge: { audioControl: vi.fn(async () => true), onEvenHubEvent: () => () => undefined },
+    fetchImpl: vi.fn(async () => Response.json({ value: "ek_test_ephemeral" })),
+    createSocket: (_url, protocols) => {
+      socket = new FakeSocket(protocols);
+      socket.close = () => {};
+      queueMicrotask(() => socket?.open());
+      return socket;
+    },
+  });
+  await session.start();
+  await session.stop();
+  socket?.onclose?.();
+  expect(session.getState().phase).toBe("idle");
+});
+
+
+it("waits for acknowledged configuration and answers the displayed transcript", async () => {
+  const audioControl = vi.fn(async () => true);
+  let socket: FakeSocket | undefined;
+  const session = createAiRealtimeSession({
+    key: "sk-test-1234567890abcdefghijklmnop", locale: "ko",
+    bridge: { audioControl, onEvenHubEvent: () => () => undefined },
+    fetchImpl: async () => Response.json({ value: "ek_test_ephemeral" }),
+    createSocket: (_url, protocols) => {
+      socket = new FakeSocket(protocols, false);
+      queueMicrotask(() => socket?.open());
+      return socket;
+    },
+  });
+  const pending = session.start();
+  try {
+    await vi.waitFor(() => expect(socket?.sent.length).toBe(1));
+    expect(audioControl).not.toHaveBeenCalled();
+    expect(session.getState().phase).toBe("connecting");
+    socket?.server({ type: "session.updated" });
+    await pending;
+    expect(audioControl).toHaveBeenCalledWith(true, AudioInputSource.Glasses);
+    socket?.server({ type: "input_audio_buffer.speech_started", item_id: "voice-1" });
+    socket?.server({ type: "input_audio_buffer.speech_stopped", item_id: "voice-1" });
+    expect(socket?.sent.map((s) => JSON.parse(s).type)).not.toContain("response.create");
+    socket?.server({ type: "conversation.item.input_audio_transcription.completed", item_id: "voice-1", transcript: "1 더하기 1은?" });
+    const events = socket?.sent.map((s) => JSON.parse(s));
+    expect(events?.slice(-3)).toEqual([
+      { type: "conversation.item.create", previous_item_id: "voice-1", item: { type: "message", role: "user", content: [{ type: "input_text", text: "1 더하기 1은?" }] } },
+      { type: "conversation.item.delete", item_id: "voice-1" },
+      { type: "response.create" },
+    ]);
+    socket?.server({ type: "conversation.item.input_audio_transcription.completed", item_id: "voice-1", transcript: "1 더하기 1은?" });
+    expect(socket?.sent.filter((s) => JSON.parse(s).type === "response.create")).toHaveLength(1);
+  } finally { await session.stop(); await pending.catch(() => undefined); }
+});
+
+it("reports an unacknowledged session configuration instead of opening the microphone", async () => {
+  vi.useFakeTimers();
+  const audioControl = vi.fn(async () => true);
+  const session = createAiRealtimeSession({
+    key: "sk-test-1234567890abcdefghijklmnop", locale: "ko",
+    bridge: { audioControl, onEvenHubEvent: () => () => undefined },
+    fetchImpl: async () => Response.json({ value: "ek_test_ephemeral" }),
+    createSocket: (_url, protocols) => {
+      const socket = new FakeSocket(protocols, false);
+      queueMicrotask(() => socket.open());
+      return socket;
+    },
+  });
+  const pending = session.start();
+  const assertion = expect(pending).rejects.toThrow("configuration timed out");
+  try {
+    await vi.advanceTimersByTimeAsync(10_100);
+    await assertion;
+    expect(audioControl).not.toHaveBeenCalled();
+    expect(session.getState().phase).toBe("error");
+  } finally { await session.stop(); vi.useRealTimers(); }
+});
+
+it("ends a stalled post-speech wait and releases the microphone", async () => {
+  vi.useFakeTimers();
+  let socket: FakeSocket | undefined;
+  const audioControl = vi.fn(async () => true);
+  const session = createAiRealtimeSession({
+    bridge: { audioControl, onEvenHubEvent: () => () => {} }, key: "sk-test-1234567890abcdefghijklmnop", locale: "ko",
+    fetchImpl: vi.fn(async () => Response.json({ value: "ek_test_ephemeral_123456" })),
+    createSocket: (_url, protocols) => { socket = new FakeSocket(protocols); queueMicrotask(() => socket?.open()); return socket; },
+  });
+  try {
+    await session.start();
+    socket?.server({ type: "input_audio_buffer.speech_started", item_id: "stall" });
+    socket?.server({ type: "input_audio_buffer.speech_stopped", item_id: "stall" });
+    await vi.advanceTimersByTimeAsync(20_001);
+    expect(session.getState().phase).toBe("error");
+    expect(session.getState().error).toMatch(/timed out/i);
+    expect(audioControl).toHaveBeenLastCalledWith(false);
+    expect(socket?.readyState).toBe(3);
+  } finally { await session.stop(); vi.useRealTimers(); }
+});
+
+it("uses live preview and final refinement on one PCM stream, then answers exactly once", async () => {
+  const sockets = new Map<string, FakeSocket>();
+  let audio: ((event: EvenHubEvent) => void) | undefined;
+  const control = vi.fn(async () => true);
+  const session = createRealSession({ key: "test", locale: "ko",
+    bridge: { audioControl: control, onEvenHubEvent: next => { audio = next; return () => { audio = undefined; }; } },
+    fetchImpl: async () => Response.json({ value: "ek_test_123456789" }),
+    createSocket: (url, protocols) => { const next = new FakeSocket(protocols); sockets.set(url.includes("intent=transcription") ? "live" : "final", next); queueMicrotask(() => next.open()); return next; },
+  });
+  try {
+    await session.start();
+    const main = sockets.get("final"), live = sockets.get("live");
+    expect(main).toBeDefined(); expect(live).toBeDefined();
+    main?.server({ type: "input_audio_buffer.speech_started", item_id: "main1" });
+    audio?.({ audioEvent: new AudioEvent({ source: AudioInputSource.Glasses, audioPcm: new Uint8Array(3200) }) });
+    const events = (socket: FakeSocket | undefined) => socket?.sent.map(text => JSON.parse(text)) ?? [];
+    expect(events(main).filter(e => e.type === "input_audio_buffer.append")).toEqual(events(live).filter(e => e.type === "input_audio_buffer.append"));
+    live?.server({ type: "conversation.item.input_audio_transcription.delta", item_id: "live1", delta: "Provisional name" });
+    expect(session.getState().userText).toBe("Provisional name");
+    expect(events(main).filter(e => e.type === "response.create")).toHaveLength(0);
+    main?.server({ type: "input_audio_buffer.committed", item_id: "main1" });
+    live?.server({ type: "input_audio_buffer.committed", item_id: "live1" });
+    main?.server({ type: "conversation.item.input_audio_transcription.completed", item_id: "main1", transcript: "Corrected name" });
+    expect(session.getState().userText).toBe("Corrected name");
+    expect(events(main).filter(e => e.type === "response.create")).toHaveLength(1);
+    expect(events(main).find(e => e.type === "conversation.item.create").item.content[0].text).toBe("Corrected name");
+    live?.server({ type: "conversation.item.input_audio_transcription.delta", item_id: "live1", delta: " stale" });
+    expect(session.getState().userText).toBe("Corrected name");
+  } finally { await session.stop(); }
+  expect([...sockets.values()].every(s => s.readyState === 3)).toBe(true);
+  expect(audio).toBeUndefined();
+});
+
+it("keeps the microphone closed until both model configurations are acknowledged", async () => {
+  let live: FakeSocket | undefined;
+  const control = vi.fn(async () => true);
+  const session = createRealSession({ key: "test", locale: "ko",
+    bridge: { audioControl: control, onEvenHubEvent: () => () => {} },
+    fetchImpl: async () => Response.json({ value: "ek_test_123456789" }),
+    createSocket: (url, protocols) => {
+      const next = new FakeSocket(protocols, !url.includes("intent=transcription"));
+      if (url.includes("intent=transcription")) live = next;
+      queueMicrotask(() => next.open()); return next;
+    },
+  });
+  try {
+    const starting = session.start();
+    await vi.waitFor(() => expect(live?.sent.length).toBe(1));
+    expect(control).not.toHaveBeenCalled();
+    live?.server({ type: "session.updated" }); await starting;
+    expect(control).toHaveBeenCalledWith(true, AudioInputSource.Glasses);
+  } finally { await session.stop(); }
+});
+
+it("holds microphone input and answer creation to explicit press/release boundaries", async () => {
+  let audio: ((event: EvenHubEvent) => void) | undefined;
+  const control = vi.fn(async () => true), sockets = new Map<string, FakeSocket>();
+  const session = createRealSession({ key: "test", locale: "ko", captureMode: "hold",
+    bridge: { audioControl: control, onEvenHubEvent: next => { audio = next; return () => { audio = undefined; }; } },
+    fetchImpl: async () => Response.json({ value: "ek_test_123456789" }),
+    createSocket: (url, protocols) => { const next = new FakeSocket(protocols); sockets.set(url.includes("intent=transcription") ? "live" : "main", next); queueMicrotask(() => next.open()); return next; },
+  });
+  const events = (name: string) => sockets.get(name)?.sent.map(s => JSON.parse(s)) ?? [];
+  try {
+    await session.start(); expect(control).not.toHaveBeenCalled(); expect(audio).toBeUndefined();
+    expect(session.getState().captureState).toBe("waiting");
+    expect(events("main")[0].session.audio.input.turn_detection).toBeNull();
+    await session.capture?.begin();
+    const captured = audio;
+    captured?.({ audioEvent: new AudioEvent({ source: AudioInputSource.Glasses, audioPcm: new Uint8Array(3200) }) });
+    sockets.get("live")?.server({ type: "conversation.item.input_audio_transcription.delta", item_id: "live1", delta: "Live question" });
+    expect(session.getState().userText).toBe("Live question");
+    expect(events("main").some(e => e.type === "response.create")).toBe(false);
+    session.capture?.end();
+    captured?.({ audioEvent: new AudioEvent({ source: AudioInputSource.Glasses, audioPcm: new Uint8Array(3200) }) });
+    expect(events("main").filter(e => e.type === "input_audio_buffer.append")).toHaveLength(1);
+    expect(events("main").filter(e => e.type === "input_audio_buffer.commit")).toHaveLength(1);
+    sockets.get("main")?.server({ type: "input_audio_buffer.committed", item_id: "main1" });
+    sockets.get("live")?.server({ type: "input_audio_buffer.committed", item_id: "live1" });
+    sockets.get("main")?.server({ type: "conversation.item.input_audio_transcription.completed", item_id: "main1", transcript: "Final question" });
+    expect(events("main").filter(e => e.type === "response.create")).toHaveLength(1);
+    expect(events("main").find(e => e.type === "conversation.item.create").item.content[0].text).toBe("Final question");
+    expect(session.getState().userText).toBe("Final question");
+    sockets.get("live")?.server({ type: "conversation.item.input_audio_transcription.delta", item_id: "live1", delta: " stale" });
+    expect(session.getState().userText).toBe("Final question");
+    await vi.waitFor(() => expect(control).toHaveBeenCalledWith(false));
+  } finally { await session.stop(); }
+});
+
+it("starts a second held question without cancelling the already completed first answer", async () => {
+  const sockets = new Map<string,FakeSocket>();
+  const session = createRealSession({ key:"test",locale:"ko",captureMode:"hold",
+    bridge:{ audioControl:async()=>true,onEvenHubEvent:()=>()=>{} },fetchImpl:async()=>Response.json({value:"ek_test_123456789"}),
+    createSocket:(url,protocols)=>{ const next=new FakeSocket(protocols);sockets.set(url.includes("intent=transcription")?"live":"main",next);queueMicrotask(()=>next.open());return next; },
+  });
+  try {
+    await session.start(); const main=sockets.get("main");
+    main?.server({type:"response.created",response:{id:"finished-first"}});
+    main?.server({type:"response.output_text.done",response_id:"finished-first",text:"First answer"});
+    main?.server({type:"response.done",response:{id:"finished-first",status:"completed"}});
+    expect(session.getState().responseComplete).toBe(true);
+    await session.capture?.begin();
+    expect(main?.sent.map(s=>JSON.parse(s)).filter(e=>e.type==="response.cancel")).toEqual([]);
+    expect(session.getState().captureState).toBe("recording");
+  } finally { await session.stop(); }
+});
+
+it("cancels a pending prior answer once its response id arrives during a new hold", async () => {
+  const sockets = new Map<string, FakeSocket>();
+  const session = createRealSession({ key: "test", locale: "ko", captureMode: "hold",
+    bridge: { audioControl: async () => true, onEvenHubEvent: () => () => {} },
+    fetchImpl: async () => Response.json({ value: "ek_test_123456789" }),
+    createSocket: (url, protocols) => { const next = new FakeSocket(protocols); sockets.set(url.includes("intent=transcription") ? "live" : "main", next); queueMicrotask(() => next.open()); return next; },
+  });
+  try {
+    await session.start(); const main = sockets.get("main");
+    main?.server({ type: "input_audio_buffer.speech_stopped", item_id: "prior-question" });
+    await session.capture?.begin();
+    main?.server({ type: "response.created", response: { id: "late-prior-answer" } });
+    const cancellations = main?.sent.map(s => JSON.parse(s)).filter(e => e.type === "response.cancel");
+    expect(cancellations).toHaveLength(1);
+    expect(cancellations?.[0]).toMatchObject({ response_id: "late-prior-answer" });
+    main?.server({ type: "error", error: { code: "response_cancel_not_active", event_id: cancellations?.[0].event_id } });
+    expect(session.getState().captureState).toBe("recording");
+    expect(session.getState().error).toBeUndefined();
+  } finally { await session.stop(); }
 });

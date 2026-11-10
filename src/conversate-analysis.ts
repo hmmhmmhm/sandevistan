@@ -1,3 +1,4 @@
+import { handleConversateRequest, CONVERSATE_CUE_CONTEXT_TURNS, CONVERSATE_TRANSLATION_CONTEXT_TURNS, type PartialConversateAnalysis } from "../server/ai-web-search.js";
 import { openAiKeyHeaders } from "./openai-key";
 import { logDiagnostic } from "./diagnostic-log";
 import type {
@@ -31,13 +32,15 @@ function isAnalysis(value: unknown): value is ConversateAnalysis {
 
 export async function requestConversateAnalysis(options: {
   readonly key: string;
+  readonly model?: string;
   readonly locale: PhoneLocale;
   readonly settings: ConversateSettings;
   readonly segments: readonly ConversateSegment[];
   readonly signal: AbortSignal;
   readonly fetchImpl?: typeof fetch;
+  readonly onPartial?: (value: PartialConversateAnalysis) => void;
 }): Promise<ConversateAnalysis> {
-  const response = await (options.fetchImpl ?? fetch)("/api/conversate-analyze", {
+  const response = await handleConversateRequest(new Request("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -45,11 +48,13 @@ export async function requestConversateAnalysis(options: {
     },
     body: JSON.stringify({
       locale: options.locale,
+      model: options.model,
       settings: options.settings,
-      transcript: options.segments.slice(-8).map(({ text }) => text),
+      transcript: options.segments.slice(-(options.settings.inform || options.settings.copilot
+        ? CONVERSATE_CUE_CONTEXT_TURNS : CONVERSATE_TRANSLATION_CONTEXT_TURNS)).map(({ text }) => text),
     }),
     signal: options.signal,
-  });
+  }), {}, { fetchImpl: options.fetchImpl ?? fetch, onPartial: options.onPartial });
   let value: unknown;
   try {
     value = await response.json();

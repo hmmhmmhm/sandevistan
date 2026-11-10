@@ -115,7 +115,7 @@ test("builds a bounded labelled Overpass query and normalizes geometry", async (
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, "https://overpass-api.de/api/interpreter");
   assert.equal(calls[0].options.method, "POST");
-  assert.equal(calls[0].options.redirect, "error");
+  assert.equal(calls[0].options.redirect, "manual");
   assert.deepEqual(calls[0].options.headers, {
     "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
     "user-agent": "SANDEVISTAN-G2-Personal-Prototype/0.1",

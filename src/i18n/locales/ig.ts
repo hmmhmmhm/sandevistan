@@ -48,7 +48,7 @@ export const igLocale = {
     "taskTitle": "Aha ọrụ",
     "addSource": "Tinye isi iyi RSS",
     "sourceName": "Aha isi mmalite",
-    "sourceUrl": "HTTPS RSS URL",
+    "sourceUrl": "URL RSS HTTPS",
     "orsKey": "OpenRouteService igodo",
     "validateKey": "Kwulite igodo",
     "deleteKey": "Hichapụ igodo",
@@ -76,9 +76,9 @@ export const igLocale = {
     "confirmDelete": "Pịa Hichapụ ọzọ iji kwado.",
     "sourceLimit": "Ruo isi mmalite RSS omenala isii.",
     "taskLimit": "Ihe ruru ọrụ isii.\n009||Enweghị ike ịchekwa na ngwaọrụ a.",
-    "storageFailed": "Could not save on this device.",
+    "storageFailed": "Enweghị ike ịchekwa na ngwaọrụ a.",
     "validationFailed": "Nkwenye emezughị.\n011||Enweghị data",
-    "noData": "No data",
+    "noData": "Enweghị data",
     "liveHudPreview": "Nhụcha HUD dị ndụ",
     "hudRasterPreview": "nhụle mbufe onyonyi nke Sandevistan",
     "hudGlassesFrame": "Sandevistan iko HUD etiti",
@@ -94,7 +94,7 @@ export const igLocale = {
     "copyFailed": "Iṅomi dara",
     "clear": "Kwara",
     "refreshBusy": "A na-aga n'ihu nweta ume ọhụrụ.\n027||Enweghị ike iweghachi ihu igwe.",
-    "refreshFailed": "Could not refresh weather."
+    "refreshFailed": "Enweghị ike imelite ihu igwe."
   },
   "hud": {
     "feels": "METỤTA",
@@ -175,7 +175,7 @@ export const igLocale = {
   },
   "weekdays": [
     "Ụbọchị Sọnde",
-    "Monday",
+    "Mọnde",
     "Ụbọchị Tuzdee",
     "Ụbọchị Wenezde",
     "Ụbọchị ụka",

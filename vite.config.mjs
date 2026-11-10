@@ -14,7 +14,7 @@ export default defineConfig({
     hmr: false,
     allowedHosts: ["terminal.local"],
     warmup: {
-      clientFiles: ["./src/main.jsx"],
+      clientFiles: ["./src/main.tsx"],
     },
   },
   test: {

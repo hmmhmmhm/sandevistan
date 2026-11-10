@@ -55,7 +55,7 @@ export const ssLocale = {
     "keyLocalOnly": "Igcinwe kuphela ku Ngisho nesitoreji sendzawo kuledivayisi.",
     "developmentBuild": "Kwakha intfutfuko · Akukashicilelwa ku Even Hub",
     "project": "Live\nVula iSandevistan ku GitHub",
-    "github": "Open Sandevistan on GitHub",
+    "github": "Vula i-SANDEVISTAN ku-GitHub",
     "deviceStatus": "Simo sedivayisi",
     "glasses": "G2 tingilazi",
     "ring": "R1 indandatho",

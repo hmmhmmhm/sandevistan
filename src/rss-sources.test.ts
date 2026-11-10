@@ -73,6 +73,17 @@ describe("RSS source preferences", () => {
     expect(validateRssSourceUrl("https://127.0.0.1/feed.xml").ok).toBe(false);
   });
 
+  it.each([
+    "https://localhost./feed.xml",
+    "https://reader.local./feed.xml",
+    "https://feeds.internal/feed.xml",
+    "https://router.home/feed.xml",
+    "https://router.lan/feed.xml",
+    "https://printer/feed.xml",
+  ])("rejects private hostname variants: %s", (url) => {
+    expect(validateRssSourceUrl(url)).toEqual({ ok: false, code: "unsafe" });
+  });
+
   it("adds up to six custom sources and never deletes a built-in", () => {
     let sources = [...defaultRssSources("ko")];
     for (let index = 0; index < 6; index += 1) {
@@ -149,4 +160,16 @@ describe("RSS source preferences", () => {
     });
     expect(resolved.at(-1)?.id).toBe("example");
   });
+});
+
+describe("retired feed migration",()=>{
+ it.each(["주간경향 최신기사","My custom name"])("preserves disabled state and custom feeds when replacing %s",async name=>{
+  const storage=new TestStorage();const builtins=defaultRssSources("ko").map(source=>source.id==="ohmynews-latest"?{
+   ...source,id:"weekly-khan-latest",feed:"weekly-khan-latest",name,url:"https://weekly.khan.co.kr/rss/rssdata/total_news.xml",enabled:false,
+  }:source);
+  storage.values.set("sandevistan:rss-sources:v1",JSON.stringify([...builtins,{id:"personal",name:"Personal",url:"https://example.com/feed.xml",enabled:true,isDefault:false}]));
+  const resolved=await resolveRssSources(storage,"ko");expect(resolved).toHaveLength(4);
+  expect(resolved.find(x=>x.id==="ohmynews-latest")).toMatchObject({enabled:false,name:name==="My custom name"?name:defaultRssSources("ko").find(x=>x.id==="ohmynews-latest")?.name});
+  expect(resolved.find(x=>x.id==="personal")?.name).toBe("Personal");
+ });
 });

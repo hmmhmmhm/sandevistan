@@ -14,7 +14,7 @@ export const ocLocale = {
     "devices": "Diferics",
     "hudLayout": "Disposicion HUD",
     "news": "Novèlas",
-    "todo": "TODO",
+    "todo": "De completar",
     "weather": "Lo temps",
     "navigation": "Navegacion",
     "language": "Lenga",

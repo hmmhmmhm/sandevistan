@@ -14,7 +14,7 @@ export const etLocale = {
     "devices": "Seadmed",
     "hudLayout": "HUD paigutus",
     "news": "Uudised",
-    "todo": "TODO",
+    "todo": "ÜLESANDED",
     "weather": "Ilm",
     "navigation": "Navigeerimine",
     "language": "Keel",

@@ -35,8 +35,8 @@ export function drawFastCanvasHud(
   context.imageSmoothingEnabled = false;
   context.fillStyle = COLOR.background;
   context.fillRect(0, 0, WIDTH, HEIGHT);
-  const visiblePage = normalizeFastHudPage(page, data.live.route.status);
+  const visiblePage = normalizeFastHudPage(page, data.live.route.status, data.layout);
   drawFastMap(context, data.live, data.mapRadiusMeters ?? 650, locale);
-  drawFastDynamicHeader(context, now, visiblePage, data.live, locale);
+  drawFastDynamicHeader(context, now, visiblePage, data.live, locale, data.layout);
   drawFastDynamicPage(context, visiblePage, data, locale);
 }

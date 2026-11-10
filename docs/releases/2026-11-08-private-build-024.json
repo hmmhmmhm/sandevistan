@@ -1,0 +1,24 @@
+{
+  "version": "0.2.4",
+  "bytes": 2198787,
+  "sha256": "a87967344a508171f0ed608ac9021ff654a553e5c8f2712db0d0187d7d6161d9",
+  "status": "uploaded-and-verified",
+  "visibility": "Private",
+  "changelog": "Add hold-to-speak Ask AI: show live captions while pressed and send the final transcript once on release. Preserve Conversate transcripts with one-line history scrolling, show Inform and Copilot countdowns, and add a tap-and-scroll directory to reopen saved cues. Keep live captions visible during cue review and save both cue histories locally. Verify real OpenAI speech input and simulator gestures.",
+  "changelogApproved": true,
+  "liveVerification": [
+    "output/ask-ai-hold-2026-11-08/run-01/result.json",
+    "output/ask-ai-hold-exit-2026-11-08/result.json",
+    "output/conversate-history-live-2026-11-08/result.json"
+  ],
+  "askAiMainCases": "Three successful speech cases; first-run exit assertion failed, isolated active-generation exit replay passed.",
+  "vitestTests": 761,
+  "nodeTests": 637,
+  "bundleKeyPatterns": 0,
+  "browserSessionsRemaining": 0,
+  "browserSessionScope": "No browser sessions remained after deployment cleanup.",
+  "approval": "User explicitly instructed deployment on 2026-11-08.",
+  "changelogVerified": true,
+  "verifiedAt": "2026-11-08T12:54:54.087714+00:00",
+  "evidence": "output/conversate-history-live-2026-11-08/evenhub-024-confirmed.txt"
+}

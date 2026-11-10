@@ -63,7 +63,7 @@ export const huLocale = {
     "sdk": "Még a Hub SDK is",
     "bilateral": "Kétoldali kijelző",
     "trace": "WebView nyomkövetés",
-    "renderer": "Renderer",
+    "renderer": "Megjelenítő",
     "transport": "Közlekedés",
     "location": "Helyszín",
     "temperature": "Hőmérséklet",

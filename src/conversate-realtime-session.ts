@@ -1,3 +1,5 @@
+import { createRealtimeConfigurationGate } from "./realtime-configuration-gate";
+import { resolveOpenAiModels, type OpenAiModels } from "./openai-models";
 import { AudioInputSource, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
 import { createAudioAppendEvent, resamplePcm16Le16To24 } from "./ai-realtime-audio";
 import { requestRealtimeClientSecret } from "./ai-realtime-token";
@@ -7,6 +9,7 @@ import {
 } from "./ai-realtime-transport";
 import { logDiagnostic } from "./diagnostic-log";
 import type { PhoneLocale } from "./phone-types";
+import { createConversateTurnMatcher } from "./conversate-turn-matching";
 import { createConversateLocalVad } from "./conversate-local-vad";
 
 const REALTIME_URL = "wss://api.openai.com/v1/realtime?intent=transcription";
@@ -28,6 +31,7 @@ export function createConversateRealtimeSession(options: {
   readonly key: string;
   readonly locale: PhoneLocale;
   readonly prompt?: string;
+  readonly onModels?: (models: OpenAiModels) => void;
   readonly languages?: readonly string[];
   readonly keywords?: readonly string[];
   readonly onPartial: (itemId: string, text: string) => void;
@@ -43,14 +47,17 @@ export function createConversateRealtimeSession(options: {
   let refinementSocket: RealtimeSocket | undefined;
   let unsubscribe: (() => void) | undefined;
   let microphoneOpen = false;
+  let microphoneActivation: Promise<boolean> | undefined;
+  let cleanup: Promise<void> | undefined;
+  let starting = false;
   let closing = false;
   const partials = new Map<string, string>();
-  const liveItems: string[] = [];
-  const refinedTurns: string[] = [];
+  const turnMatcher = createConversateTurnMatcher(options.onRefined);
   let configured = false;
   let usedCompatibilityFallback = false;
   const abort = new AbortController();
   const localVad = createConversateLocalVad();
+  const configuration = createRealtimeConfigurationGate<RealtimeSocket>();
   const languages = [...new Set(options.languages ?? [])]
     .filter((value) => /^[a-z]{2,3}(?:-[a-z]{2})?$/.test(value))
     .slice(0, 3);
@@ -84,20 +91,33 @@ export function createConversateRealtimeSession(options: {
     });
   };
 
-  const publishRefinements = () => {
-    // ponytail: same audio and VAD preserve turn order; add timestamp matching if production proves otherwise.
-    while (liveItems.length && refinedTurns.length) {
-      options.onRefined(liveItems.shift() ?? "", refinedTurns.shift() ?? "");
-    }
-  };
-
   const closeMicrophone = async () => {
     if (!microphoneOpen) return;
     await options.bridge.audioControl(false).catch(() => false);
     microphoneOpen = false;
   };
 
+  const stop = () => {
+    closing = true;
+    abort.abort();
+    cleanup ??= (async () => {
+      unsubscribe?.();
+      unsubscribe = undefined;
+      socket?.close();
+      socket = undefined;
+      refinementSocket?.close();
+      refinementSocket = undefined;
+      if (microphoneActivation) {
+        microphoneOpen = await microphoneActivation.catch(() => false);
+        microphoneActivation = undefined;
+      }
+      await closeMicrophone();
+    })();
+    return cleanup;
+  };
+
   const openSocket = (secret: string, refinement = false) => new Promise<void>((resolve, reject) => {
+    if (closing) { reject(new DOMException("Stopped", "AbortError")); return; }
     const next = socketFactory(REALTIME_URL, [
       "realtime",
       `openai-insecure-api-key.${secret}`,
@@ -105,30 +125,46 @@ export function createConversateRealtimeSession(options: {
     if (refinement) refinementSocket = next;
     else socket = next;
     let settled = false;
+    const fail = (message: string) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      abort.signal.removeEventListener("abort", cancel);
+      reject(new Error(message));
+    };
+    const cancel = () => fail("Transcription connection cancelled");
     const timeout = setTimeout(() => {
-      if (!settled) reject(new Error("Transcription connection timed out"));
+      fail("Transcription connection timed out");
     }, 10_000);
+    abort.signal.addEventListener("abort", cancel, { once: true });
     next.onopen = () => {
       settled = true;
       clearTimeout(timeout);
+      abort.signal.removeEventListener("abort", cancel);
       resolve();
     };
     next.onerror = () => {
       if (!settled) {
-        settled = true;
-        clearTimeout(timeout);
-        reject(new Error("Transcription connection failed"));
-      } else if (!closing && !refinement) options.onError("Transcription connection failed");
+        fail("Transcription connection failed");
+      } else if (!closing && !refinement) {
+        void stop();
+        options.onError("Transcription connection failed");
+      }
     };
     next.onclose = () => {
-      if (!settled) reject(new Error("Transcription connection closed"));
-      else if (!closing && !refinement) options.onError("Transcription connection closed");
+      if (!settled) fail("Transcription connection closed");
+      else if (!closing && !refinement) {
+        void stop();
+        options.onError("Transcription connection closed");
+      }
     };
     next.onmessage = ({ data }) => {
+      if (closing) return;
       let event: Record<string, unknown>;
       try { event = JSON.parse(data) as Record<string, unknown>; } catch { return; }
-      if (!refinement && event.type === "session.updated") {
-        configured = true;
+      if (event.type === "session.updated") {
+        configuration.acknowledge(next);
+        if (!refinement) configured = true;
         return;
       }
       if (event.type === "error") {
@@ -147,6 +183,11 @@ export function createConversateRealtimeSession(options: {
       }
       const itemId = typeof event.item_id === "string" ? event.item_id : "";
       if (!itemId) return;
+      const stream = refinement ? "refinement" : "live";
+      if (event.type === "input_audio_buffer.committed") {
+        turnMatcher.acknowledge(stream, itemId);
+        return;
+      }
       if (!refinement && event.type === "conversation.item.input_audio_transcription.delta") {
         const delta = typeof event.delta === "string" ? event.delta : "";
         const text = `${partials.get(itemId) ?? ""}${delta}`;
@@ -159,12 +200,10 @@ export function createConversateRealtimeSession(options: {
           : (partials.get(itemId) ?? "").trim();
         if (!refinement) partials.delete(itemId);
         if (text && refinement) {
-          refinedTurns.push(text);
-          publishRefinements();
+          turnMatcher.complete(stream, itemId, text);
         } else if (text) {
           options.onCompleted(itemId, text);
-          liveItems.push(itemId);
-          publishRefinements();
+          turnMatcher.complete(stream, itemId, text);
         }
       }
     };
@@ -172,6 +211,11 @@ export function createConversateRealtimeSession(options: {
 
   return {
     async start() {
+      if (closing || starting || socket) throw new Error("Transcription session is already used");
+      starting = true;
+      try {
+      const models = await resolveOpenAiModels(options.key, fetchImpl, abort.signal);
+      options.onModels?.(models);
       const [secret, refinementSecret] = await Promise.all([
         requestRealtimeClientSecret({
           fetchImpl, key: options.key, signal: abort.signal, purpose: "transcription",
@@ -181,11 +225,13 @@ export function createConversateRealtimeSession(options: {
           transcriptionModel: "gpt-transcribe",
         }).catch(() => undefined),
       ]);
+      abort.signal.throwIfAborted();
       await openSocket(secret);
       if (refinementSecret) await openSocket(refinementSecret, true).catch(() => {
         refinementSocket?.close();
         refinementSocket = undefined;
       });
+      abort.signal.throwIfAborted();
       sendLiveConfiguration(true);
       send(refinementSocket, {
         type: "session.update",
@@ -203,6 +249,8 @@ export function createConversateRealtimeSession(options: {
           } },
         },
       });
+      await configuration.wait([socket, refinementSocket].filter(value => value !== undefined), abort.signal);
+      abort.signal.throwIfAborted();
       unsubscribe = options.bridge.onEvenHubEvent((event) => {
         const audio = event.audioEvent;
         if (!microphoneOpen || socket?.readyState !== SOCKET_OPEN || !audio
@@ -217,24 +265,24 @@ export function createConversateRealtimeSession(options: {
           send(refinementSocket, append);
         }
         if (decision.commit) {
+          if (refinementSocket?.readyState === SOCKET_OPEN) turnMatcher.commit();
           const commit = { type: "input_audio_buffer.commit" };
           send(socket, commit);
           send(refinementSocket, commit);
         }
       });
-      microphoneOpen = await options.bridge.audioControl(true, AudioInputSource.Glasses);
+      microphoneActivation = options.bridge.audioControl(true, AudioInputSource.Glasses);
+      microphoneOpen = await microphoneActivation;
+      microphoneActivation = undefined;
+      abort.signal.throwIfAborted();
       if (!microphoneOpen) throw new Error("G2 microphone unavailable");
+      } catch (error) {
+        await stop();
+        throw error;
+      } finally {
+        starting = false;
+      }
     },
-    async stop() {
-      closing = true;
-      abort.abort();
-      unsubscribe?.();
-      unsubscribe = undefined;
-      socket?.close();
-      socket = undefined;
-      refinementSocket?.close();
-      refinementSocket = undefined;
-      await closeMicrophone();
-    },
+    stop,
   };
 }

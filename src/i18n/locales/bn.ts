@@ -16,7 +16,7 @@ export const bnLocale = {
     "devices": "ডিভাইস",
     "hudLayout": "HUD লেআউট",
     "news": "খবর",
-    "todo": "TODO",
+    "todo": "করণীয়",
     "weather": "আবহাওয়া",
     "navigation": "নেভিগেশন",
     "language": "ভাষা",

@@ -1,3 +1,5 @@
+import type { FastHudLayout } from "./fast-hud-pages";
+import { drawQuickMenu } from "./fast-release-screens";
 import type { AiHudSnapshot } from "./ai-hud-state";
 import { drawFastCanvasHud } from "./fast-canvas-hud";
 import { drawFastDetailHud } from "./fast-detail-hud";
@@ -8,7 +10,7 @@ import type { FastHudViewContext, FastHudViewState } from "./fast-hud-view";
 import type { FastCanvasBattery } from "./glasses";
 import type { LiveDashboardState } from "./live-state";
 import type { PhoneLocale } from "./phone-types";
-import type { ConversateSnapshot } from "./conversate-state";
+import type { ConversateSnapshot, ConversateSettings } from "./conversate-state";
 
 export type FastHudNewsPageCache = {
   readonly key: string;
@@ -52,6 +54,7 @@ export function resolveFastHudViewContext(
 }
 
 export function drawFastHudSurface(options: {
+  readonly layout?: FastHudLayout;
   readonly canvas: HTMLCanvasElement;
   readonly page: FastHudPage;
   readonly view: FastHudViewState;
@@ -60,9 +63,15 @@ export function drawFastHudSurface(options: {
   readonly mapRadiusMeters: number;
   readonly ai: AiHudSnapshot;
   readonly conversate: ConversateSnapshot;
+  readonly conversateSettings?: ConversateSettings;
   readonly locale: PhoneLocale;
 }) {
   const { canvas, page, view, live, battery, mapRadiusMeters, ai, conversate, locale } = options;
+  if (view.mode === "quick-menu") {
+    const context = canvas.getContext("2d");
+    if (context) drawQuickMenu(context, locale, view.menuIndex);
+    return;
+  }
   if (view.mode === "map") {
     drawFastFullscreenMap(canvas, live, mapRadiusMeters, locale);
     return;
@@ -76,11 +85,12 @@ export function drawFastHudSurface(options: {
       todoIndex: view.todoIndex,
       navigationIndex: view.navigationIndex,
       ...(view.mode === "ai" ? { ai, aiLine: view.aiLine } : {}),
-      ...(view.mode === "conversate" ? { conversate } : {}),
+      ...(view.mode === "conversate" ? { conversate, conversateSettings: options.conversateSettings } : {}),
     }, locale);
     return;
   }
   drawFastCanvasHud(canvas, new Date(), page, {
+    layout: options.layout,
     battery,
     live,
     mapRadiusMeters,

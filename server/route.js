@@ -158,7 +158,7 @@ export async function handleGeocodeRequest(
   );
   try {
     const upstream = await fetchImpl(upstreamUrl, {
-      redirect: "error",
+      redirect: "manual",
       headers: { accept: "application/json" },
       signal: timeout.signal,
     });
@@ -213,7 +213,7 @@ export async function handleRoutingKeyTest(
   );
   try {
     const upstream = await fetchImpl(upstreamUrl, {
-      redirect: "error",
+      redirect: "manual",
       headers: { accept: "application/json" },
       signal: timeout.signal,
     });
@@ -383,7 +383,7 @@ export async function handleRouteRequest(
           instructions: true,
           language: "en",
         }),
-        redirect: "error",
+        redirect: "manual",
         signal: timeout.signal,
       },
     );

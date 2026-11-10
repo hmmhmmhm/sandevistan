@@ -1,7 +1,7 @@
 import type { AiConversationTurn } from "./ai-realtime-protocol";
 import { wrapHudText } from "./fast-detail-text";
 
-const MAXIMUM_LINE_UNITS = 58;
+const MAXIMUM_LINE_UNITS = 46;
 export const AI_TRANSCRIPT_VISIBLE_LINES = 9;
 
 function roleLines(label: "YOU" | "AI", text: string): readonly string[] {

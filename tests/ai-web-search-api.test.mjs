@@ -74,7 +74,7 @@ test("returns bounded grounded text, HTTPS citations, and usage", async () => {
   assert.equal(upstreamRequest.url, "https://api.openai.com/v1/responses");
   assert.equal(upstreamRequest.init.headers.Authorization, `Bearer ${KEY}`);
   const body = JSON.parse(upstreamRequest.init.body);
-  assert.equal(body.model, "gpt-5.5");
+  assert.equal(body.model, "gpt-6.1-sol");
   assert.deepEqual(body.reasoning, { effort: "low" });
   assert.deepEqual(body.tools, [{
     type: "web_search",

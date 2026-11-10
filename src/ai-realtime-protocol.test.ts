@@ -58,21 +58,21 @@ describe("Realtime protocol", () => {
     expect(event.session.output_modalities).toEqual(["text"]);
     expect(event.session.audio.input.noise_reduction.type).toBe("far_field");
     expect(event.session.audio.input.transcription.model)
-      .toBe("gpt-4o-mini-transcribe");
+      .toBe("gpt-transcribe");
     expect(event.session.audio.input.format.rate).toBe(24_000);
     expect(event.session.audio.input.turn_detection).toMatchObject({
       type: "semantic_vad",
-      create_response: true,
+      create_response: false,
       interrupt_response: true,
     });
     expect(event.session.instructions).toContain("Korean");
   });
 
-  it("normalizes app locales to transcription language codes", () => {
-    expect(createRealtimeSessionUpdate("zh-Hant").session.audio.input
-      .transcription.language).toBe("zh");
-    expect(createRealtimeSessionUpdate("fil").session.audio.input
-      .transcription.language).toBe("tl");
+  it("keeps input-language detection automatic for translated UI locales", () => {
+    expect(createRealtimeSessionUpdate("zh-Hans").session.audio.input.transcription)
+      .not.toHaveProperty("language");
+    expect(createRealtimeSessionUpdate("fil").session.audio.input.transcription)
+      .not.toHaveProperty("language");
   });
 
   it("registers built-in functions and enabled MCP servers with approval", () => {
@@ -86,8 +86,9 @@ describe("Realtime protocol", () => {
     }]);
     expect(event.session.tool_choice).toBe("auto");
     expect(event.session.tools.map((tool) => tool.type)).toEqual([
-      "function", "function", "function", "mcp",
+      "function", "function", "function", "function", "mcp",
     ]);
+    expect(event.session.tools).toContainEqual(expect.objectContaining({ type: "function", name: "get_weather" }));
     expect(event.session.tools.at(-1)).toMatchObject({
       server_label: "mcp_docs",
       authorization: "local-secret",
@@ -417,4 +418,33 @@ describe("Realtime protocol", () => {
     expect(state.phase).toBe("error");
     expect(state.error?.length).toBeLessThanOrEqual(160);
   });
+});
+
+it("surfaces a failed transcription instead of staying in thinking without a response", () => {
+  const state = reduceRealtimeServerEvent({ ...createRealtimeProtocolState(), phase: "thinking" }, {
+    type: "conversation.item.input_audio_transcription.failed", error: { message: "Audio transcription failed" },
+  });
+  expect(state).toMatchObject({ phase: "error", responseComplete: false, error: "Audio transcription failed" });
+});
+
+it("shows a failed generation as an error instead of a silent completed answer", () => {
+  const state = reduceRealtimeServerEvent({ ...createRealtimeProtocolState(), phase: "thinking", activeResponseId: "r1" }, {
+    type: "response.done", response: { id: "r1", status: "failed", status_details: { error: { message: "Generation unavailable" } } },
+  });
+  expect(state).toMatchObject({ phase: "error", responseComplete: false, error: "Generation unavailable" });
+});
+
+it("stops presenting thinking when text content finishes while awaiting final accounting", () => {
+  const state = { ...createRealtimeProtocolState(), phase: "thinking" as const,
+    activeResponseId: "one", userText: "Question", assistantText: "Answer" };
+  const textDone = reduceRealtimeServerEvent(state, { type: "response.output_text.done", response_id: "one", text: "Answer" });
+  expect(textDone.phase).toBe("listening");
+  expect(textDone.assistantText).toBe("Answer");
+  expect(textDone.responseComplete).toBe(false);
+});
+it("returns to listening for an empty post-speech transcript", () => {
+  const state = { ...createRealtimeProtocolState(), phase: "thinking" as const, activeUserItemId: "noise" };
+  const next = reduceRealtimeServerEvent(state, { type: "conversation.item.input_audio_transcription.completed", item_id: "noise", transcript: "" });
+  expect(next.phase).toBe("listening");
+  expect(next.error).toBeUndefined();
 });

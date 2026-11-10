@@ -65,6 +65,7 @@ export type MapValue = {
   readonly roads: readonly MapRoad[];
   readonly labels: readonly MapLabel[];
   readonly attribution: "© OSM CONTRIBUTORS";
+  readonly tileSource?: "openmaptiles";
   readonly cell?: string;
 };
 

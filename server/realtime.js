@@ -2,15 +2,17 @@ import {
   createTimeout,
   jsonResponse,
   readLimitedBytes,
+  readLimitedRequestJson,
 } from "./http.js";
 import {
+  DEFAULT_OPENAI_MODELS,
   OPENAI_KEY_HEADER,
   openAiError,
   validOpenAiKey,
 } from "./openai-auth.js";
 
 export { OPENAI_KEY_HEADER } from "./openai-auth.js";
-export const OPENAI_REALTIME_MODEL = "gpt-realtime";
+export const OPENAI_REALTIME_MODEL = DEFAULT_OPENAI_MODELS.realtime;
 export const OPENAI_TRANSCRIPTION_MODEL = "gpt-live-transcribe";
 const OPENAI_TOKEN_URL = "https://api.openai.com/v1/realtime/client_secrets";
 const TOKEN_TIMEOUT_MS = 8_000;
@@ -38,10 +40,10 @@ export async function handleRealtimeTokenRequest(
   }
   let purpose = "assistant";
   try {
-    const body = await request.clone().json();
+    const body = await readLimitedRequestJson(request, 4_096, { allowEmpty: true });
     if (body?.purpose === "transcription") purpose = "transcription";
   } catch {
-    // Empty request bodies retain the Ask AI default.
+    return openAiError("OPENAI_TOKEN_REQUEST_INVALID", "Realtime request is invalid", 400);
   }
   const session = purpose === "transcription"
     ? { type: "transcription", audio: { input: { transcription: {
@@ -51,9 +53,8 @@ export async function handleRealtimeTokenRequest(
 
   const fetchImpl = dependencies.fetchImpl ?? fetch;
   const timeout = createTimeout(TOKEN_TIMEOUT_MS);
-  let upstream;
   try {
-    upstream = await fetchImpl(OPENAI_TOKEN_URL, {
+    const upstream = await fetchImpl(OPENAI_TOKEN_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${key}`,
@@ -64,6 +65,51 @@ export async function handleRealtimeTokenRequest(
       }),
       signal: timeout.signal,
     });
+
+
+    if (!upstream.ok) {
+      await upstream.body?.cancel().catch(() => undefined);
+      return openAiError(
+        "OPENAI_TOKEN_REJECTED",
+        "OpenAI rejected the Realtime session",
+        502,
+      );
+    }
+
+    let data;
+    try {
+      const bytes = await readLimitedBytes(upstream, MAX_UPSTREAM_BYTES);
+      data = JSON.parse(new TextDecoder().decode(bytes));
+    } catch {
+      timeout.signal.throwIfAborted();
+      return openAiError(
+        "OPENAI_TOKEN_INVALID",
+        "OpenAI returned an invalid Realtime session",
+        502,
+      );
+    }
+    if (
+      typeof data?.value !== "string"
+      || data.value.length < 10
+      || data.value.length > 4_096
+      || !Number.isFinite(data.expires_at)
+    ) {
+      return openAiError(
+        "OPENAI_TOKEN_INVALID",
+        "OpenAI returned an invalid Realtime session",
+        502,
+      );
+    }
+    return jsonResponse(
+      {
+        value: data.value,
+        expiresAt: data.expires_at,
+        model: purpose === "transcription"
+          ? OPENAI_TRANSCRIPTION_MODEL
+          : OPENAI_REALTIME_MODEL,
+      },
+      { headers: { "cache-control": "no-store" } },
+    );
   } catch (error) {
     return openAiError(
       error?.name === "AbortError"
@@ -77,47 +123,4 @@ export async function handleRealtimeTokenRequest(
   } finally {
     timeout.dispose();
   }
-
-  if (!upstream.ok) {
-    await upstream.body?.cancel().catch(() => undefined);
-    return openAiError(
-      "OPENAI_TOKEN_REJECTED",
-      "OpenAI rejected the Realtime session",
-      502,
-    );
-  }
-
-  let data;
-  try {
-    const bytes = await readLimitedBytes(upstream, MAX_UPSTREAM_BYTES);
-    data = JSON.parse(new TextDecoder().decode(bytes));
-  } catch {
-    return openAiError(
-      "OPENAI_TOKEN_INVALID",
-      "OpenAI returned an invalid Realtime session",
-      502,
-    );
-  }
-  if (
-    typeof data?.value !== "string"
-    || data.value.length < 10
-    || data.value.length > 4_096
-    || !Number.isFinite(data.expires_at)
-  ) {
-    return openAiError(
-      "OPENAI_TOKEN_INVALID",
-      "OpenAI returned an invalid Realtime session",
-      502,
-    );
-  }
-  return jsonResponse(
-    {
-      value: data.value,
-      expiresAt: data.expires_at,
-      model: purpose === "transcription"
-        ? OPENAI_TRANSCRIPTION_MODEL
-        : OPENAI_REALTIME_MODEL,
-    },
-    { headers: { "cache-control": "no-store" } },
-  );
 }

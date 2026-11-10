@@ -40,7 +40,13 @@ describe("Conversate realtime transcription", () => {
         const socket: RealtimeSocket = {
           readyState: 1,
           onopen: null, onmessage: null, onerror: null, onclose: null,
-          send(value) { messages.push(value); },
+          send(value) {
+            messages.push(value); const event = JSON.parse(value);
+            if (event.type === "session.update") queueMicrotask(() => socket.onmessage?.({ data: JSON.stringify(
+              event.session.audio.input.transcription.model === "gpt-live-transcribe" && event.session.audio.input.transcription.languages
+                ? { type: "error", error: { code: "invalid_value", param: "session.audio.input.transcription.languages" } }
+                : { type: "session.updated" }) } as MessageEvent<string>));
+          },
           close() {},
         };
         sent.push(messages);
@@ -50,6 +56,17 @@ describe("Conversate realtime transcription", () => {
       },
     });
     await session.start();
+    listener?.({ audioEvent: {
+      source: AudioInputSource.Glasses, audioPcm: pcm(4_000),
+    } } as EvenHubEvent);
+    for (let index = 0; index < 8; index += 1) listener?.({ audioEvent: {
+      source: AudioInputSource.Glasses, audioPcm: pcm(0),
+    } } as EvenHubEvent);
+    for (const [index, itemId] of ["item-1", "refined-1"].entries()) {
+      sockets[index]?.onmessage?.({ data: JSON.stringify({
+        type: "input_audio_buffer.committed", item_id: itemId,
+      }) } as MessageEvent<string>);
+    }
     const liveUpdate = sent[0]?.map((value) => JSON.parse(value))
       .find(({ type }) => type === "session.update");
     expect(liveUpdate.session.audio.input.transcription).toMatchObject({
@@ -63,11 +80,7 @@ describe("Conversate realtime transcription", () => {
       model: "gpt-transcribe", prompt: "Live conversation about Sandevistan",
       languages: ["ko", "en"], keywords: ["Sandevistan", "G2"],
     });
-    sockets[0]?.onmessage?.({ data: JSON.stringify({
-      type: "error",
-      error: { code: "invalid_value", param: "session.audio.input.transcription.languages" },
-    }) } as MessageEvent<string>);
-    const fallback = JSON.parse(sent[0]?.at(-1) ?? "{}");
+    const fallback = sent[0]?.map(value => JSON.parse(value)).filter(event => event.type === "session.update").at(-1);
     expect(fallback.session.audio.input.transcription).toEqual({
       model: "gpt-live-transcribe", delay: "low",
     });
@@ -93,12 +106,6 @@ describe("Conversate realtime transcription", () => {
     expect(refined).toHaveBeenCalledWith("item-1", "안녕하십니까");
     sockets[0]?.onmessage?.({ data: JSON.stringify({ type: "error" }) } as MessageEvent<string>);
     expect(error).toHaveBeenCalledWith("Transcription session error");
-    listener?.({ audioEvent: {
-      source: AudioInputSource.Glasses, audioPcm: pcm(4_000),
-    } } as EvenHubEvent);
-    for (let index = 0; index < 8; index += 1) listener?.({ audioEvent: {
-      source: AudioInputSource.Glasses, audioPcm: pcm(0),
-    } } as EvenHubEvent);
     expect(sent.every((messages) => messages.map((value) => JSON.parse(value).type)
       .includes("input_audio_buffer.append"))).toBe(true);
     expect(sent.every((messages) => messages.map((value) => JSON.parse(value).type)
@@ -107,4 +114,75 @@ describe("Conversate realtime transcription", () => {
     expect(audioControl).toHaveBeenNthCalledWith(1, true, AudioInputSource.Glasses);
     expect(audioControl).toHaveBeenLastCalledWith(false);
   });
+});
+
+function sessionHarness(audioControl = vi.fn(async (_open: boolean) => true)) {
+  const sockets: RealtimeSocket[] = [];
+  const unsubscribe = vi.fn();
+  const onError = vi.fn();
+  const session = createConversateRealtimeSession({
+    bridge: { audioControl, onEvenHubEvent: vi.fn(() => unsubscribe) },
+    key: "sk-test-1234567890abcdefghijklmnop", locale: "ko",
+    onPartial: vi.fn(), onCompleted: vi.fn(), onRefined: vi.fn(), onError,
+    fetchImpl: vi.fn(async () => Response.json({ value: "ek_test_ephemeral" })),
+    createSocket: () => {
+      const socket: RealtimeSocket = {
+        readyState: 1, onopen: null, onmessage: null, onerror: null, onclose: null,
+        send: vi.fn(value => { if (JSON.parse(value).type === "session.update") queueMicrotask(() => socket.onmessage?.({ data: JSON.stringify({ type: "session.updated" }) } as MessageEvent<string>)); }), close: vi.fn(),
+      };
+      sockets.push(socket);
+      queueMicrotask(() => socket.onopen?.());
+      return socket;
+    },
+  });
+  return { session, sockets, unsubscribe, onError };
+}
+
+it("closes a microphone that finishes activating after stop", async () => {
+  let activate = (_opened: boolean) => {};
+  const activation = new Promise<boolean>((resolve) => { activate = resolve; });
+  const audioControl = vi.fn((open: boolean) => open ? activation : Promise.resolve(true));
+  const harness = sessionHarness(audioControl);
+  const starting = harness.session.start();
+  const result = starting.then(() => "started", () => "cancelled");
+  await vi.waitFor(() => expect(audioControl).toHaveBeenCalledWith(true, AudioInputSource.Glasses));
+  const stopping = harness.session.stop();
+  activate(true);
+  await stopping;
+  expect(await result).toBe("cancelled");
+  expect(audioControl).toHaveBeenLastCalledWith(false);
+  expect(harness.unsubscribe).toHaveBeenCalled();
+});
+
+it("cleans up audio and sockets after an unexpected primary socket close", async () => {
+  const audioControl = vi.fn(async (_open: boolean) => true);
+  const harness = sessionHarness(audioControl);
+  await harness.session.start();
+  harness.sockets[0]?.onclose?.();
+  await vi.waitFor(() => expect(audioControl).toHaveBeenLastCalledWith(false));
+  expect(harness.unsubscribe).toHaveBeenCalled();
+  expect(harness.sockets.every((socket) => vi.mocked(socket.close).mock.calls.length > 0)).toBe(true);
+  expect(harness.onError).toHaveBeenCalledWith("Transcription connection closed");
+  await harness.session.stop();
+});
+
+it("does not open the microphone until both transcription configurations are acknowledged", async () => {
+  const sockets: RealtimeSocket[] = []; const audioControl = vi.fn(async () => true);
+  const session = createConversateRealtimeSession({
+    bridge: { audioControl, onEvenHubEvent: () => () => {} }, key: "sk-test-1234567890abcdefghijklmnop", locale: "ko",
+    onPartial: vi.fn(), onCompleted: vi.fn(), onRefined: vi.fn(), onError: vi.fn(),
+    fetchImpl: vi.fn(async () => Response.json({ value: "ek_test_ephemeral" })),
+    createSocket: () => {
+      const socket: RealtimeSocket = { readyState: 1, onopen: null, onmessage: null, onerror: null, onclose: null, send() {}, close() {} };
+      sockets.push(socket); queueMicrotask(() => socket.onopen?.()); return socket;
+    },
+  });
+  const start = session.start();
+  await vi.waitFor(() => expect(sockets).toHaveLength(2));
+  expect(audioControl).not.toHaveBeenCalled();
+  sockets[0]?.onmessage?.({ data: JSON.stringify({ type: "session.updated" }) } as MessageEvent<string>);
+  await Promise.resolve(); expect(audioControl).not.toHaveBeenCalled();
+  sockets[1]?.onmessage?.({ data: JSON.stringify({ type: "session.updated" }) } as MessageEvent<string>);
+  await start; expect(audioControl).toHaveBeenCalledWith(true, AudioInputSource.Glasses);
+  await session.stop();
 });

@@ -27,7 +27,7 @@ function customFeedUrl(value) {
   if (!value) return undefined;
   try {
     const url = new URL(value);
-    const hostname = url.hostname.toLowerCase();
+    const hostname = url.hostname.toLowerCase().replace(/\.+$/, "");
     const isIpLiteral = hostname.includes(":")
       || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
     if (
@@ -37,6 +37,7 @@ function customFeedUrl(value) {
       || url.hash
       || (url.port && url.port !== "443")
       || !hostname
+      || !hostname.includes(".")
       || hostname === "localhost"
       || isIpLiteral
       || PRIVATE_SUFFIXES.some((suffix) => hostname.endsWith(suffix))

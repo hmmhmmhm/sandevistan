@@ -1,3 +1,4 @@
+import { createFastCanvasInputHandler } from "./fast-canvas-input-handler";
 import {
   ImageRawDataUpdate,
   ImageRawDataUpdateResult,
@@ -226,18 +227,18 @@ export async function transmitCanvas(
   const startOperation = (
     label: string,
     operation: () => void | Promise<void>,
-  ): boolean => {
+  ): Promise<void> | undefined => {
     if (disposed || busy) {
       logDiagnostic(
         "REFRESH",
         `${label} dropped · ${disposed ? "disposed" : "busy"}`,
       );
-      return false;
+      return undefined;
     }
     busy = true;
     const startedAt = diagnosticNow();
     logDiagnostic("REFRESH", `${label} accepted`);
-    void (async () => operation())()
+    return (async () => operation())()
       .catch((error: unknown) => {
         logDiagnostic(
           "ERROR",
@@ -248,13 +249,13 @@ export async function transmitCanvas(
       })
       .finally(() => {
         busy = false;
+        inputHandler.onIdle();
         logDiagnostic(
           "REFRESH",
           `${label} complete`,
           diagnosticDuration(startedAt),
         );
       });
-    return true;
   };
   const performNavigation = async (direction: PageDirection) => {
     if (!onNavigate || hidden || disposed) return;
@@ -344,33 +345,15 @@ export async function transmitCanvas(
       logDiagnostic("REFRESH", "hide complete");
     }
   };
-  const handleInput = (
-    input: FastCanvasInput,
-    fallback?: () => void | Promise<void>,
-  ) => {
-    if (disposed || (hidden && input !== "double-tap")) {
-      logDiagnostic(
-        "INPUT",
-        `${input} ignored · ${disposed ? "disposed" : "hidden"}`,
-      );
-      return;
-    }
-    startOperation(`input ${input}`, async () => {
-      if (disposed) return;
-      if (hidden) {
-        if (input === "double-tap") await performDisplayToggle();
-        return;
-      }
-      const result = await onInput?.(input) ?? "unhandled";
-      logDiagnostic("INPUT", `${input} result · ${result}`);
-      if (disposed) return;
-      if (result === "redraw") {
-        await refreshImages(source, tiles, TRANSPORT_STATUS.active);
-      } else if (result === "unhandled") {
-        await fallback?.();
-      }
-    });
-  };
+  const inputHandler = createFastCanvasInputHandler({
+    disposed: () => disposed, hidden: () => hidden, busy: () => busy,
+    bypassBusy: externalRefresh?.canHandleBusyInput,
+    run: startOperation, input: onInput, toggle: performDisplayToggle,
+    exit: async () => { await bridge.shutDownPageContainer(1); },
+    refresh: () => refreshImages(source, tiles, TRANSPORT_STATUS.active),
+    log: (message) => logDiagnostic("INPUT", message),
+  });
+  const handleInput = inputHandler.handle;
   const requestExternalRefresh: FastCanvasRefreshRequest = (target) => {
     const reason = fastRefreshDropReason({
       available: Boolean(externalRefresh), disposed, hidden,
@@ -383,7 +366,7 @@ export async function transmitCanvas(
       );
       return;
     }
-    startOperation(`external ${target}`, async () => {
+    return startOperation(`external ${target}`, async () => {
       onProgress(TRANSPORT_STATUS.active);
       await externalRefresh!.beforeExternalRefresh?.();
       if (hidden || disposed) return;
@@ -422,15 +405,19 @@ export async function transmitCanvas(
       ? event.sysEvent.eventType ?? OsEventTypeList.CLICK_EVENT
       : event.textEvent
         ? event.textEvent.eventType ?? OsEventTypeList.CLICK_EVENT
-        : null;
-    if (eventType === OsEventTypeList.CLICK_EVENT) {
+        : event.listEvent?.eventType ?? null;
+    if (eventType === OsEventTypeList.LONG_PRESS_EVENT) {
+      handleInput("hold-start");
+    } else if (eventType === OsEventTypeList.LONG_PRESS_RELEASE_EVENT) {
+      handleInput("hold-end");
+    } else if (eventType === OsEventTypeList.CLICK_EVENT) {
       handleInput("tap");
     } else if (eventType === OsEventTypeList.DOUBLE_CLICK_EVENT) {
       handleInput("double-tap", performDisplayToggle);
     } else if (eventType === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
-      handleInput("scroll-next", () => performNavigation("previous"));
+      handleInput("scroll-next", () => performNavigation("next"));
     } else if (eventType === OsEventTypeList.SCROLL_TOP_EVENT) {
-      handleInput("scroll-previous", () => performNavigation("next"));
+      handleInput("scroll-previous", () => performNavigation("previous"));
     }
   });
   const dispose = () => {

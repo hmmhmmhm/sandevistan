@@ -1,3 +1,7 @@
+import { getReleaseCopy } from "../release-i18n";
+import type { PhoneLocale } from "../phone-types";
+import { DeviceHomeCard } from "./DeviceBattery";
+import type { FastCanvasBattery } from "../glasses";
 import type { ReactNode } from "react";
 import { APP_VERSION } from "../app-metadata";
 import type { PhoneStringKey } from "../phone-i18n";
@@ -14,17 +18,24 @@ type HomeCard = {
 
 export function PhoneHome({
   t,
+  locale = "en",
   cards,
   preview,
+  appearance,
+  battery,
   onOpen,
 }: {
+  readonly locale?: PhoneLocale;
   readonly t: (key: PhoneStringKey) => string;
   readonly cards: readonly HomeCard[];
   readonly preview: ReactNode;
+  readonly appearance?: ReactNode;
+  readonly battery?: FastCanvasBattery;
   readonly onOpen: (screen: Exclude<PhoneScreen, "home">) => void;
 }) {
   return (
     <div className="phone-home">
+      {appearance}
       <section className="phone-home__preview" aria-label={t("liveHudPreview")}>
         <div className="phone-home__preview-slot" data-phone-preview-slot>
           {preview}
@@ -36,10 +47,11 @@ export function PhoneHome({
           <button
             key={card.screen}
             type="button"
-            className="phone-home-card"
-            aria-label={`${t(card.titleKey)} · ${card.status}`}
+            className={`phone-home-card${card.screen === "devices" ? " phone-home-card--devices" : ""}`}
+            aria-label={card.screen === "devices" ? undefined : `${t(card.titleKey)} · ${card.status}`}
             onClick={() => onOpen(card.screen)}
           >
+            {card.screen === "devices" ? <DeviceHomeCard battery={battery} t={t}/> : <>
             <PhoneIcon
               name={card.icon}
               size={30}
@@ -49,6 +61,7 @@ export function PhoneHome({
               <strong>{t(card.titleKey)}</strong>
               <small>{card.status}</small>
             </span>
+            </>}
           </button>
         ))}
       </nav>
@@ -65,7 +78,11 @@ export function PhoneHome({
         >
           <PhoneIcon name="github" size={24} />
         </a>
-        <p>{t("developmentBuild")}</p>
+        <p>
+          © <a href="https://openmaptiles.org/" target="_blank" rel="noreferrer">OpenMapTiles</a>
+          {" · "}© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>
+        </p>
+        <p><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">{getReleaseCopy(locale, "sourceWeather")}</a>{" · "}<a href="https://www.geonames.org/" target="_blank" rel="noreferrer">{getReleaseCopy(locale, "sourceGeocoding")}</a></p>
       </footer>
     </div>
   );

@@ -8,6 +8,8 @@ import {
 import { OsEventTypeList } from "@evenrealities/even_hub_sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
+import { DEFAULT_PHONE_PREFERENCES } from "./phone-preferences";
+import type { FastCanvasInputResult } from "./fast-canvas-types";
 import {
   createInitialLiveDashboardState,
   type LiveDashboardState,
@@ -20,7 +22,7 @@ type FastInput =
   | "double-tap"
   | "scroll-next"
   | "scroll-previous";
-type FastInputResult = "unhandled" | "consume" | "redraw";
+type FastInputResult = FastCanvasInputResult;
 type FastTestOptions = {
   readonly beforeExternalRefresh?: () => void | Promise<void>;
   readonly displayHideStrategy?: "black-tiles" | "blank-rebuild";
@@ -81,6 +83,7 @@ const mocks = vi.hoisted(() => ({
   createSession: vi.fn(),
   drawDetail: vi.fn(),
   drawFast: vi.fn(),
+  drawQuickMenu: vi.fn(),
   drawFullscreen: vi.fn(),
   drawLocale: vi.fn(),
   getRoutingStatus: vi.fn(),
@@ -104,6 +107,11 @@ vi.mock("./fast-canvas-hud", async (importOriginal) => ({
     mocks.drawLocale(args[4]);
     mocks.drawFast(...args.slice(0, 4));
   },
+}));
+
+vi.mock("./fast-release-screens", () => ({
+  drawQuickMenu: (...args: unknown[]) => mocks.drawQuickMenu(...args),
+  drawKeySetup: vi.fn(),
 }));
 
 vi.mock("./fast-map", async (importOriginal) => ({
@@ -579,7 +587,7 @@ describe("SANDEVISTAN peripheral HUD", () => {
       expect.any(HTMLCanvasElement),
       expect.any(Date),
       "overview",
-      { battery: undefined, live: newest, mapRadiusMeters: 650 },
+      { battery: undefined, live: newest, mapRadiusMeters: 650, layout: DEFAULT_PHONE_PREFERENCES },
     );
     expect(mocks.drawLocale).toHaveBeenLastCalledWith("en");
     view.unmount();
@@ -913,6 +921,7 @@ describe("SANDEVISTAN peripheral HUD", () => {
         battery: { label: "G2", level: 80, charging: true },
         live: expect.any(Object),
         mapRadiusMeters: 650,
+        layout: DEFAULT_PHONE_PREFERENCES,
       },
     );
     view.unmount();
@@ -962,7 +971,9 @@ describe("SANDEVISTAN peripheral HUD", () => {
       "overview",
       expect.objectContaining({ mapRadiusMeters: 850 }),
     );
-    expect(await fastOptions().onInput?.("double-tap")).toBe("unhandled");
+    expect(await fastOptions().onInput?.("double-tap")).toBe("redraw");
+    expect(mocks.drawQuickMenu).toHaveBeenCalled();
+    expect(await fastOptions().onInput?.("double-tap")).toBe("redraw");
 
     await navigate?.("next");
     mocks.drawFullscreen.mockClear();
@@ -1395,6 +1406,7 @@ describe("SANDEVISTAN peripheral HUD", () => {
         battery: { label: "G2", level: 79, charging: false },
         live: weather,
         mapRadiusMeters: 850,
+        layout: DEFAULT_PHONE_PREFERENCES,
       },
     );
     view.unmount();

@@ -49,7 +49,7 @@ export const thLocale = {
     "taskTitle": "ชื่องาน",
     "addSource": "เพิ่มแหล่ง RSS",
     "sourceName": "ชื่อแหล่งที่มา",
-    "sourceUrl": "HTTPS RSS URL",
+    "sourceUrl": "URL RSS แบบ HTTPS",
     "orsKey": "คีย์ OpenRouteService",
     "validateKey": "ตรวจสอบคีย์",
     "deleteKey": "ลบคีย์",

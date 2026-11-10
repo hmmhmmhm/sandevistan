@@ -42,13 +42,12 @@ describe("fast HUD detail state", () => {
     });
   });
 
-  it("leaves dashboard navigation and display toggle inputs unhandled", () => {
+  it("leaves dashboard page scrolling unhandled", () => {
     const state = createFastHudViewState();
 
     for (const input of [
       "scroll-next",
       "scroll-previous",
-      "double-tap",
     ] as const) {
       expect(reduceFastHudInput(state, "overview", input, CONTEXT)).toEqual({
         state,
@@ -358,6 +357,7 @@ describe("fast HUD detail state", () => {
   it("clamps selections and follows active route changes", () => {
     const state: FastHudViewState = {
       mode: "navigation",
+      menuIndex: 2,
       zoomIndex: 99,
       newsIndex: 5,
       newsPage: 99,
@@ -376,6 +376,7 @@ describe("fast HUD detail state", () => {
       activeManeuverIndex: 2,
     })).toEqual({
       mode: "navigation",
+      menuIndex: 2,
       zoomIndex: FAST_MAP_ZOOM_RADII.length - 1,
       newsIndex: 1,
       newsPage: 2,
@@ -388,4 +389,16 @@ describe("fast HUD detail state", () => {
     expect(createFastHudViewState().zoomIndex)
       .toBe(FAST_MAP_DEFAULT_ZOOM_INDEX);
   });
+});
+
+it("opens the approved menu on root double tap and separates hide from system exit", () => {
+ const initial = createFastHudViewState();
+ const menu = reduceFastHudInput(initial,"overview","double-tap",CONTEXT);
+ expect(menu).toMatchObject({state:{mode:"quick-menu",menuIndex:2},result:"redraw"});
+ expect(reduceFastHudInput(menu.state,"overview","tap",CONTEXT)).toMatchObject({state:{mode:"dashboard"},result:"redraw"});
+ const exit = reduceFastHudInput(menu.state,"overview","scroll-previous",CONTEXT);
+ expect(reduceFastHudInput(exit.state,"overview","tap",CONTEXT)).toMatchObject({state:{mode:"dashboard"},result:"exit"});
+ const hide = reduceFastHudInput(exit.state,"overview","scroll-previous",CONTEXT);
+ expect(reduceFastHudInput(hide.state,"overview","tap",CONTEXT)).toMatchObject({state:{mode:"dashboard"},result:"hide"});
+ expect(reduceFastHudInput(menu.state,"overview","double-tap",CONTEXT)).toMatchObject({state:{mode:"dashboard"},result:"redraw"});
 });

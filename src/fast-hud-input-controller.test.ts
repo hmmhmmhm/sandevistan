@@ -1,150 +1,57 @@
-import { describe, expect, it, vi } from "vitest";
+import { expect, it, vi } from "vitest";
 import { createFastHudInputController } from "./fast-hud-input-controller";
-import {
-  createFastHudViewState,
-  type FastHudViewState,
-} from "./fast-hud-view";
+import { createFastHudViewState } from "./fast-hud-view";
 
-describe("fast HUD native Ask AI input flow", () => {
-  it("enters one native page, updates it for history, and restores Canvas", async () => {
-    let view = createFastHudViewState();
-    let nativeActive = false;
-    const native = {
-      active: vi.fn(() => nativeActive),
-      enter: vi.fn(async () => {
-        nativeActive = true;
-        return true;
-      }),
-      update: vi.fn(async () => true),
-      restore: vi.fn(async () => {
-        nativeActive = false;
-        return true;
-      }),
-    };
-    const ai = {
-      start: vi.fn(async () => true),
-      interrupt: vi.fn(async () => undefined),
-      stop: vi.fn(async () => undefined),
-      dispose: vi.fn(),
-    };
-    const draw = vi.fn();
-    const input = createFastHudInputController({
-      getView: () => view,
-      setView: (next) => { view = next; },
-      getPage: () => "ai",
-      getContext: () => ({
-        newsCount: 0,
-        newsPageCounts: [],
-        todoCount: 0,
-        maneuverCount: 0,
-        activeManeuverIndex: 0,
-        aiLineCount: 2,
-      }),
-      getLiveSession: () => undefined,
-      getAiRuntime: () => ai,
-      getNativeText: () => native,
-      nativeContent: () => `LINE ${view.aiLine}`,
-      drawCurrentPage: draw,
-    });
-
-    expect(await input("tap")).toBe("consume");
-    expect(view.mode).toBe("ai");
-    expect(native.enter).toHaveBeenCalledWith("LINE 1");
-    expect(ai.start).toHaveBeenCalledOnce();
-    expect(draw).not.toHaveBeenCalled();
-
-    expect(await input("scroll-previous")).toBe("consume");
-    expect(view.aiLine).toBe(0);
-    expect(native.update).toHaveBeenCalledWith("LINE 0");
-
-    native.update.mockClear();
-    expect(await input("tap")).toBe("consume");
-    expect(native.update).not.toHaveBeenCalled();
-    expect(ai.interrupt).toHaveBeenCalledOnce();
-    expect(ai.stop).not.toHaveBeenCalled();
-
-    expect(await input("double-tap")).toBe("consume");
-    expect(view.mode).toBe("dashboard");
-    expect(ai.stop).toHaveBeenCalledOnce();
-    expect(draw).toHaveBeenCalledOnce();
-    expect(native.restore).toHaveBeenCalledOnce();
+function harness(page: "ai" | "conversate") {
+  let view = createFastHudViewState();
+  const ai = { start: vi.fn(async () => true), stop: vi.fn(async () => undefined), interrupt: vi.fn(async () => undefined), dispose: vi.fn() };
+  const conversate = { start: vi.fn(async () => true), stop: vi.fn(async () => undefined), tap: vi.fn(), scroll: vi.fn(), dispose: vi.fn() };
+  const draw = vi.fn();
+  const native = { active: () => false, enter: vi.fn(async () => true), update: vi.fn(async () => true), restore: vi.fn(async () => true) };
+  const input = createFastHudInputController({
+    getView: () => view, setView: (next) => { view = next; }, getPage: () => page,
+    getContext: () => ({ newsCount: 0, newsPageCounts: [], todoCount: 0, maneuverCount: 0, activeManeuverIndex: 0, aiLineCount: 2 }),
+    getLiveSession: () => undefined, getAiRuntime: () => ai, getConversateRuntime: () => conversate,
+    drawCurrentPage: draw,
   });
+  return { input, ai, conversate, native, draw, view: () => view };
+}
+it("keeps Ask AI on the image page across entry, history, flush and exit", async () => {
+  const h = harness("ai");
+  expect(await h.input("tap")).toBe("redraw");
+  expect(h.ai.start).toHaveBeenCalledOnce();
+  expect(h.native.enter).not.toHaveBeenCalled();
+  expect(await h.input("scroll-previous")).toBe("redraw");
+  expect(h.view().aiLine).toBe(0);
+  expect(await h.input("tap")).toBe("redraw");
+  expect(h.ai.interrupt).toHaveBeenCalledOnce();
+  expect(await h.input("double-tap")).toBe("redraw");
+  expect(h.ai.stop).toHaveBeenCalledOnce();
+  expect(h.view().mode).toBe("dashboard");
+  expect(h.native.restore).not.toHaveBeenCalled();
+});
+it("renders Conversate input changes through images and exits after a storage error", async () => {
+  const h = harness("conversate");
+  expect(await h.input("tap")).toBe("redraw");
+  expect(h.conversate.start).toHaveBeenCalledOnce();
+  expect(await h.input("tap")).toBe("redraw");
+  expect(h.conversate.tap).toHaveBeenCalledOnce();
+  expect(await h.input("scroll-next")).toBe("redraw");
+  expect(h.conversate.scroll).toHaveBeenCalledOnce();
+  h.conversate.stop.mockRejectedValueOnce(new Error("storage unavailable"));
+  expect(await h.input("double-tap")).toBe("redraw");
+  expect(h.view().mode).toBe("dashboard");
+});
 
-  it("does not start the microphone when the native page cannot open", async () => {
-    let view = createFastHudViewState();
-    const start = vi.fn(async () => true);
-    const input = createFastHudInputController({
-      getView: () => view,
-      setView: (next) => { view = next; },
-      getPage: () => "ai",
-      getContext: () => ({
-        newsCount: 0,
-        newsPageCounts: [],
-        todoCount: 0,
-        maneuverCount: 0,
-        activeManeuverIndex: 0,
-        aiLineCount: 1,
-      }),
-      getLiveSession: () => undefined,
-      getAiRuntime: () => ({
-        start,
-        interrupt: async () => undefined,
-        stop: async () => undefined,
-        dispose: () => undefined,
-      }),
-      getNativeText: () => ({
-        active: () => false,
-        enter: async () => false,
-        update: async () => false,
-        restore: async () => false,
-      }),
-      nativeContent: () => "ASK AI",
-      drawCurrentPage: () => undefined,
-    });
-
-    expect(await input("tap")).toBe("consume");
-    expect(view.mode).toBe("dashboard");
-    expect(start).not.toHaveBeenCalled();
-  });
-
-  it("restores Canvas even when stopping Ask AI rejects unexpectedly", async () => {
-    let view: FastHudViewState = {
-      ...createFastHudViewState(),
-      mode: "ai",
-    };
-    const restore = vi.fn(async () => true);
-    const draw = vi.fn();
-    const input = createFastHudInputController({
-      getView: () => view,
-      setView: (next) => { view = next; },
-      getPage: () => "ai",
-      getContext: () => ({
-        newsCount: 0,
-        newsPageCounts: [],
-        todoCount: 0,
-        maneuverCount: 0,
-        activeManeuverIndex: 0,
-      }),
-      getLiveSession: () => undefined,
-      getAiRuntime: () => ({
-        start: async () => true,
-        interrupt: async () => undefined,
-        stop: async () => { throw new Error("storage unavailable"); },
-        dispose: () => undefined,
-      }),
-      getNativeText: () => ({
-        active: () => true,
-        enter: async () => true,
-        update: async () => true,
-        restore,
-      }),
-      nativeContent: () => "ASK AI",
-      drawCurrentPage: draw,
-    });
-
-    await expect(input("double-tap")).resolves.toBe("consume");
-    expect(view.mode).toBe("dashboard");
-    expect(draw).toHaveBeenCalledOnce();
-    expect(restore).toHaveBeenCalledOnce();
-  });
+it("returns to the dashboard without waiting for microphone or storage acknowledgements", async () => {
+  const h = harness("ai");
+  await h.input("tap");
+  let finish: (() => void) | undefined;
+  h.ai.stop.mockImplementationOnce(() => new Promise<undefined>(resolve => { finish = () => resolve(undefined); }));
+  let returned = false;
+  const exit = h.input("double-tap").then(() => { returned = true; });
+  await Promise.resolve(); await Promise.resolve();
+  expect(h.view().mode).toBe("dashboard");
+  expect(returned).toBe(true);
+  finish?.(); await exit;
 });

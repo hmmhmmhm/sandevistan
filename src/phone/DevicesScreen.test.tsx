@@ -22,9 +22,12 @@ describe("DevicesScreen", () => {
     );
 
     expect(screen.getByText("Connected")).toBeTruthy();
-    expect(screen.getByText("43% · Charging")).toBeTruthy();
+    expect(screen.getByText("43%")).toBeTruthy();
+    expect(screen.getByText("Charging")).toBeTruthy();
+    expect(screen.getByRole("progressbar", { name: "Even G2 Battery" }).getAttribute("value")).toBe("43");
+    expect(screen.queryByRole("progressbar", { name: "Even R1 Battery" })).toBeNull();
     expect(screen.getAllByText("Unavailable").length).toBeGreaterThan(0);
-    expect(screen.getByText("0.0.11")).toBeTruthy();
+    expect(screen.getByText("0.0.16")).toBeTruthy();
     expect(screen.getByText("Ready")).toBeTruthy();
   });
 });

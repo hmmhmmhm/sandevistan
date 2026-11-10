@@ -81,7 +81,7 @@ export const woLocale = {
     "noData": "Amul benn done",
     "liveHudPreview": "Xool HUD ci saasi",
     "hudRasterPreview": "Toxal nataalu Sandevistan\nLunettes sandevistan cadre HUD",
-    "hudGlassesFrame": "Sandevistan glasses HUD frame",
+    "hudGlassesFrame": "Fayet buñu rëddal HUD bu lunettes Sandevistan",
     "developmentFallback": "Caabi serwëru yokkute",
     "routingMode": "Modu yoon",
     "rssSources": "RSS yi",

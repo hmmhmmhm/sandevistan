@@ -23,7 +23,7 @@ describe("Even-style phone HUD preview", () => {
 
   it("uses a neutral low-contrast treatment without color blending", () => {
     expect(css).toMatch(
-      /\.phone-home__preview-slot \.hud-frame canvas\s*\{[^}]*filter:\s*grayscale\(1\) invert\(1\) contrast\(0\.62\)/s,
+      /\.phone-home__preview-slot \.hud-frame canvas\s*\{[^}]*filter:\s*var\(--phone-preview-filter\)/s,
     );
     expect(css).toMatch(
       /\.phone-home__preview-slot \.hud-frame canvas\s*\{[^}]*mix-blend-mode:\s*normal/s,

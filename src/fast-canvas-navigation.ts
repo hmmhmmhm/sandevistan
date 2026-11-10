@@ -1,3 +1,6 @@
+import { LOCALE_REGISTRY } from "./i18n/locale-registry";
+import { translatePhone } from "./phone-i18n";
+import { fixedHud } from "./fixed-hud-i18n";
 import {
   drawFastCanvasPath as drawPath,
   drawFastCanvasText as drawText,
@@ -15,7 +18,7 @@ function drawRouteDestination(
 ) {
   drawText(
     context,
-    `DEST // ${truncateHudTitle(route.destinationName, 18)}`,
+    `${LOCALE_REGISTRY[locale].route.destination} // ${truncateHudTitle(route.destinationName, 18)}`,
     308,
     226,
     10,
@@ -27,7 +30,7 @@ function drawRouteDestination(
     : route.profile === "cycling-regular"
       ? translateHud(locale, "cycling")
       : translateHud(locale, "driving");
-  drawText(context, `MODE // ${profile}`, 308, 246, 15, COLOR.primary, "bold");
+  drawText(context, `${translatePhone(locale, "routingMode")} // ${profile}`, 308, 246, 15, COLOR.primary, "bold");
 }
 
 function formatRouteDistance(distance: number) {
@@ -43,7 +46,7 @@ export function drawFastCanvasNavigation(
   locale: PhoneLocale,
 ) {
   if (routeState.status === "disabled") {
-    drawText(context, "NAV // READY", 308, 82, 11, COLOR.secondary, "bold");
+    drawText(context, fixedHud(locale, "NAV // READY"), 308, 82, 11, COLOR.secondary, "bold");
     drawText(
       context,
       translateHud(locale, "routingKeyRequired"),
@@ -62,7 +65,7 @@ export function drawFastCanvasNavigation(
       COLOR.secondary,
       "bold",
     );
-    drawText(context, "PHONE // COMPANION", 308, 226, 10, COLOR.secondary, "bold");
+    drawText(context, fixedHud(locale, "PHONE // COMPANION"), 308, 226, 10, COLOR.secondary, "bold");
     drawText(
       context,
       translateHud(locale, "routingConfigure"),
@@ -76,27 +79,27 @@ export function drawFastCanvasNavigation(
   }
 
   if (routeState.status === "loading") {
-    drawText(context, "NAV // ROUTING", 308, 82, 11, COLOR.secondary, "bold");
+    drawText(context, fixedHud(locale, "NAV // ROUTING"), 308, 82, 11, COLOR.secondary, "bold");
     drawText(context, translateHud(locale, "routingCalculating"), 308, 108, 24, COLOR.primary, "bold");
     drawText(context, translateHud(locale, "routingPreparing"), 308, 150, 14, COLOR.secondary, "bold");
-    drawText(context, "ORS // WORKING", 308, 226, 10, COLOR.secondary, "bold");
+    drawText(context, fixedHud(locale, "ORS // WORKING"), 308, 226, 10, COLOR.secondary, "bold");
     drawText(context, translateHud(locale, "routingWait"), 308, 246, 14, COLOR.primary, "bold");
     return;
   }
 
   const route = routeState.value;
   if (!route) {
-    drawText(context, "NAV // READY", 308, 82, 11, COLOR.secondary, "bold");
+    drawText(context, fixedHud(locale, "NAV // READY"), 308, 82, 11, COLOR.secondary, "bold");
     drawText(context, translateHud(locale, "destinationSelect"), 308, 108, 20, COLOR.primary, "bold");
     drawText(context, translateHud(locale, "destinationSearch"), 308, 150, 15, COLOR.secondary, "bold");
-    drawText(context, "PHONE // COMPANION", 308, 226, 10, COLOR.secondary, "bold");
+    drawText(context, fixedHud(locale, "PHONE // COMPANION"), 308, 226, 10, COLOR.secondary, "bold");
     drawText(context, translateHud(locale, "routingModes"), 308, 246, 13, COLOR.primary, "bold");
     return;
   }
 
   if (routeState.status === "stale") {
     const instruction = route.maneuvers[route.activeManeuverIndex]?.instruction;
-    drawText(context, "NAV // STALE", 308, 82, 11, COLOR.secondary, "bold");
+    drawText(context, fixedHud(locale, "NAV // STALE"), 308, 82, 11, COLOR.secondary, "bold");
     drawText(context, translateHud(locale, "routingCheck"), 308, 108, 23, COLOR.primary, "bold");
     if (instruction) {
       drawText(
@@ -115,7 +118,7 @@ export function drawFastCanvasNavigation(
 
   const instruction = route.maneuvers[route.activeManeuverIndex]?.instruction
     ?? translateHud(locale, "arrived");
-  drawText(context, "NAV // ACTIVE", 308, 82, 11, COLOR.secondary, "bold");
+  drawText(context, fixedHud(locale, "NAV // ACTIVE"), 308, 82, 11, COLOR.secondary, "bold");
   drawText(
     context,
     formatRouteDistance(route.remainingDistance),

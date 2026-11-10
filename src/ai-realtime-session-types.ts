@@ -19,6 +19,7 @@ type AudioBridge = {
 
 export type AiRealtimeSession = {
   start(): Promise<void>;
+  capture?: { begin(): Promise<void>; end(): void };
   approvePendingMcp?(): boolean;
   cancelResponse(): AiRealtimeProtocolState;
   stop(): Promise<AiRealtimeProtocolState>;
@@ -26,6 +27,7 @@ export type AiRealtimeSession = {
 };
 
 export type AiRealtimeSessionOptions = {
+  readonly captureMode?: "hold" | "automatic";
   readonly bridge: AudioBridge;
   readonly key: string;
   readonly locale: PhoneLocale;

@@ -1,3 +1,6 @@
+import type { FastHudLayout } from "./fast-hud-pages";
+import { translatePhone } from "./phone-i18n";
+import { fixedHud } from "./fixed-hud-i18n";
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import {
@@ -20,6 +23,7 @@ type FastCanvasBattery = {
   charging?: boolean;
 };
 type FastCanvasHudData = {
+  readonly layout?: FastHudLayout;
   readonly battery?: FastCanvasBattery;
   readonly live: LiveDashboardState;
   readonly mapRadiusMeters?: number;
@@ -103,6 +107,7 @@ function renderFastHud(
     fillRect: (x: number, y: number, width: number, height: number) => {
       rectangles.push({ style: fillStyle, args: [x, y, width, height] });
     },
+    measureText: (value: string) => ({ width: [...value].length * 8 }),
     fillText: (value: string, x: number, y: number) => {
       texts.push({ style: fillStyle, font: context.font, value, x, y });
     },
@@ -115,6 +120,7 @@ function renderFastHud(
     lineTo: (x: number, y: number) => {
       currentPath.push([x, y]);
     },
+    arc: () => undefined,
     closePath: () => undefined,
     stroke: () => {
       strokedPaths.push({
@@ -239,10 +245,10 @@ describe("fast split Canvas HUD", () => {
       expect(hud.values).toEqual(expect.arrayContaining([
         "14:37",
         "2026.07.27 월요일",
-        "WEATHER --",
+        fixedHud("ko", "WEATHER --"),
         `0${index + 1} / 06`,
-        "LOC // NO GPS · NO DATA",
-        "NO GPS DATA",
+        `${translatePhone("ko", "location")} // ${fixedHud("ko", "NO GPS")} · ${fixedHud("ko", "NO DATA")}`,
+        fixedHud("ko", "NO GPS DATA"),
         "© OSM CONTRIBUTORS",
       ]));
       expect(hud.texts.find(
@@ -263,16 +269,16 @@ describe("fast split Canvas HUD", () => {
       leftSnapshot(pages[0]),
       leftSnapshot(pages[0]),
     ]);
-    expect(pages[3].values).toContain("WEATHER // LOADING");
+    expect(pages[3].values).toContain(fixedHud("ko", "WEATHER // LOADING"));
     expect(pages[3].values).not.toContain("경로 키 필요");
     expect(pages[3].values).not.toContain("ORS 연결 후 사용");
-    expect(pages[1].values).toContain("NEWS LOADING");
+    expect(pages[1].values).toContain(fixedHud("ko", "NEWS LOADING"));
     expect(pages[1].values.filter((value) => value.startsWith("· "))).toHaveLength(
       0,
     );
     expect(pages[1].values).not.toContain("2호선 정상 운행");
     expect(pages[2].values).toEqual(expect.arrayContaining([
-      "TODO // ACTIVE",
+      fixedHud("ko", "TODO // ACTIVE"),
       "지하철역으로 이동",
       "우산 챙기기",
       "경로 확인",
@@ -305,7 +311,7 @@ describe("fast split Canvas HUD", () => {
     const weather = renderFastHud(module, "weather", { live });
 
     expect(weather.values).toEqual(expect.arrayContaining([
-      "WEATHER // NOW",
+      fixedHud("ko", "WEATHER // NOW"),
       "28°C",
       "맑음",
       "체감 30°",
@@ -314,7 +320,7 @@ describe("fast split Canvas HUD", () => {
       "바람 8km/h",
       "04 / 06",
     ]));
-    expect(weather.values).not.toContain("BATTERY --");
+    expect(weather.values).not.toContain(fixedHud("ko", "BATTERY --"));
     expect(weather.values).not.toContain("경로 키 필요");
     expect(weather.values).not.toContain("ORS 연결 후 사용");
     const iconPoints = weather.strokedPaths
@@ -373,7 +379,7 @@ describe("fast split Canvas HUD", () => {
 
     expect(navigation.values).toEqual(expect.arrayContaining([
       "07 / 07",
-      "NAV // READY",
+      fixedHud("ko", "NAV // READY"),
       "목적지를 선택하세요",
     ]));
     expect(navigation.values).not.toContain("경로 키 필요");
@@ -386,9 +392,9 @@ describe("fast split Canvas HUD", () => {
 
     expect(navigation.values).toEqual(expect.arrayContaining([
       "04 / 06",
-      "WEATHER // LOADING",
+      fixedHud("ko", "WEATHER // LOADING"),
     ]));
-    expect(navigation.values).not.toContain("NAV // DISABLED");
+    expect(navigation.values).not.toContain(fixedHud("ko", "NAV // DISABLED"));
     expect(navigation.values).not.toContain("키 설정 필요");
   });
 
@@ -403,7 +409,7 @@ describe("fast split Canvas HUD", () => {
         charging: true,
       },
     }).values).toContain("G2 82% +");
-    expect(renderFastHud(module, "overview").values).toContain("BATTERY --");
+    expect(renderFastHud(module, "overview").values).toContain(fixedHud("ko", "BATTERY --"));
   });
 
   it("threads the retained map zoom into the embedded map", async () => {
@@ -435,16 +441,16 @@ describe("fast split Canvas HUD", () => {
 
     expect(renderFastHud(module, "overview", {
       live: withSource("live"),
-    }).values).toContain("LOC // LIVE · NO DATA");
+    }).values).toContain(`${translatePhone("ko", "location")} // ${fixedHud("ko", "LIVE")} · ${fixedHud("ko", "NO DATA")}`);
     expect(renderFastHud(module, "overview", {
       live: withSource("cache"),
-    }).values).toContain("LOC // LAST FIX · NO DATA");
+    }).values).toContain(`${translatePhone("ko", "location")} // ${fixedHud("ko", "LAST FIX")} · ${fixedHud("ko", "NO DATA")}`);
     expect(renderFastHud(module, "overview", {
       live: withSource("demo"),
-    }).values).toContain("LOC // NO GPS · NO DATA");
+    }).values).toContain(`${translatePhone("ko", "location")} // ${fixedHud("ko", "NO GPS")} · ${fixedHud("ko", "NO DATA")}`);
     expect(renderFastHud(module, "overview", {
       live: withSource("demo"),
-    }).values).toContain("NO GPS DATA");
+    }).values).toContain(fixedHud("ko", "NO GPS DATA"));
   });
 
   it("shows rounded live weather details and an unavailable fallback", async () => {
@@ -495,7 +501,7 @@ describe("fast split Canvas HUD", () => {
         ...initial,
         weather: { status: "unavailable" },
       },
-    }).values).toContain("WEATHER --");
+    }).values).toContain(fixedHud("ko", "WEATHER --"));
   });
 
   it("renders six live headlines and labels stale or unavailable states", async () => {
@@ -541,10 +547,10 @@ describe("fast split Canvas HUD", () => {
 
     expect(renderFastHud(module, "news", {
       live: { ...live, news: { ...live.news, status: "stale" } },
-    }).values).toContain("NEWS // FOCUS · STALE");
+    }).values).toContain(fixedHud("ko", "NEWS // FOCUS · STALE"));
     expect(renderFastHud(module, "news", {
       live: { ...live, news: { status: "unavailable" } },
-    }).values).toContain("NEWS UNAVAILABLE");
+    }).values).toContain(fixedHud("ko", "NEWS UNAVAILABLE"));
   });
 
   it("renders the restored TODO state on its dashboard page", async () => {
@@ -610,37 +616,45 @@ describe("fast split Canvas HUD", () => {
 
     expect(values({ status: "disabled" })).toEqual(
       expect.arrayContaining([
-        "WEATHER // LOADING",
+        fixedHud("ko", "WEATHER // LOADING"),
         "날씨 불러오는 중",
       ]),
     );
     expect(values({ status: "disabled" })).not.toContain("경로 키 필요");
     expect(values({ status: "fresh" })).toEqual(
       expect.arrayContaining([
-        "NAV // READY",
+        fixedHud("ko", "NAV // READY"),
         "목적지를 선택하세요",
       ]),
     );
     expect(values({ status: "loading" })).toEqual(
       expect.arrayContaining([
-        "NAV // ROUTING",
+        fixedHud("ko", "NAV // ROUTING"),
         "경로 계산 중",
       ]),
     );
     expect(values({ status: "fresh", value: route, fetchedAt: 1 })).toEqual(
       expect.arrayContaining([
-        "NAV // ACTIVE",
+        fixedHud("ko", "NAV // ACTIVE"),
         "120m",
         "오른쪽으로 도세요",
-        "DEST // 서울역",
+        "목적지 // 서울역",
       ]),
     );
     expect(values({ status: "stale", value: route, fetchedAt: 1 })).toEqual(
       expect.arrayContaining([
-        "NAV // STALE",
+        fixedHud("ko", "NAV // STALE"),
         "경로 확인 필요",
-        "DEST // 서울역",
+        "목적지 // 서울역",
       ]),
     );
   });
+});
+
+it("uses the saved visible page order for the counter and hidden-page fallback", async()=>{
+ const module=await loadFastHud();if(!module)throw Error("Missing HUD module");
+ const data={layout:{order:["overview","weather"],enabled:["overview","weather"]}} satisfies Partial<FastCanvasHudData>;
+ expect(renderFastHud(module,"weather",data).values).toContain("02 / 02");
+ const hidden=renderFastHud(module,"news",data).values;
+ expect(hidden).toContain("01 / 02");expect(hidden).toContain(fixedHud("ko","SYSTEM // OVERVIEW"));
 });

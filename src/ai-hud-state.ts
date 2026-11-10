@@ -1,3 +1,5 @@
+import type { AiCaptureState } from "./ai-hold-capture";
+import type { RecordingTime } from "./ai-session-clock";
 import type { AiConversationExcerpt } from "./ai-history";
 import type {
   AiConversationTurn,
@@ -11,6 +13,8 @@ import type { AiActiveTool } from "./ai-realtime-tools";
 export type AiHudPhase = "unconfigured" | "displaying" | AiRealtimePhase;
 
 export type AiHudSnapshot = {
+  readonly captureState?: AiCaptureState;
+  readonly recording?: RecordingTime;
   readonly configured: boolean;
   readonly phase: AiHudPhase;
   readonly userText: string;
@@ -58,6 +62,7 @@ export function updateAiHudProtocol(
   return {
     ...current,
     phase: protocol.phase,
+    captureState: protocol.captureState,
     userText: protocol.userText,
     assistantText: protocol.assistantText,
     turns: protocol.turns,

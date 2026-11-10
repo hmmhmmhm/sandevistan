@@ -1,3 +1,4 @@
+import { AI_WEATHER_TOOL, requestAiWeather } from "./ai-weather";
 import type { DataState, LocationValue } from "./live-state";
 import type { PhoneLocale } from "./phone-types";
 
@@ -36,6 +37,7 @@ export type BuiltinAiToolResult =
     };
 
 export const BUILTIN_AI_TOOLS = [
+  AI_WEATHER_TOOL,
   {
     type: "function" as const,
     name: "get_current_time",
@@ -92,6 +94,8 @@ export async function executeBuiltinAiTool(
   rawArguments: string,
   context: {
     readonly locale: PhoneLocale;
+    readonly fetchImpl?: typeof fetch;
+    readonly signal?: AbortSignal;
     readonly now: () => Date;
     readonly getLocation: () => DataState<LocationValue>;
     readonly searchWeb: (
@@ -102,6 +106,10 @@ export async function executeBuiltinAiTool(
 ): Promise<BuiltinAiToolResult> {
   const args = parseObject(rawArguments);
   if (!args) return failed("INVALID_ARGUMENTS", "Tool arguments are invalid");
+  if(name === "get_weather") {
+    try { const result=await requestAiWeather(args,{locale:context.locale,fetchImpl:context.fetchImpl,signal:context.signal});return {ok:true,...result}; }
+    catch(error) { return failed("WEATHER_UNAVAILABLE",error instanceof Error?error.message:"Weather is unavailable"); }
+  }
   if (name === "get_current_time") {
     const date = context.now();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";

@@ -1,0 +1,11 @@
+import { drawFastAiDetail } from "../../src/fast-ai-detail";
+import { createAiHudSnapshot } from "../../src/ai-hud-state";
+import { createAiTranscriptLines } from "../../src/ai-transcript";
+const canvas=document.querySelector("canvas");
+if (!(canvas instanceof HTMLCanvasElement)) throw Error("Canvas missing");
+const context=canvas.getContext("2d");if(!context) throw Error("Context missing");
+const user="태양광 발전의 장점과 단점을 자세히 설명해 주세요.";
+const assistant=Array.from({length:10},(_,i)=>`${i+1}. 태양광 발전은 연료 없이 전기를 생산합니다. 설치 위치와 날씨에 따라 발전량이 달라지므로 이용 조건을 함께 확인하는 것이 좋습니다.`).join("\n");
+const lines=createAiTranscriptLines([],{user,assistant}),end=12,first=end-4;
+context.fillStyle="black";context.fillRect(0,0,576,288);
+drawFastAiDetail(context,{...createAiHudSnapshot(true),phase:"listening",captureState:"waiting",recording:{seconds:23,active:false},assistantText:assistant,userText:user,transcriptLines:lines,responseComplete:true},end,"ko");

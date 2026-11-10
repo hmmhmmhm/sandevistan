@@ -1,0 +1,14 @@
+{
+  "version": "0.2.1",
+  "bytes": 2193070,
+  "sha256": "d46034e6b341b865a0d309fa60bd2eea73b1472c562f09c26c5a65bbfff1a897",
+  "status": "uploaded-and-verified",
+  "bundleOpenAiKeyPatterns": 0,
+  "previousPrivateVersion": "0.2.0",
+  "visibility": "Private",
+  "changelogApproved": true,
+  "changelogVerified": true,
+  "verifiedAt": "2026-11-08T07:31:36.526712+00:00",
+  "evidence": "output/ask-ai-usability-2026-11-08/evenhub-confirmed.txt",
+  "browserSessionsRemaining": 0
+}

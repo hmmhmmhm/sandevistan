@@ -1,3 +1,5 @@
+import { getReleaseCopy } from "./release-i18n";
+import { fixedHud } from "./fixed-hud-i18n";
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { drawFastDetailHud } from "./fast-detail-hud";
@@ -36,6 +38,7 @@ function createCanvas() {
     lineTo: (x: number, y: number) => {
       currentPath.push([x, y]);
     },
+    arc: () => undefined,
     closePath: () => undefined,
     stroke: () => {
       strokedPaths.push([...currentPath]);
@@ -115,7 +118,7 @@ function values(texts: readonly DrawnText[]) {
 }
 
 describe("drawFastDetailHud", () => {
-  it("draws only the localized streaming Ask AI transcript", () => {
+  it("draws localized speaker blocks on the image HUD", () => {
     const { canvas, texts } = createCanvas();
     const ai = {
       ...createAiHudSnapshot(true),
@@ -140,20 +143,20 @@ describe("drawFastDetailHud", () => {
     }, "ko");
 
     expect(values(texts)).toEqual(expect.arrayContaining([
-      "사용자 // 오늘 날씨는 어때?",
-      "AI // 현재 맑고 기온은 28도입니다.",
+      "사용자", "오늘 날씨는 어때?",
+      "AI", "현재 맑고 기온은 28도입니다.",
     ]));
     expect(values(texts)).not.toContain("AI에게 묻기 // 생각하는 중…");
     expect(values(texts)).not.toContain("스크롤 // 대화 기록");
-    expect(values(texts)).not.toContain("두 번 탭 // 뒤로");
-    const user = texts.find(({ value }) => value.startsWith("사용자 //"));
-    const assistant = texts.find(({ value }) => value.startsWith("AI //"));
-    expect(user?.x).toBe(8);
-    expect(assistant?.x).toBe(8);
-    expect((assistant?.y ?? 0) - (user?.y ?? 0)).toBe(58);
+    expect(values(texts)).toContain("두 번 탭 // 뒤로");
+    const user = texts.find(({ value }) => value === "오늘 날씨는 어때?");
+    const assistant = texts.find(({ value }) => value === "현재 맑고 기온은 28도입니다.");
+    expect(user?.x).toBe(24);
+    expect(assistant?.x).toBe(24);
+    expect((assistant?.y ?? 0) - (user?.y ?? 0)).toBe(52);
   });
 
-  it("shows localized listening status below the live transcript", () => {
+  it("keeps a prominent status above the latest conversation", () => {
     const { canvas, texts } = createCanvas();
     const ai = {
       ...createAiHudSnapshot(true),
@@ -178,18 +181,16 @@ describe("drawFastDetailHud", () => {
     }, "ko");
 
     expect(values(texts)).toEqual(expect.arrayContaining([
-      "사용자 // 이전 질문",
-      "AI // 이전 답변",
-      "듣는 중…",
+      "현재 질문", "현재 답변", "듣고 있습니다",
     ]));
-    const listening = texts.find(({ value }) => value === "듣는 중…");
-    const user = texts.find(({ value }) => value === "사용자 // 이전 질문");
-    expect(listening?.y).toBe(274);
-    expect((listening?.y ?? 0) - (user?.y ?? 0)).toBeGreaterThanOrEqual(29);
+    const listening = texts.find(({ value }) => value === "듣고 있습니다");
+    const user = texts.find(({ value }) => value === "현재 질문");
+    expect(listening?.y).toBe(36);
+    expect(user?.y).toBeGreaterThan(listening?.y ?? 0);
     expect(values(texts).some((value) => value.includes("1/"))).toBe(false);
   });
 
-  it("does not show a response-displaying phase header", () => {
+  it("shows response presentation in the persistent status band", () => {
     const { canvas, texts } = createCanvas();
     const ai = {
       ...createAiHudSnapshot(true),
@@ -208,8 +209,8 @@ describe("drawFastDetailHud", () => {
       aiLine: 0,
     }, "ko");
 
-    expect(values(texts)).toContain("AI // 천천히 표시되는 답변");
-    expect(values(texts)).not.toContain("답변 표시 중…");
+    expect(values(texts)).toContain("천천히 표시되는 답변");
+    expect(values(texts)).toContain("답변 표시 중…");
   });
 
   it("renders English fixed copy while preserving source content", () => {
@@ -275,11 +276,11 @@ describe("drawFastDetailHud", () => {
     expect(canvas.height).toBe(288);
     expect(rectangles[0]).toEqual([0, 0, 576, 288]);
     expect(values(texts)).toEqual(expect.arrayContaining([
-      "NEWS // LIVE",
+      fixedHud("ko", "NEWS // LIVE"),
       "01/06 · P1/1",
       "첫 번째 실제 기사 제목",
       "RSS 요약 내용이 안경 전체 화면에 선명하게 표시됩니다.",
-      "DOUBLE TAP // BACK",
+      fixedHud("ko", "DOUBLE TAP // BACK"),
     ]));
     expect(texts.find(({ value }) => value.startsWith("RSS 요약"))).toMatchObject({
       x: 24,
@@ -300,13 +301,13 @@ describe("drawFastDetailHud", () => {
     });
 
     expect(values(texts)).toEqual(expect.arrayContaining([
-      "TODO // ACTIVE",
+      fixedHud("ko", "TODO // ACTIVE"),
       "완료 1 / 3",
       "[ ] 지하철역으로 이동",
       "> [ ] 우산 챙기기",
       "[X] 경로 확인",
-      "TAP // TOGGLE",
-      "DOUBLE TAP // BACK",
+      fixedHud("ko", "TAP // TOGGLE"),
+      fixedHud("ko", "DOUBLE TAP // BACK"),
     ]));
   });
 
@@ -323,13 +324,13 @@ describe("drawFastDetailHud", () => {
     });
 
     expect(values(texts)).toEqual(expect.arrayContaining([
-      "NAV // ACTIVE",
-      "STEP 01 / 02",
-      "DEST // 홍대입구역",
+      fixedHud("ko", "NAV // ACTIVE"),
+      "01 / 02",
+      "목적지 // 홍대입구역",
       "오른쪽 골목으로 우회전",
-      "STEP // 120m",
-      "TAP // CURRENT",
-      "DOUBLE TAP // BACK",
+      "120m",
+      fixedHud("ko", "TAP // CURRENT"),
+      fixedHud("ko", "DOUBLE TAP // BACK"),
     ]));
   });
 
@@ -346,7 +347,7 @@ describe("drawFastDetailHud", () => {
     });
 
     expect(values(texts)).toEqual(expect.arrayContaining([
-      "WEATHER // LIVE",
+      fixedHud("ko", "WEATHER // LIVE"),
       "28°C",
       "맑음",
       "체감온도",
@@ -357,7 +358,7 @@ describe("drawFastDetailHud", () => {
       "20%",
       "바람",
       "8km/h",
-      "DOUBLE TAP // BACK",
+      fixedHud("ko", "DOUBLE TAP // BACK"),
     ]));
     expect(values(texts)).not.toContain("경로 키 필요");
     expect(texts.find(({ value }) => value === "28°C")?.font)
@@ -375,9 +376,9 @@ describe("drawFastDetailHud", () => {
   });
 
   it.each([
-    ["stale", "WEATHER // LAST", "LAST DATA"],
-    ["loading", "WEATHER // LOADING", "날씨 불러오는 중"],
-    ["unavailable", "WEATHER // UNAVAILABLE", "날씨를 표시할 수 없음"],
+    ["stale", fixedHud("ko", "WEATHER // LAST"), fixedHud("ko", "LAST DATA")],
+    ["loading", fixedHud("ko", "WEATHER // LOADING"), "날씨 불러오는 중"],
+    ["unavailable", fixedHud("ko", "WEATHER // UNAVAILABLE"), "날씨를 표시할 수 없음"],
   ] as const)("shows weather %s state without key guidance", (
     status,
     expected,
@@ -411,13 +412,13 @@ describe("drawFastDetailHud", () => {
   });
 
   it.each([
-    ["news", "loading", "NEWS // LOADING"],
-    ["news", "unavailable", "NEWS // UNAVAILABLE"],
-    ["todo", "loading", "TODO // LOADING"],
-    ["todo", "unavailable", "TODO // UNAVAILABLE"],
-    ["navigation", "loading", "NAV // LOADING"],
-    ["navigation", "disabled", "NAV // DISABLED"],
-    ["navigation", "unavailable", "NAV // UNAVAILABLE"],
+    ["news", "loading", fixedHud("ko", "NEWS // LOADING")],
+    ["news", "unavailable", fixedHud("ko", "NEWS // UNAVAILABLE")],
+    ["todo", "loading", fixedHud("ko", "TODO // LOADING")],
+    ["todo", "unavailable", fixedHud("ko", "TODO // UNAVAILABLE")],
+    ["navigation", "loading", fixedHud("ko", "NAV // LOADING")],
+    ["navigation", "disabled", getReleaseCopy("ko", "orsSetupTitle")],
+    ["navigation", "unavailable", fixedHud("ko", "NAV // UNAVAILABLE")],
   ] as const)("shows %s %s state", (mode, status, expected) => {
     const live = {
       ...liveState(),
@@ -437,7 +438,7 @@ describe("drawFastDetailHud", () => {
     });
 
     expect(values(texts)).toContain(expected);
-    expect(values(texts)).toContain("DOUBLE TAP // BACK");
+    expect(values(texts)).toContain(fixedHud("ko", "DOUBLE TAP // BACK"));
   });
 
   it("renders every long summary page without changing the article title", () => {
@@ -487,4 +488,16 @@ describe("drawFastDetailHud", () => {
     expect(values(second.texts)).toContain("E".repeat(50));
     expect(values(second.texts)).not.toContain("A".repeat(50));
   });
+});
+
+it("shows matching elapsed recording and local clocks in both AI headers", () => {
+  const ai = { ...createAiHudSnapshot(true), phase: "listening" as const, recording: { seconds: 204 } };
+  for (const mode of ["ai", "conversate"] as const) {
+    const { canvas, texts } = createCanvas();
+    drawFastDetailHud(canvas, { mode, live: liveState(), newsIndex: 0, newsPage: 0, todoIndex: 0, navigationIndex: 0,
+      ai, conversate: { phase: "listening", recording: { seconds: 204 }, partial: "", segments: [], informs: [], suggestions: [], selectedSuggestion: 0,
+        copilotOpen: false, transcriptOffset: 0, informHistoryOpen: false, selectedInform: 0, history: [] } }, "ko");
+    expect(texts.some(t => /^● 03:24 · \d{2}:\d{2}$/.test(t.value) && t.y === 7)).toBe(true);
+    expect(texts.some(t => t.font.startsWith("bold 28px"))).toBe(true);
+  }
 });

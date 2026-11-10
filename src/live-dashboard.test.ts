@@ -254,7 +254,7 @@ describe("createLiveDashboardSession", () => {
       .toEqual(expect.arrayContaining([
         "/api/news?feed=sbs-latest",
         "/api/news?feed=newsis-breaking",
-        "/api/news?feed=weekly-khan-latest",
+        "/api/news?feed=ohmynews-latest",
         expect.stringMatching(/^\/api\/map/),
       ]));
     expect(updates.filter(({ target }) => target === "left")).toHaveLength(2);
@@ -554,7 +554,7 @@ describe("createLiveDashboardSession", () => {
       id: "guid:live-one",
       title: "실시간 첫 뉴스",
       publishedAt: Date.parse("2026-07-27T05:00:00Z"),
-      source: "주간경향 최신기사",
+      source: "오마이뉴스 최신기사",
     }]);
   });
 

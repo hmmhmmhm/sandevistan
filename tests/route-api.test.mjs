@@ -87,7 +87,7 @@ test("validates a device key and never returns it", async () => {
   assert.equal(upstream.origin, "https://api.openrouteservice.org");
   assert.equal(upstream.pathname, "/geocode/search");
   assert.equal(upstream.searchParams.get("api_key"), DEVICE_SECRET);
-  assert.equal(calls[0].options.redirect, "error");
+  assert.equal(calls[0].options.redirect, "manual");
 });
 
 test("prefers the request key over the development fallback", async () => {
@@ -193,7 +193,7 @@ test("normalizes at most five valid Korean geocoding results", async () => {
   assert.equal(upstream.searchParams.get("text"), "서울역");
   assert.equal(upstream.searchParams.get("boundary.country"), "KR");
   assert.equal(upstream.searchParams.get("size"), "5");
-  assert.equal(calls[0].options.redirect, "error");
+  assert.equal(calls[0].options.redirect, "manual");
   assert.equal(calls[0].options.headers.accept, "application/json");
   assert.ok(calls[0].options.signal instanceof AbortSignal);
 });
@@ -281,7 +281,7 @@ test("normalizes a directions result and sends the exact ORS request", async () 
       instructions: true,
       language: "en",
     }),
-    redirect: "error",
+    redirect: "manual",
     signal: calls[0].options.signal,
   });
   assert.ok(calls[0].options.signal instanceof AbortSignal);

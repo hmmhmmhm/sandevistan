@@ -19,6 +19,8 @@ export type RealtimeServerEvent = {
   };
   readonly response?: {
     readonly id?: string;
+    readonly status?: string;
+    readonly status_details?: { readonly error?: { readonly message?: string } };
     readonly usage?: {
       readonly input_tokens?: number;
       readonly output_tokens?: number;

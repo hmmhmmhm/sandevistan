@@ -1,3 +1,5 @@
+import { getReleaseCopy } from "../release-i18n";
+import type { PhoneLocale } from "../phone-types";
 import { useState } from "react";
 import { LOCALE_OPTIONS } from "../i18n/locale-registry";
 import type { PhoneLocaleSetting } from "../phone-types";
@@ -5,9 +7,11 @@ import type { PhoneStringKey } from "../phone-i18n";
 
 export function LanguageScreen({
   value,
+  locale = "en",
   t,
   onChange,
 }: {
+  readonly locale?: PhoneLocale;
   readonly value: PhoneLocaleSetting;
   readonly t: (key: PhoneStringKey) => string;
   readonly onChange: (
@@ -29,6 +33,7 @@ export function LanguageScreen({
   };
   return (
     <div className="phone-detail-stack">
+      <p className="phone-form-message">{getReleaseCopy(locale, "translationQualityNotice")}</p>
       <fieldset className="phone-panel phone-choice-list">
         <legend className="phone-visually-hidden">{t("language")}</legend>
         {choices.map(({ value: choice, label }) => (

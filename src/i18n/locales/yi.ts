@@ -14,7 +14,7 @@ export const yiLocale = {
     "devices": "דיווייסיז",
     "hudLayout": "HUD אויסלייג",
     "news": "נייַעס",
-    "todo": "TODO",
+    "todo": "צו טאָן",
     "weather": "וועטער",
     "navigation": "נאַוויגאַציע",
     "language": "שפּראַך",

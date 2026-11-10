@@ -1,0 +1,21 @@
+{
+  "version": "0.2.3",
+  "bytes": 2195126,
+  "sha256": "1f60d606ff09a5b167f1e388a78cafa690feb80f345cede5f53a730fcd6fff73",
+  "status": "uploaded-and-verified",
+  "visibility": "Private",
+  "changelog": "Add elapsed recording and local clocks to Ask AI and Conversate. Combine live Ask AI captions with final transcription refinement before answering. Improve initial Conversate readiness, prevent speech truncation and mismatched translations, and preserve received answers after late session events. Verify real OpenAI responses with synthetic speech and double-tap exit.",
+  "changelogApproved": true,
+  "liveVerification": [
+    "output/ask-ai-dual-2026-11-08/result.json",
+    "output/conversate-live-2026-11-08/result.json"
+  ],
+  "bundleKeyPatterns": 0,
+  "vitestTests": 744,
+  "nodeTests": 637,
+  "browserSessionsRemaining": 0,
+  "approval": "User: 배포하죠",
+  "changelogVerified": true,
+  "verifiedAt": "2026-11-08T09:05:11.411812+00:00",
+  "evidence": "output/ask-ai-dual-2026-11-08/evenhub-023-confirmed.txt"
+}

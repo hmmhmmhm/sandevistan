@@ -64,7 +64,7 @@ export const bmLocale = {
     "bilateral": "Fɛn fila jirali",
     "trace": "WebView taamasiyɛn",
     "renderer": "Baarakɛla",
-    "transport": "Transport",
+    "transport": "Taaliya",
     "location": "Yɔrɔ min bɛ yen",
     "temperature": "Furakɛcogo",
     "apparent": "A bɛ kɛ i n'a fɔ",

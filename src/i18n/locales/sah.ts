@@ -14,7 +14,7 @@ export const sahLocale = {
     "devices": "Тэриллэр",
     "hudLayout": "HUD макета",
     "news": "Сонуннар",
-    "todo": "TODO",
+    "todo": "Сорудах",
     "weather": "Күн-дьыл",
     "navigation": "Навигация",
     "language": "Тыл",

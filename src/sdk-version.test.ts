@@ -4,18 +4,19 @@ import appManifest from "../app.json";
 import packageManifest from "../package.json";
 
 describe("Even Hub SDK compatibility", () => {
-  it("pins the stable 0.0.11 fallback and its minimum Even App version", () => {
+  it("pins the 0.0.16 upgrade candidate and its minimum Even App version", () => {
     const installed = packageManifest.dependencies["@evenrealities/even_hub_sdk"];
 
-    expect(installed).toBe("0.0.11");
+    expect(installed).toBe("0.0.16");
     expect(appManifest.min_sdk_version).toBe(installed);
-    expect(appManifest.min_app_version).toBe("2.2.6");
+    expect(packageManifest.scripts.pack).toContain(`--sdk-ver ${installed}`);
+    expect(appManifest.min_app_version).toBe("2.2.10");
     expect(packageManifest.scripts.qr).toBe(
-      'evenhub qr --url "http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.11&build=sdk0011-current-063"',
+      'evenhub qr --url "http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.16&build=sdk0016-current-audit-20261108"',
     );
   });
 
-  it("omits the unstable compressed-image transport flag", () => {
+  it("uses the SDK compressed-image transport contract", () => {
     const payload = new ImageRawDataUpdate({
       containerID: 3,
       containerName: "frame",
@@ -26,6 +27,7 @@ describe("Even Hub SDK compatibility", () => {
       containerID: 3,
       containerName: "frame",
       imageData: [1, 2, 3],
+      compressMode: 2,
     });
   });
 
@@ -55,32 +57,32 @@ describe("Even Hub SDK compatibility", () => {
     ));
 
     expect(scripts["qr:pipeline2"]).toContain(
-      "sdk=0.0.11&pipeline=2&build=pipeline-2-sdk0011-063",
+      "sdk=0.0.16&pipeline=2&build=pipeline-2-sdk0016-audit-20261108",
     );
     expect(scripts["qr:pipeline2"]).toContain(
       "http://100.127.255.11:4179/",
     );
     expect(scripts["qr:pipeline3"]).toContain(
-      "sdk=0.0.11&pipeline=3&build=pipeline-3-sdk0011-063",
+      "sdk=0.0.16&pipeline=3&build=pipeline-3-sdk0016-audit-20261108",
     );
     expect(scripts["qr:pipeline3"]).toContain(
       "http://100.127.255.11:4179/",
     );
     expect(scripts["qr:pipeline4"]).toContain(
-      "sdk=0.0.11&pipeline=4&build=pipeline-4-sdk0011-063",
+      "sdk=0.0.16&pipeline=4&build=pipeline-4-sdk0016-audit-20261108",
     );
     expect(scripts["qr:pipeline4"]).toContain(
       "http://100.127.255.11:4179/",
     );
     expect(scripts["qr:palette4"]).toContain(
-      "sdk=0.0.11&pipeline=4&levels=4&build=palette-4-sdk0011-063",
+      "sdk=0.0.16&pipeline=4&levels=4&build=palette-4-sdk0016-audit-20261108",
     );
     expect(scripts["qr:palette4"]).toContain(
       "http://100.127.255.11:4179/",
     );
     expect(scripts["qr:rollback"]).toContain(
-      "sdk=0.0.11&pipeline=1&levels=original"
-        + "&build=rollback-serial-original-sdk0011-063",
+      "sdk=0.0.16&pipeline=1&levels=original"
+        + "&build=rollback-serial-original-sdk0016-audit-20261108",
     );
     expect(scripts["qr:rollback"]).toContain(
       "http://100.127.255.11:4179/",

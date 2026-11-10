@@ -1,5 +1,5 @@
 import { readCache, writeCache, type EvenStorage } from "./live-cache";
-import { BUILT_IN_RSS_FEEDS } from "../server/news-feeds.js";
+import { BUILT_IN_RSS_FEEDS, RETIRED_RSS_FEEDS } from "../server/news-feeds.js";
 import { isSupportedLocale } from "./i18n/locale-registry";
 import type { PhoneLocale } from "./phone-types";
 
@@ -38,7 +38,7 @@ const STORED_SOURCE_LIMIT =
 const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
 const BUILT_IN_IDS = new Set(BUILT_IN_RSS_SOURCES.map(({ id }) => id));
 const BUILT_IN_FEEDS = new Set(
-  BUILT_IN_RSS_SOURCES.map(({ feed }) => feed),
+  [...BUILT_IN_RSS_SOURCES.map(({ feed }) => feed), ...RETIRED_RSS_FEEDS.map(({ id }) => id)],
 );
 
 type UrlValidation =
@@ -88,12 +88,13 @@ function customizedBuiltIn(
   source: RssSource,
   stored: readonly RssSource[],
 ): RssSource {
+  const retired = RETIRED_RSS_FEEDS.find(item => item.replacement === source.id);
   const saved = stored.find((candidate) => (
     candidate.id === source.id && candidate.isDefault
-  ));
+  )) ?? (retired ? stored.find(candidate => candidate.id === retired.id && candidate.isDefault) : undefined);
   return {
     ...source,
-    ...(saved ? { name: saved.name, enabled: saved.enabled } : {}),
+    ...(saved ? { name: retired && saved.id === retired.id && saved.name === retired.name ? source.name : saved.name, enabled: saved.enabled } : {}),
   };
 }
 
@@ -122,16 +123,20 @@ export function defaultRssSources(
 export function validateRssSourceUrl(value: string): UrlValidation {
   try {
     const url = new URL(value.trim());
-    const hostname = url.hostname.toLowerCase();
+    const hostname = url.hostname.toLowerCase().replace(/\.+$/, "");
     if (
       url.protocol !== "https:"
       || url.username
       || url.password
       || url.hash
       || (url.port && url.port !== "443")
+      || !hostname.includes(".")
       || hostname === "localhost"
       || hostname.endsWith(".localhost")
       || hostname.endsWith(".local")
+      || hostname.endsWith(".internal")
+      || hostname.endsWith(".home")
+      || hostname.endsWith(".lan")
       || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname)
       || hostname.includes(":")
     ) {

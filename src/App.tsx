@@ -1,3 +1,4 @@
+import { LOCALE_REGISTRY } from "./i18n/locale-registry";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createBrowserStorage } from "./browser-storage";
 import { useHudController } from "./fast-hud-controller";
@@ -119,6 +120,7 @@ export function App({ autoStart = true }: AppProps) {
   const companionOrsKeyRef = useRef<string | undefined>(undefined);
   const [companionOpenAiKey, setCompanionOpenAiKeyState] = useState<string>();
   const companionOpenAiKeyRef = useRef<string | undefined>(undefined);
+  const aiKeyChangeRef = useRef<(() => void) | undefined>(undefined);
   const [companionAiSnapshot, setCompanionAiSnapshotState] = useState(
     () => createAiHudSnapshot(false),
   );
@@ -165,6 +167,8 @@ export function App({ autoStart = true }: AppProps) {
   const setCompanionOpenAiKey = (value: string | undefined) => {
     companionOpenAiKeyRef.current = value;
     setCompanionOpenAiKeyState(value);
+    if (value && conversate.snapshotRef.current.error === "OpenAI key required") conversate.setSnapshot({ ...conversate.snapshotRef.current, phase: "idle", error: undefined });
+    aiKeyChangeRef.current?.();
   };
   const setCompanionAiSnapshot = useCallback((value: AiHudSnapshot) => {
     aiSnapshotRef.current = value;
@@ -251,6 +255,7 @@ export function App({ autoStart = true }: AppProps) {
     displayRefreshRef,
     companionOrsKeyRef,
     companionOpenAiKeyRef,
+    aiKeyChangeRef,
     aiSnapshotRef,
     conversateSettingsRef: conversate.settingsRef,
     conversateSnapshotRef: conversate.snapshotRef,
@@ -275,17 +280,17 @@ export function App({ autoStart = true }: AppProps) {
     profile: RouteProfile,
   ) => {
     const session = liveSessionRef.current;
-    if (!session) throw new Error("길찾기 세션이 아직 준비되지 않았습니다.");
+    if (!session) throw new Error(LOCALE_REGISTRY[phoneLocale].route.startFailed);
     await session.startRoute(destination, profile);
   };
   const endCompanionRoute = async () => {
     const session = liveSessionRef.current;
-    if (!session) throw new Error("길찾기 세션이 아직 준비되지 않았습니다.");
+    if (!session) throw new Error(LOCALE_REGISTRY[phoneLocale].route.endFailed);
     await session.endRoute();
   };
   const resumeCompanionRoute = async () => {
     const session = liveSessionRef.current;
-    if (!session) throw new Error("길찾기 세션이 아직 준비되지 않았습니다.");
+    if (!session) throw new Error(LOCALE_REGISTRY[phoneLocale].route.startFailed);
     await session.resumeRoute();
   };
   const activeCompanionRoute = companionRoute.status === "fresh"

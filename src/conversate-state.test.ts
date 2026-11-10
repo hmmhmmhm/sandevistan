@@ -24,3 +24,13 @@ describe("Conversate settings", () => {
     });
   });
 });
+
+it("rejects malformed persisted Copilot records while accepting older sessions without them", async () => {
+  const { resolveConversateHistory } = await import("./conversate-state");
+  const old = { id:"old",startedAt:"2026-11-08",endedAt:"2026-11-08",segments:[],informs:[] };
+  let value = JSON.stringify([old]);
+  const storage = { getLocalStorage: async () => value, setLocalStorage: async () => true };
+  expect(await resolveConversateHistory(storage)).toHaveLength(1);
+  value = JSON.stringify([{ ...old,copilotHistory:[{ id:"bad",at:"now",suggestions:[{ original:42 }] }] }]);
+  expect(await resolveConversateHistory(storage)).toEqual([]);
+});

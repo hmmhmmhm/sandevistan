@@ -14,7 +14,7 @@ export const elLocale = {
     "devices": "Συσκευές",
     "hudLayout": "Διάταξη HUD",
     "news": "Ειδήσεις",
-    "todo": "TODO",
+    "todo": "ΕΚΚΡΕΜΕΙ",
     "weather": "Καιρός",
     "navigation": "Πλοήγηση",
     "language": "Γλώσσα",
@@ -42,8 +42,8 @@ export const elLocale = {
     "cancel": "Ακύρωση",
     "edit": "Επεξεργασία",
     "add": "Προσθήκη",
-    "refresh": "Ανανέωση\n006 ||| Αναζωογονητικό",
-    "refreshing": "Refreshing",
+    "refresh": "Ανανέωση",
+    "refreshing": "Γίνεται ανανέωση",
     "addTask": "Προσθήκη εργασίας",
     "taskTitle": "Τίτλος εργασίας",
     "addSource": "Προσθήκη πηγής RSS",
@@ -97,12 +97,12 @@ export const elLocale = {
     "refreshFailed": "Δεν ήταν δυνατή η ανανέωση του καιρού."
   },
   "hud": {
-    "feels": "ΑΙΣΘΑΝΕΙ\n029 |||ΝΙΩΘΕΙ ΣΑΝ",
-    "feelsLike": "FEELS LIKE",
+    "feels": "ΑΙΣΘΗΣΗ",
+    "feelsLike": "ΑΙΣΘΗΤΗ ΘΕΡΜΟΚΡΑΣΙΑ",
     "humidity": "ΥΓΡΑΣΙΑ",
     "rain": "ΒΡΟΧΗ",
     "precipitation": "ΒΡΟΧΗ",
-    "wind": "WIND",
+    "wind": "ΑΝΕΜΟΣ",
     "weatherLoading": "Καιρός φόρτωσης",
     "weatherUnavailable": "Ο καιρός δεν είναι διαθέσιμος",
     "weatherWaiting": "Αναμονή για τοπικά καιρικά δεδομένα.",
@@ -175,11 +175,11 @@ export const elLocale = {
   },
   "weekdays": [
     "Κυριακή",
-    "Δευτέρα\n007 |||Τρίτη",
-    "Tuesday",
+    "Δευτέρα",
+    "Τρίτη",
     "Τετάρτη",
     "Πέμπτη",
-    "Παρασκευή\n011 |||Σάββατο",
-    "Saturday"
+    "Παρασκευή",
+    "Σάββατο"
   ]
 } as const satisfies LocalePack;

@@ -1,3 +1,4 @@
+import type { AiCaptureState } from "./ai-hold-capture";
 import {
   addAiUsage,
   EMPTY_AI_USAGE,
@@ -42,6 +43,9 @@ type AiConversationTurnRef = {
 };
 
 export type AiRealtimeProtocolState = {
+  readonly captureState?: AiCaptureState;
+  readonly model?: string;
+  readonly transcriptionModel?: string;
   readonly phase: AiRealtimePhase;
   readonly turns: readonly AiConversationTurn[];
   readonly userText: string;
@@ -278,7 +282,7 @@ export function reduceRealtimeServerEvent(
     case "conversation.item.input_audio_transcription.completed": {
       const usage = usageFromTranscription(event);
       const charge = priceTranscriptionUsage({
-        model: "gpt-4o-mini-transcribe",
+        model: state.transcriptionModel ?? "gpt-4o-mini-transcribe",
         audioInputTokens: usage.transcriptionAudioInputTokens,
         textOutputTokens: usage.transcriptionTextOutputTokens,
       });
@@ -304,6 +308,7 @@ export function reduceRealtimeServerEvent(
         ...state,
         activeUserItemId: event.item_id ?? state.activeUserItemId,
         userText: boundedText(event.transcript ?? state.userText),
+        ...(!event.transcript?.trim() && !state.activeResponseId ? { phase: "listening" as const } : {}),
         usage: addAiUsage(state.usage, usage),
         charge: mergeAiUsageCharge(state.charge, charge),
       };
@@ -357,6 +362,7 @@ export function reduceRealtimeServerEvent(
         ...state,
         activeResponseId: id ?? state.activeResponseId,
         assistantText: boundedText(event.text ?? state.assistantText),
+        phase: "listening",
       };
     }
     case "response.done": {
@@ -367,26 +373,32 @@ export function reduceRealtimeServerEvent(
           ...state,
           usage: addAiUsage(state.usage, usage),
           charge: mergeAiUsageCharge(state.charge, priceRealtimeUsage({
-            model: "gpt-realtime",
+            model: state.model ?? "gpt-realtime",
             ...usage,
           })),
         };
       }
       if (!acceptsResponse(state, id)) return state;
       const usage = usageFromResponse(event);
+      const failure = event.response?.status === "failed"
+        ? boundedText(event.response.status_details?.error?.message ?? "Realtime response failed", 160)
+        : undefined;
       return {
         ...state,
-        phase: "listening",
-        responseComplete: true,
+        phase: failure ? "error" : "listening",
+        responseComplete: !failure,
+        error: failure,
         activeTool: undefined,
         activeResponseId: id ?? state.activeResponseId,
         usage: addAiUsage(state.usage, usage),
         charge: mergeAiUsageCharge(state.charge, priceRealtimeUsage({
-          model: "gpt-realtime",
+          model: state.model ?? "gpt-realtime",
           ...usage,
         })),
       };
     }
+    case "conversation.item.input_audio_transcription.failed":
+      if (isRetired(state.retiredUserItemIds, event.item_id)) return state;
     case "error":
       return {
         ...state,

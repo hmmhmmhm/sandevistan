@@ -1,3 +1,4 @@
+import { releaseTranslation } from "./release-i18n";
 import type { SupportedLocale } from "./i18n/locale-registry";
 import { ADDITIONAL_AI_TRANSLATIONS } from "./i18n/additional-ai-translations";
 
@@ -69,5 +70,7 @@ export function translateMcpPhone(
   locale: SupportedLocale,
   key: McpPhoneStringKey,
 ): string {
+  const translated = releaseTranslation(locale, "mcp", key);
+  if (translated !== undefined) return translated;
   return strings[locale][key];
 }

@@ -14,7 +14,7 @@ export const myLocale = {
     "devices": "စက်ပစ္စည်းများ",
     "hudLayout": "HUD အပြင်အဆင်",
     "news": "သတင်း",
-    "todo": "TODO",
+    "todo": "လုပ်ရန်",
     "weather": "ရာသီဥတု",
     "navigation": "အညွှန်း",
     "language": "ဘာသာစကား",
@@ -67,7 +67,7 @@ export const myLocale = {
     "transport": "သယ်ယူပို့ဆောင်ရေး",
     "location": "တည်နေရာ",
     "temperature": "အပူချိန်",
-    "apparent": "Feels like",
+    "apparent": "ခံစားရသောအပူချိန်",
     "humidity": "စိုထိုင်းဆ",
     "precipitation": "မိုးရွာသွန်းမှု",
     "wind": "လေတိုက်",
@@ -99,9 +99,9 @@ export const myLocale = {
   "hud": {
     "feels": "ခံစားမှု",
     "feelsLike": "ကြိုက်တယ်။",
-    "humidity": "HUMIDITY",
+    "humidity": "စိုထိုင်းဆ",
     "rain": "မိုး",
-    "precipitation": "PRECIPITATION",
+    "precipitation": "မိုးရွာသွန်းမှု",
     "wind": "လေတိုက်",
     "weatherLoading": "ရာသီဥတုကို တင်နေသည်။",
     "weatherUnavailable": "ရာသီဥတု မရရှိနိုင်ပါ။",
@@ -165,7 +165,7 @@ export const myLocale = {
     "rain": "မိုး",
     "snow": "နှင်း",
     "showers": "မိုးရေ",
-    "snowShowers": "Snow showers",
+    "snowShowers": "နှင်းကျခြင်း",
     "thunderstorm": "မိုးကြိုးမုန်တိုင်း"
   },
   "todos": {

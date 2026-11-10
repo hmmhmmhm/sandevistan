@@ -102,9 +102,9 @@ const FIXED_FEEDS_BY_LOCALE = new Map([
       locale: "ko",
     },
     {
-      id: "weekly-khan-latest",
-      name: "주간경향 최신기사",
-      url: "https://weekly.khan.co.kr/rss/rssdata/total_news.xml",
+      id: "ohmynews-latest",
+      name: "오마이뉴스 최신기사",
+      url: "https://rss.ohmynews.com/rss/ohmynews.xml",
       locale: "ko",
     },
   ]],
@@ -383,3 +383,7 @@ export const BUILT_IN_RSS_FEEDS = Object.freeze(
     ...ADDITIONAL_FEEDS_BY_LOCALE.values(),
   ].flat().map((feed) => Object.freeze(feed)),
 );
+
+export const RETIRED_RSS_FEEDS = Object.freeze([
+  Object.freeze({ id: "weekly-khan-latest", name: "주간경향 최신기사", replacement: "ohmynews-latest" }),
+]);

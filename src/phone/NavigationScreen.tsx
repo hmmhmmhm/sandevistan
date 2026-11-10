@@ -1,3 +1,6 @@
+import { KeySetupHelp } from "./KeySetupHelp";
+import type { PhoneLocale } from "../phone-types";
+import { apiEndpoint } from "../api-endpoint";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { EvenStorage } from "../live-cache";
 import type { PhoneStringKey } from "../phone-i18n";
@@ -13,6 +16,7 @@ import { clearActiveRouteCache } from "../navigation";
 
 export function NavigationScreen({
   storage,
+  locale = "en",
   routeControls,
   t,
   fetchImpl = fetch,
@@ -20,6 +24,7 @@ export function NavigationScreen({
   onKeyChange,
   onDeleteRoute,
 }: {
+  readonly locale?: PhoneLocale;
   readonly storage?: EvenStorage;
   readonly routeControls: ReactNode;
   readonly t: (key: PhoneStringKey) => string;
@@ -58,7 +63,7 @@ export function NavigationScreen({
     setBusy(true);
     setError(undefined);
     try {
-      const response = await fetchImpl("/api/routing-key-test", {
+      const response = await fetchImpl(apiEndpoint("/api/routing-key-test"), {
         method: "POST",
         headers: {
           accept: "application/json",
@@ -140,6 +145,7 @@ export function NavigationScreen({
 
   return (
     <div className="phone-detail-stack">
+      <KeySetupHelp locale={locale} provider="ors" />
       <section className="phone-panel phone-key-intro">
         <h2>{t("orsKey")}</h2>
         <p>{t("keyLocalOnly")}</p>

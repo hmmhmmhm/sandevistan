@@ -1,3 +1,4 @@
+import { handleAiWebSearchRequest } from "../server/ai-web-search.js";
 import {
   type AiWebSearchResult,
   type AiCitationSource,
@@ -5,7 +6,6 @@ import {
 import { openAiKeyHeaders } from "./openai-key";
 import type { PhoneLocale } from "./phone-types";
 
-const SEARCH_URL = "/api/ai-web-search";
 const MAX_ANSWER = 8_000;
 const MAX_SOURCES = 6;
 
@@ -79,19 +79,20 @@ function parseResult(value: unknown): AiWebSearchResult | undefined {
 export async function requestAiWebSearch(options: {
   readonly key: string;
   readonly query: string;
+  readonly model?: string;
   readonly locale: PhoneLocale;
   readonly signal?: AbortSignal;
   readonly fetchImpl?: typeof fetch;
 }): Promise<AiWebSearchResult> {
-  const response = await (options.fetchImpl ?? fetch)(SEARCH_URL, {
+  const response = await handleAiWebSearchRequest(new Request("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
       ...openAiKeyHeaders(options.key),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ query: options.query, locale: options.locale }),
+    body: JSON.stringify({ query: options.query, locale: options.locale, model: options.model }),
     signal: options.signal,
-  });
+  }), {}, { fetchImpl: options.fetchImpl ?? fetch });
   const data: unknown = await response.json();
   const parsed = parseResult(data);
   if (!response.ok || !parsed) throw new Error("Web search failed");

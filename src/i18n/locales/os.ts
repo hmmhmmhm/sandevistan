@@ -14,7 +14,7 @@ export const osLocale = {
     "devices": "Аппараттæ",
     "hudLayout": "HUD-ы нывæзт",
     "news": "Хабæрттæ",
-    "todo": "TODO",
+    "todo": "Кæнынæн хъуыддæгтæ",
     "weather": "Боныхъæд",
     "navigation": "Навигаци",
     "language": "Æвзаг",

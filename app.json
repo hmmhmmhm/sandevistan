@@ -2,28 +2,39 @@
   "package_id": "com.hmmhmmhm.sandevistan",
   "edition": "202601",
   "name": "SANDEVISTAN",
-  "version": "0.1.2",
-  "min_app_version": "2.2.6",
-  "min_sdk_version": "0.0.11",
+  "version": "0.2.7",
+  "min_app_version": "2.2.10",
+  "min_sdk_version": "0.0.16",
   "entrypoint": "index.html",
   "permissions": [
     {
       "name": "location",
-      "desc": "Uses the current location to render local maps and weather."
+      "desc": "Uses your location for maps, weather and location-aware AI tools."
     },
     {
       "name": "network",
       "desc": "Loads weather, map, news, optional routing, and BYOK Realtime AI data.",
       "whitelist": [
         "https://api.open-meteo.com",
+        "https://geocoding-api.open-meteo.com",
         "https://api.openai.com",
-        "wss://api.openai.com"
+        "wss://api.openai.com",
+        "https://sandevistan-api.hmmhmmhm.workers.dev"
       ]
     },
     {
       "name": "g2-microphone",
-      "desc": "Uses the G2 microphone only while an Ask AI conversation is active."
+      "desc": "Uses the G2 microphone only while an Ask AI or Conversate session is active."
     }
   ],
-  "supported_languages": ["en", "de", "fr", "es", "it", "zh", "ja", "ko"]
+  "supported_languages": [
+    "en",
+    "de",
+    "fr",
+    "es",
+    "it",
+    "zh",
+    "ja",
+    "ko"
+  ]
 }

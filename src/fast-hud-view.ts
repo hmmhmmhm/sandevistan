@@ -9,6 +9,7 @@ export const FAST_MAP_DEFAULT_ZOOM_INDEX = 1;
 
 export type FastHudViewMode =
   | "dashboard"
+  | "quick-menu"
   | "map"
   | "news"
   | "todo"
@@ -19,6 +20,7 @@ export type FastHudViewMode =
 
 export type FastHudViewState = {
   readonly mode: FastHudViewMode;
+  readonly menuIndex: number;
   readonly zoomIndex: number;
   readonly newsIndex: number;
   readonly newsPage: number;
@@ -69,7 +71,7 @@ function newsPageCount(
   );
 }
 
-function pageMode(page: FastHudPage): Exclude<FastHudViewMode, "dashboard"> {
+function pageMode(page: FastHudPage): Exclude<FastHudViewMode, "dashboard" | "quick-menu"> {
   return page === "overview" ? "map" : page;
 }
 
@@ -99,6 +101,7 @@ function moveIndex(
 export function createFastHudViewState(): FastHudViewState {
   return {
     mode: "dashboard",
+    menuIndex: 2,
     zoomIndex: FAST_MAP_DEFAULT_ZOOM_INDEX,
     newsIndex: 0,
     newsPage: 0,
@@ -143,7 +146,14 @@ export function reduceFastHudInput(
   input: FastCanvasInput,
   context: FastHudViewContext,
 ): FastHudTransition {
+  if (current.mode === "quick-menu") {
+    if (input === "double-tap") return { state: { ...current, mode: "dashboard" }, result: "redraw" };
+    if (input === "tap") return { state: { ...current, mode: "dashboard" }, result: current.menuIndex === 0 ? "hide" : current.menuIndex === 1 ? "exit" : "redraw" };
+    const delta = input === "scroll-next" ? 1 : input === "scroll-previous" ? -1 : 0;
+    return { state: { ...current, menuIndex: Math.max(0, Math.min(2, current.menuIndex + delta)) }, result: delta ? "redraw" : "consume" };
+  }
   if (current.mode === "dashboard") {
+    if (input === "double-tap") return { state: { ...current, mode: "quick-menu", menuIndex: 2 }, result: "redraw" };
     if (input !== "tap") return { state: current, result: "unhandled" };
     const state = syncFastHudView(current, context);
     const mode = pageMode(page);
