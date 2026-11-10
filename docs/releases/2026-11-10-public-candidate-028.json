@@ -1,0 +1,32 @@
+{
+  "version": "0.2.8",
+  "status": "public-review-submitted-in-review",
+  "package": {
+    "path": "sandevistan.ehpk",
+    "bytes": 2691044,
+    "sha256": "6bc058bfa7cea9fa2239b79e65bd71a513ab5cb4fa89e66775b8379242238626",
+    "credentialPatternScan": "passed"
+  },
+  "changelog": "Declare all bundled feed, provider setup and attribution origins in network.whitelist. Use offline bundled icons. Add a mandatory production-bundle URL audit before packaging and a release checklist to prevent undeclared origins in future uploads.",
+  "networkAudit": {
+    "origins": 24,
+    "missing": 0,
+    "invalid": 0,
+    "report": "output/resubmission-028-2026-11-10/network-after.json",
+    "negativeRealBundleChecks": "output/resubmission-028-2026-11-10/negative-real-bundle-checks.json"
+  },
+  "tests": {
+    "vitest": 789,
+    "serverFinal": 653,
+    "networkRegressionTests": 11,
+    "releaseCheckPassed": true
+  },
+  "mandatoryChecklist": "docs/releases/pre-deployment-checklist.md",
+  "uploaded": true,
+  "publicReviewSubmitted": true,
+  "published": false,
+  "physicalG2Checks": "pending; not replaced by simulator or unit tests",
+  "submittedAtPortal": "Nov 10, 2026 at 12:50 PM",
+  "reviewStatus": "In review",
+  "portalEvidence": "output/resubmission-028-2026-11-10/portal-public-in-review.txt"
+}

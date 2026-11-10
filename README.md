@@ -5,7 +5,7 @@
 </p>
 
 > [!NOTE]
-> **Release status:** v0.2.7 was submitted to Even Hub on November 9, 2026 and remains In review as of November 10. It is not publicly approved or published. AI requires a personal paid OpenAI API account, and routing requires an optional OpenRouteService key.
+> **Release status:** v0.2.7 was rejected on November 10, 2026 because bundled URL origins were absent from the network whitelist. v0.2.8 was submitted on November 10 and is In review; public approval is pending. AI requires a personal paid OpenAI API account, and routing requires an optional OpenRouteService key.
 
 <p align="center">
   <img alt="TypeScript 5.9" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white">
@@ -518,3 +518,9 @@ Source and verification harnesses are versioned. Paths under `output/` in
 maintenance records refer to local evidence captures, intentionally excluded
 from Git to avoid publishing private sessions, credentials or personal data.
 Physical G2 regression checks for the current SDK remain pending.
+
+Before any Even Hub upload, complete the [mandatory pre-deployment checklist](docs/releases/pre-deployment-checklist.md)
+and run `npm run release:check`. `npm run pack` also checks actual built JavaScript,
+HTML and CSS origins against the manifest before it creates a package. A missing
+origin blocks packaging. This includes RSS metadata, provider setup and attribution
+links, not just fetch endpoints. Icons are bundled through the offline renderer.

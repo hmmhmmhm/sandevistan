@@ -1,4 +1,4 @@
-import { Icon } from "@iconify/react";
+import { Icon } from "@iconify/react/offline";
 import articleIcon from "@iconify-icons/pixelarticons/article";
 import arrowDownIcon from "@iconify-icons/pixelarticons/arrow-down";
 import arrowUpIcon from "@iconify-icons/pixelarticons/arrow-up";

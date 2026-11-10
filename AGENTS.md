@@ -433,3 +433,12 @@ are development-only until a reviewed fixed-origin integration exists. Productio
 builds must neither show the custom-server editor nor read/use saved MCP server
 credentials. Preserve local settings rather than deleting them. See
 https://hub.evenrealities.com/docs/build/networking .
+
+Mandatory release gate (2026-11-10): before every Even Hub upload or resubmission,
+complete `docs/releases/pre-deployment-checklist.md` and run `npm run release:check`.
+`npm run pack` must keep the built-client network audit before official packaging.
+Review every new bundled API, WebSocket, RSS metadata, provider setup and attribution
+origin against app.json; never bypass audit failures or add wildcard permissions.
+After any client/environment/manifest change, rebuild, audit and hash the package
+again. Keep physical checks explicitly pending when unperformed. This gate applies
+to private builds as well as Public review submissions.

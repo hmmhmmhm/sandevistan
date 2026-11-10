@@ -1,7 +1,7 @@
 {
   "version": "0.2.7",
   "package_id": "com.hmmhmmhm.sandevistan",
-  "status": "public-review-submitted-in-review",
+  "status": "public-review-rejected",
   "package": {
     "version": "0.2.7",
     "sdk": "0.0.16",
@@ -33,7 +33,7 @@
   "publicReviewSubmitted": true,
   "published": false,
   "pending": [
-    "Even Hub review decision"
+    "Prepare corrected v0.2.8 and resubmit"
   ],
   "chromeUseAuthorizedForThisPublicSubmission": true,
   "storeReadbackEvidence": [
@@ -60,8 +60,10 @@
   "portalRequiredChecklistComplete": true,
   "selectedReviewBuild": "0.2.7",
   "contactReadbackEvidence": "output/public-release-prep-2026-11-09/work/contact-saved-verification.json",
-  "portalReadbackEvidence": "output/public-release-prep-2026-11-09/work/portal-public-in-review.txt",
-  "blockingRequirements": [],
+  "portalReadbackEvidence": "output/public-release-prep-2026-11-09/work/portal-review-rejected-2026-11-10.txt",
+  "blockingRequirements": [
+    "Correct bundled URL whitelist coverage"
+  ],
   "apiDeployed": true,
   "latestApiBaseline": "output/public-release-prep-2026-11-09/work/api-baseline-client-validation.json",
   "postDeploymentVerifier": "scripts/verify-public-api-live.mjs",
@@ -69,6 +71,8 @@
   "apiLiveEvidence": "output/public-release-prep-2026-11-09/work/api-after-refresh.json",
   "apiRateLimitEvidence": "output/public-release-prep-2026-11-09/work/api-rate-preview-result.json",
   "submittedAtPortal": "Nov 9, 2026 at 7:51 PM",
-  "reviewStatus": "In review",
-  "telephoneSavedInPortal": true
+  "reviewStatus": "Rejected",
+  "telephoneSavedInPortal": true,
+  "rejectedAtPortal": "Nov 10, 2026 at 12:04 PM",
+  "rejectionReason": "Bundled Le Monde/BBC RSS and OpenAI key-issuance URLs absent from network.whitelist"
 }

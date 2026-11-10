@@ -20,11 +20,14 @@
     "qr:pipeline4": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.16&pipeline=4&build=pipeline-4-sdk0016-audit-20261108\"",
     "qr:palette4": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.16&pipeline=4&levels=4&build=palette-4-sdk0016-audit-20261108\"",
     "qr:bmp1": "evenhub qr --url \"http://100.127.255.11:4179/hud-canvas-fast?sdk=0.0.16&pipeline=4&format=bmp1&build=bmp1-lz4-sdk0016-audit-20261108\"",
-    "pack": "npm run build:evenhub && evenhub pack app.json dist/client --sdk-ver 0.0.16 -o sandevistan.ehpk",
+    "pack": "npm run build:evenhub && npm run check:evenhub-network && evenhub pack app.json dist/client --sdk-ver 0.0.16 -o sandevistan.ehpk",
     "typecheck:simulator": "tsc --noEmit -p tsconfig.simulator.json",
     "sim": "evenhub-simulator http://127.0.0.1:4179/hud-canvas-fast --automation-port 9898",
     "build:evenhub": "vite build --mode evenhub && node scripts/prepare-sites-build.mjs",
-    "build:api": "node scripts/build-api-worker.mjs"
+    "build:api": "node scripts/build-api-worker.mjs",
+    "check:evenhub-network": "node scripts/check-evenhub-network.mjs",
+    "test:server": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "release:check": "npm run typecheck && npm run typecheck:simulator && npm run test:repo && npm test && npm run test:server && npm run pack && npm run build:api"
   },
   "dependencies": {
     "@evenrealities/even_hub_sdk": "0.0.16",

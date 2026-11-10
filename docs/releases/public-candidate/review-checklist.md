@@ -1,6 +1,6 @@
 # Public release review packet
 
-Status: the owner requested Public review submission. Store assets, English listing, contact details and the generated privacy document are saved. Cloudflare authentication, API deployment and remaining device checks are pending.
+Status: v0.2.7 was rejected on November 10 for missing bundled URL origins in the network whitelist. The v0.2.8 correction and mandatory automated release gate are being prepared. Use [the mandatory checklist](../pre-deployment-checklist.md) for every upload. API deployment is complete; physical-device checks remain pending.
 
 ## Owner decisions
 
